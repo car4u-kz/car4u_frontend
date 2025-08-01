@@ -15,10 +15,17 @@ export enum Status {
   started = 0,
   stopped = 1,
   monitoringCompleted = 2,
+  awaitingDeletion = 3,
+  deleted = 4,
+  error = 5,
+
 }
 
 export const statusLabels: Record<Status, string> = {
   [Status.started]: "Запущен",
   [Status.stopped]: "Остановлен",
   [Status.monitoringCompleted]: "Завершено",
+  [Status.awaitingDeletion]: "Ожидает удаления",
+  [Status.deleted]: "Удалено",
+  [Status.error]: "Ошибка",
 };
