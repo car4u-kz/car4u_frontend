@@ -1,24 +1,39 @@
+import { useBackendAuthContext } from "@/context/auth-context";
+import { useLoading } from "@/context/loading-context";
+
 export function useFetchWithAuth() {
   const BACKEND_JWT_KEY = "backend_jwt";
+  const { logout } = useBackendAuthContext();
+  const { startLoading, stopLoading } = useLoading();
 
   async function fetchWithAuth(input: RequestInfo | URL, init?: RequestInit) {
-    const headers = new Headers(init?.headers);
+    startLoading();
+    try {
+      const headers = new Headers(init?.headers);
 
-    const jwt = localStorage.getItem(BACKEND_JWT_KEY);
-    if (jwt) {
-      headers.set("Authorization", `Bearer ${jwt}`);
+      const jwt = localStorage.getItem(BACKEND_JWT_KEY);
+      if (jwt) {
+        headers.set("Authorization", `Bearer ${jwt}`);
+      } else {
+        throw new Error("JWT not found");
+      }
+
+      let url = input;
+      if (typeof input === "string" && !input.startsWith("http")) {
+        url = `${url}`;
+      }
+
+      const response = await fetch(url, { ...init, headers });
+
+      if (response.status === 401) {
+        await logout();
+      }
+
+      return response;
+    } finally {
+      stopLoading();
     }
-
-    let url = input;
-    if (typeof input === "string" && !input.startsWith("http")) {
-      url = `${url}`;
-    }
-
-    const response = await fetch(url, { ...init, headers });
-
-    return response;
   }
 
   return fetchWithAuth;
 }
-

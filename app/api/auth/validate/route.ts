@@ -1,11 +1,13 @@
-import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  
-const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
+  const authHeader =
+    req.headers.get("authorization") || req.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Missing or invalid Authorization header" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Missing or invalid Authorization header" },
+      { status: 401 }
+    );
   }
 
   const clerkToken = authHeader.substring("Bearer ".length);

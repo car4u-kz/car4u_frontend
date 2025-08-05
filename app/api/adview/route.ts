@@ -1,15 +1,13 @@
 import { NextRequest } from "next/server";
-
-import { getInternalApiUrl } from "@/utils/formatters";
+import { proxyToBackend } from "@/lib/auth/proxy-to-backend";
 
 export async function POST(req: NextRequest) {
-  const baseUrl = getInternalApiUrl();
+  const query = new URL(req.url).searchParams.toString();
 
-  const queryString = new URL(req.url).searchParams.toString();
-
-  const res = await fetch(`${baseUrl}/api/adview?${queryString}`);
-
-  const data = await res.json();
-
-  return Response.json(data);
+  return proxyToBackend(req, `/api/adview?${query}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }

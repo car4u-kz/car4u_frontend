@@ -5,12 +5,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { useBackendAuth } from "../hooks/use-backend-auth";
-import { useState } from "react";
-import { UserStatus } from "@/types/user";
-import { AuthErrorModal } from "@/components/auth-error-modal/auth-error-modal";
 import { CircularProgress } from "@mui/material";
-
 import { LoadingProvider, useLoading } from "@/context/loading-context";
 
 function makeQueryClient() {
@@ -59,34 +54,12 @@ function LoadingOverlay() {
 }
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  const [errorStatus, setErrorStatus] = useState<UserStatus | null>(null);
-  const loadingFromAuth = useBackendAuth(setErrorStatus);
-
   const queryClient = getQueryClient();
-
-  if (loadingFromAuth) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          height: "100vh",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <CircularProgress />
-      </div>
-    );
-  }
 
   return (
     <LoadingProvider>
       <QueryClientProvider client={queryClient}>
         {children}
-        <AuthErrorModal
-          errorStatus={errorStatus}
-          onClose={() => setErrorStatus(null)}
-        />
         <LoadingOverlay />
       </QueryClientProvider>
     </LoadingProvider>

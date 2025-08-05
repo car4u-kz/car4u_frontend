@@ -5,12 +5,10 @@ export const getAds = async (fetchWithAuth: typeof fetch) => {
   const isServer = typeof window === "undefined";
   const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
   const url = `${basePath}/api/our-ad`;
-
   try {
     const response = await fetchWithAuth(url, {
       method: "GET",
     });
-
     if (!response.ok) {
       throw new Error("Failed to fetch ads");
     }
@@ -43,7 +41,10 @@ export const getAdFilterList = async (fetchWithAuth: typeof fetch) => {
   }
 };
 
-export const postAd = async (formData: AdFormData, fetchWithAuth: typeof fetch) => {
+export const postAd = async (
+  formData: AdFormData,
+  fetchWithAuth: typeof fetch
+) => {
   const isServer = typeof window === "undefined";
   const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
   const url = `${basePath}/api/our-ad`;
@@ -86,7 +87,6 @@ export const deleteAd = async (adId: number, fetchWithAuth: typeof fetch) => {
     throw error;
   }
 };
-
 
 export const changeAdState = async (
   payload: { id: number; action: MenuItemAction },

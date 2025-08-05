@@ -58,6 +58,7 @@ const MyAds = ({}: Props) => {
   const query = useQuery({
     queryKey: ["my-ads"],
     queryFn: () => getAds(fetchWithAuth),
+    retry: false,
   });
 
   useEffect(() => {
@@ -71,6 +72,7 @@ const MyAds = ({}: Props) => {
   const parsingTemplateQuery = useQuery({
     queryKey: ["my-ads/parsing-template/lookup"],
     queryFn: () => getParsingTemplates(fetchWithAuth),
+    retry: false,
   });
 
   const mutation = useMutation({

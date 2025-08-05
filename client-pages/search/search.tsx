@@ -54,15 +54,8 @@ const SearchPage = () => {
   const query = useQuery({
     queryKey: ["parsing-templates"],
     queryFn: () => getParsingTemplates(fetchWithAuth),
+    retry: false,
   });
-
-  useEffect(() => {
-    if (query.isFetching) {
-      startLoading();
-    } else {
-      stopLoading();
-    }
-  }, [query.isFetching, startLoading, stopLoading]);
 
   const mutation = useMutation({
     mutationFn: async (formData: SearchFormData) => {
