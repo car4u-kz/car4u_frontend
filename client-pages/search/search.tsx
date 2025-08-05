@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, SelectChangeEvent, Typography } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -15,6 +15,8 @@ import {
   getParsingTemplates,
   changeParsingTemplateState,
 } from "@/services/search-services";
+import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
+import { useLoading } from "@/context/loading-context";
 
 const headerLabels = [
   "Название",
@@ -46,14 +48,25 @@ const SearchPage = () => {
   const [formData, setFormData] = useState<SearchFormData>(initialData);
   const [action, setAction] = useState<ActionPayloadType | null>(null);
 
+  const fetchWithAuth = useFetchWithAuth();
+  const { startLoading, stopLoading } = useLoading();
+
   const query = useQuery({
     queryKey: ["parsing-templates"],
-    queryFn: getParsingTemplates,
+    queryFn: () => getParsingTemplates(fetchWithAuth),
   });
+
+  useEffect(() => {
+    if (query.isFetching) {
+      startLoading();
+    } else {
+      stopLoading();
+    }
+  }, [query.isFetching, startLoading, stopLoading]);
 
   const mutation = useMutation({
     mutationFn: async (formData: SearchFormData) => {
-      await postSearch(formData);
+      await postSearch(formData, fetchWithAuth);
     },
     onSuccess: () => {
       setOpen(false);
@@ -78,8 +91,10 @@ const SearchPage = () => {
 
     if (open === "confirmation") {
       const { method, id } = action!;
+
+      const fetchWithAuth = useFetchWithAuth();
       // @ts-ignore
-      await changeParsingTemplateState({ id, action: method });
+      await changeParsingTemplateState({ id, action: method }, fetchWithAuth);
       await query.refetch();
       setOpen(false);
     }

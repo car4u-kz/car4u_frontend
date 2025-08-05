@@ -13,6 +13,8 @@ import { getCars } from "@/services/car-services";
 import { getAdFilterList } from "@/services/ad-services";
 
 import { SEARCH_QUERY as SQ } from "@/constants";
+import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
+import { useLoading } from "@/context/loading-context";
 
 const changebleHeader: Record<SQ, string> = {
   [SQ.all]: "Опубликовано",
@@ -40,6 +42,9 @@ const generateHeaderLabels = (carSeachParam: SQ) => {
 };
 
 const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
+  const fetchWithAuth = useFetchWithAuth();
+  const { startLoading, stopLoading } = useLoading();
+
   const [visiblePages, setVisiblePages] = useState(1);
   const [selectValue, setSelectValue] = useState("");
   const searchParams = useSearchParams();
@@ -50,8 +55,16 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
 
   const queryFilterList = useQuery<{ id: number; name: string }[]>({
     queryKey: ["adview-filters"],
-    queryFn: getAdFilterList,
+    queryFn: () => getAdFilterList(fetchWithAuth),
   });
+
+  useEffect(() => {
+    if (queryFilterList.isFetching) {
+      startLoading();
+    } else {
+      stopLoading();
+    }
+  }, [queryFilterList.isFetching, startLoading, stopLoading]);
 
   useEffect(() => {
     setVisiblePages(1);
@@ -61,11 +74,22 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     useInfiniteQuery({
       queryKey: ["car-ads", stringParams],
       queryFn: ({ pageParam, queryKey }) =>
-        getCars({ pageParam, params: queryKey[1], emailAddress }),
+        getCars(
+          { pageParam, params: queryKey[1], emailAddress },
+          fetchWithAuth
+        ),
       initialPageParam: 1,
       getNextPageParam: (lastPage) =>
         lastPage.hasMore ? lastPage.page + 1 : undefined,
     });
+
+  useEffect(() => {
+    if (isFetching && !isFetchingNextPage) {
+      startLoading();
+    } else {
+      stopLoading();
+    }
+  }, [isFetching, isFetchingNextPage, startLoading, stopLoading]);
 
   const headerLabels = generateHeaderLabels(statusId);
   const items = data?.pages.slice(0, visiblePages).flatMap((p) => p.carAds);

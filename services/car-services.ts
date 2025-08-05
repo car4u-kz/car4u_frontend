@@ -5,15 +5,18 @@ import { SEARCH_QUERY as SQ } from "@/constants";
 
 type RawCarAd = Record<string, string | number>;
 
-export const getCars = async ({
-  pageParam = 1,
-  params,
-  emailAddress,
-}: {
-  pageParam: number;
-  params: string;
-  emailAddress: string;
-}): Promise<PaginatedCarAds> => {
+export const getCars = async (
+  {
+    pageParam = 1,
+    params,
+    emailAddress,
+  }: {
+    pageParam: number;
+    params: string;
+    emailAddress: string;
+  },
+  fetchWithAuth: typeof fetch
+): Promise<PaginatedCarAds> => {
   const isServer = typeof window === "undefined";
   const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
 
@@ -30,15 +33,21 @@ export const getCars = async ({
   }
 
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithAuth(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ userId: emailAddress }),
-    }).then((r) => r.json());
+    });
 
-    const { items = [], ...rest } = response;
+    if (!response.ok) {
+      throw new Error("Failed to fetch car ads");
+    }
+
+    const data = await response.json();
+
+    const { items = [], ...rest } = data;
 
     const carAds: CarAd[] = items.map((item: RawCarAd) => camelCase(item));
 

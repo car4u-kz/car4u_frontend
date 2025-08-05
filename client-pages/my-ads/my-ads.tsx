@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, SelectChangeEvent, Typography } from "@mui/material";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -19,6 +19,8 @@ import {
 
 import type { AdFormData, ActionPayloadType } from "./types";
 import { MenuItemAction, Status } from "@/constants";
+import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
+import { useLoading } from "@/context/loading-context";
 
 type Props = {};
 
@@ -44,21 +46,37 @@ const Confirmation = () => {
 };
 
 const MyAds = ({}: Props) => {
+  const { startLoading, stopLoading } = useLoading();
+
   const [open, setOpen] = useState<"add" | "confirmation" | false>(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<AdFormData>(initialData);
   const [action, setAction] = useState<ActionPayloadType | null>(null);
+  
+  const fetchWithAuth = useFetchWithAuth();
 
-  const query = useQuery({ queryKey: ["my-ads"], queryFn: getAds });
+  const query = useQuery({
+    queryKey: ["my-ads"],
+    queryFn: () => getAds(fetchWithAuth),
+  });
+
+  useEffect(() => {
+    if (query.isFetching) {
+      startLoading();
+    } else {
+      stopLoading();
+    }
+  }, [query.isFetching, startLoading, stopLoading]);
 
   const parsingTemplateQuery = useQuery({
     queryKey: ["my-ads/parsing-template/lookup"],
-    queryFn: getParsingTemplates,
+    queryFn: () => getParsingTemplates(fetchWithAuth),
   });
 
   const mutation = useMutation({
     mutationFn: async (formData: AdFormData) => {
-      await postAd(formData);
+      const fetchWithAuth = useFetchWithAuth();
+      await postAd(formData, fetchWithAuth);
     },
     onSuccess: () => {
       setOpen(false);
@@ -78,6 +96,8 @@ const MyAds = ({}: Props) => {
     setFormData((prev) => ({ ...prev, [key]: e.target.value }));
 
   const onSubmit = async () => {
+    const fetchWithAuth = useFetchWithAuth();
+
     if (open === "add") {
       return mutation.mutate(formData);
     }
@@ -87,10 +107,10 @@ const MyAds = ({}: Props) => {
 
       // @ts-ignore
       if (method === MenuItemAction.delete) {
-        await deleteAd(id as number);
+        await deleteAd(id as number, fetchWithAuth);
       } else {
         // @ts-ignore
-        await changeAdState({ id, action: method });
+        await changeAdState({ id, action: method }, fetchWithAuth);
       }
 
       await query.refetch();
