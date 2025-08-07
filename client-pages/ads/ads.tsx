@@ -60,14 +60,6 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   });
 
   useEffect(() => {
-    if (queryFilterList.isFetching) {
-      startLoading();
-    } else {
-      stopLoading();
-    }
-  }, [queryFilterList.isFetching, startLoading, stopLoading]);
-
-  useEffect(() => {
     setVisiblePages(1);
   }, [searchParams]);
 
@@ -83,14 +75,6 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       getNextPageParam: (lastPage) =>
         lastPage.hasMore ? lastPage.page + 1 : undefined,
     });
-
-  useEffect(() => {
-    if (isFetching && !isFetchingNextPage) {
-      startLoading();
-    } else {
-      stopLoading();
-    }
-  }, [isFetching, isFetchingNextPage, startLoading, stopLoading]);
 
   const headerLabels = generateHeaderLabels(statusId);
   const items = data?.pages.slice(0, visiblePages).flatMap((p) => p.carAds);

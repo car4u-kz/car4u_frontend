@@ -61,14 +61,6 @@ const MyAds = ({}: Props) => {
     retry: false,
   });
 
-  useEffect(() => {
-    if (query.isFetching) {
-      startLoading();
-    } else {
-      stopLoading();
-    }
-  }, [query.isFetching, startLoading, stopLoading]);
-
   const parsingTemplateQuery = useQuery({
     queryKey: ["my-ads/parsing-template/lookup"],
     queryFn: () => getParsingTemplates(fetchWithAuth),
