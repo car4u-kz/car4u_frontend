@@ -14,22 +14,20 @@ export function useFetchWithAuth() {
       const jwt = localStorage.getItem(BACKEND_JWT_KEY);
       if (jwt) {
         headers.set("Authorization", `Bearer ${jwt}`);
-      } else {
-        throw new Error("JWT not found");
+
+        let url = input;
+        if (typeof input === "string" && !input.startsWith("http")) {
+          url = `${url}`;
+        }
+
+        const response = await fetch(url, { ...init, headers });
+
+        if (response.status === 401) {
+          await logout();
+        }
+
+        return response;
       }
-
-      let url = input;
-      if (typeof input === "string" && !input.startsWith("http")) {
-        url = `${url}`;
-      }
-
-      const response = await fetch(url, { ...init, headers });
-
-      if (response.status === 401) {
-        await logout();
-      }
-
-      return response;
     } finally {
       stopLoading();
     }
