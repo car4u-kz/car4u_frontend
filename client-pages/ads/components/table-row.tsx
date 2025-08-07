@@ -14,6 +14,7 @@ import { MoreVert } from "@mui/icons-material";
 import { SEARCH_QUERY as SQ } from "@/constants";
 import { CarAd } from "@/types";
 import { generateReport } from "@/services/ad-services";
+import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 
 type Props = {
   items: CarAd[];
@@ -45,8 +46,10 @@ const TableRows = ({ statusId, items }: Props) => {
     value: string;
     adId: number;
   }) => {
+    const fetchWithAuth = useFetchWithAuth();
+
     if (item.value === "generateReport") {
-      await generateReport(item.adId);
+      await generateReport(item.adId, fetchWithAuth);
     }
     handleMenuClose();
   };

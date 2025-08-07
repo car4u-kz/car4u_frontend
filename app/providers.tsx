@@ -5,6 +5,8 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import { CircularProgress } from "@mui/material";
+import { LoadingProvider, useLoading } from "@/context/loading-context";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -27,10 +29,39 @@ function getQueryClient() {
   }
 }
 
+function LoadingOverlay() {
+  const { isLoading } = useLoading();
+  if (!isLoading) return null;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: "rgba(255,255,255,0.6)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1300,
+      }}
+    >
+      <CircularProgress />
+    </div>
+  );
+}
+
 export default function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <LoadingProvider>
+      <QueryClientProvider client={queryClient}>
+        {children}
+        <LoadingOverlay />
+      </QueryClientProvider>
+    </LoadingProvider>
   );
 }

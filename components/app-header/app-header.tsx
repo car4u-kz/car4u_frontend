@@ -38,8 +38,8 @@ export default function AppHeader() {
         <Image height={36.5} src="/logo.jpeg" />
         <Box>
           <Stack direction="row" alignItems="center" gap={3}>
-            {phoneNumber}
             <SignedOut>
+              {phoneNumber}
               <SignInButton>
                 <span>
                   <Button variant="contained" sx={{ bgcolor: "common.black" }}>
@@ -55,31 +55,30 @@ export default function AppHeader() {
                 alignItems="center"
                 gap={1}
               >
-                {showNavigation && (
-                  <>
-                    <Link
-                      target="_self"
-                      href="/ads"
-                      isActive={pathname === "/ads"}
-                    >
-                      Объявления
-                    </Link>
-                    <Link
-                      target="_self"
-                      href="/search"
-                      isActive={pathname === "/search"}
-                    >
-                      Поиски
-                    </Link>
-                    <Link
-                      target="_self"
-                      href="/my-ads"
-                      isActive={pathname === "/my-ads"}
-                    >
-                      Мои Объявления
-                    </Link>
-                  </>
-                )}
+                <>
+                  <Link
+                    target="_self"
+                    href="/ads"
+                    isActive={pathname === "/ads"}
+                  >
+                    Объявления
+                  </Link>
+                  <Link
+                    target="_self"
+                    href="/search"
+                    isActive={pathname === "/search"}
+                  >
+                    Поиски
+                  </Link>
+                  <Link
+                    target="_self"
+                    href="/my-ads"
+                    isActive={pathname === "/my-ads"}
+                  >
+                    Мои Объявления
+                  </Link>
+                </>
+
                 <UserButton />
               </Stack>
             </SignedIn>
