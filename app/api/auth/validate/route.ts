@@ -1,3 +1,4 @@
+import { getInternalApiUrl } from "@/utils/formatters";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -11,8 +12,8 @@ export async function POST(req: NextRequest) {
   }
 
   const clerkToken = authHeader.substring("Bearer ".length);
-
-  const res = await fetch(`${process.env.INTERNAL_API_URL}/api/auth/validate`, {
+  const DOTNET_BASE_URL = getInternalApiUrl();
+  const res = await fetch(`${DOTNET_BASE_URL}/api/auth/validate`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${clerkToken}`,

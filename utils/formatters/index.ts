@@ -48,7 +48,7 @@ export const formatDistance = (distance: number) => {
 };
 
 export const getInternalApiUrl = (): string => {
-  const url = process.env.NEXT_PUBLIC_INTERNAL_API_URL;
+  const url = process.env.INTERNAL_API_URL;
 
   if (!url) {
     throw new Error("INTERNAL_API_URL is not defined");
