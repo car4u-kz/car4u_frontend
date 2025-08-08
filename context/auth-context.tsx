@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { isSignedIn, getToken, signOut } = useAuth();
   const { token: backendToken, setToken, removeToken } = useBackendToken();
   const [errorStatus, setErrorStatus] = useState<UserStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const router = useRouter();
 
@@ -50,10 +51,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const init = async () => {
       if (!isSignedIn) {
         logout();
+        setIsLoading(false);
         return;
       }
 
       if (backendToken) {
+        setIsLoading(false);
         return;
       }
 
@@ -86,12 +89,52 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch {
         logout();
       } finally {
+        setIsLoading(false);
         stopLoading();
       }
     };
 
     init();
   }, [isSignedIn, getToken, logout, backendToken, setToken]);
+
+  const styles: Record<string, React.CSSProperties> = {
+    wrapper: {
+      minHeight: "100vh",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "#ffffff",
+    },
+    inner: {
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+    },
+    loader: {
+      width: "20px",
+      height: "20px",
+      border: "2px solid #3b82f6",
+      borderTop: "2px solid transparent",
+      borderRadius: "50%",
+      animation: "spin 1s linear infinite",
+    },
+    text: {
+      fontSize: "14px",
+      color: "#4b5563",
+    },
+  };
+
+  if (isLoading) {
+    return (
+      <div style={styles.wrapper}>
+        <div style={styles.inner}>
+          <div style={styles.loader}></div>
+          <span style={styles.text}>Проверяем авторизацию...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AuthContext.Provider
       value={{ backendToken, logout, errorStatus, setErrorStatus }}
