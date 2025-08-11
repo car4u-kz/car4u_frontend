@@ -85,7 +85,6 @@ const SearchPage = () => {
     if (open === "confirmation") {
       const { method, id } = action!;
 
-      const fetchWithAuth = useFetchWithAuth();
       // @ts-ignore
       await changeParsingTemplateState({ id, action: method }, fetchWithAuth);
       await query.refetch();
