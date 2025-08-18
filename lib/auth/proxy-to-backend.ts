@@ -16,6 +16,8 @@ export async function proxyToBackend(
       headers.set("Authorization", authHeader);
     }
 
+    headers.set("X-Organization-Id", '5'); //TODO USE THE REAL VALUE
+
     const res = await fetch(url, {
       ...options,
       headers,
@@ -68,7 +70,10 @@ export async function proxyFileToBackend(
 
     if (!res.ok) {
       const errorText = await res.text();
-      return new Response(errorText, { status: res.status, statusText: res.statusText });
+      return new Response(errorText, {
+        status: res.status,
+        statusText: res.statusText,
+      });
     }
 
     const buffer = await res.arrayBuffer();

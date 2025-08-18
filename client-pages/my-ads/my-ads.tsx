@@ -18,9 +18,8 @@ import {
 } from "@/services/ad-services";
 
 import type { AdFormData, ActionPayloadType } from "./types";
-import { MenuItemAction, Status } from "@/constants";
+import { MenuItemAction } from "@/constants";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
-import { useLoading } from "@/context/loading-context";
 
 type Props = {};
 
@@ -46,8 +45,6 @@ const Confirmation = () => {
 };
 
 const MyAds = ({}: Props) => {
-  const { startLoading, stopLoading } = useLoading();
-
   const [open, setOpen] = useState<"add" | "confirmation" | false>(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<AdFormData>(initialData);
@@ -69,7 +66,6 @@ const MyAds = ({}: Props) => {
 
   const mutation = useMutation({
     mutationFn: async (formData: AdFormData) => {
-      const fetchWithAuth = useFetchWithAuth();
       await postAd(formData, fetchWithAuth);
     },
     onSuccess: () => {
@@ -90,8 +86,6 @@ const MyAds = ({}: Props) => {
     setFormData((prev) => ({ ...prev, [key]: e.target.value }));
 
   const onSubmit = async () => {
-    const fetchWithAuth = useFetchWithAuth();
-
     if (open === "add") {
       return mutation.mutate(formData);
     }

@@ -14,7 +14,6 @@ import { getAdFilterList } from "@/services/ad-services";
 
 import { SEARCH_QUERY as SQ } from "@/constants";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
-import { useLoading } from "@/context/loading-context";
 
 const changebleHeader: Record<SQ, string> = {
   [SQ.all]: "Опубликовано",
@@ -43,7 +42,6 @@ const generateHeaderLabels = (carSeachParam: SQ) => {
 
 const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const fetchWithAuth = useFetchWithAuth();
-  const { startLoading, stopLoading } = useLoading();
 
   const [visiblePages, setVisiblePages] = useState(1);
   const [selectValue, setSelectValue] = useState("");

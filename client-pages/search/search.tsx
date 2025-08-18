@@ -16,7 +16,6 @@ import {
   changeParsingTemplateState,
 } from "@/services/search-services";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
-import { useLoading } from "@/context/loading-context";
 
 const headerLabels = [
   "Название",
@@ -49,8 +48,6 @@ const SearchPage = () => {
   const [action, setAction] = useState<ActionPayloadType | null>(null);
 
   const fetchWithAuth = useFetchWithAuth();
-  const { startLoading, stopLoading } = useLoading();
-
   const query = useQuery({
     queryKey: ["parsing-templates"],
     queryFn: () => getParsingTemplates(fetchWithAuth),
