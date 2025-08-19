@@ -5,10 +5,9 @@ export enum UserStatus {
   Deleted = 4,
 }
 
-
 export enum UserRole {
-  User,
-  Admin,
+  User = 1,
+  Admin = 2,
 }
 
 export interface ValidateTokenResult {

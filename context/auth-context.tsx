@@ -12,14 +12,16 @@ import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
 import { validateClerkToken } from "../services/auth-service";
-import { UserStatus } from "@/types/user";
+import { UserRole, UserStatus } from "@/types/user";
 import { useLoading } from "./loading-context";
 import { useBackendToken } from "./use-backend-token";
+import { AuthErrorModal } from "@/components/auth-error-modal/auth-error-modal";
 
 type AuthContextType = {
   backendToken: string | null;
   errorStatus: UserStatus | null;
   userId: string | null;
+  userRole: UserRole | null;
   logout: () => Promise<void>;
   setErrorStatus: React.Dispatch<React.SetStateAction<UserStatus | null>>;
 };
@@ -33,9 +35,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const {
     token: backendToken,
     userId,
-    setToken,
-    removeToken,
+    role: userRole,
+    setUser,
+    removeUser,
   } = useBackendToken();
+
   const [errorStatus, setErrorStatus] = useState<UserStatus | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -52,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const logout = useCallback(async () => {
-    removeToken();
+    removeUser();
     try {
       await signOut();
     } catch (e) {
@@ -61,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       router.push("/");
     } catch (e) {}
-  }, [removeToken, signOut, router]);
+  }, [removeUser, signOut, router]);
 
   useEffect(() => {
     if (isSignedIn === undefined) return;
@@ -110,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           return;
         }
 
-        setToken(data.jwt);
+        setUser(data);
       } catch (e) {
         console.error("Auth init error", e);
         try {
@@ -155,9 +159,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <AuthContext.Provider
-      value={{ backendToken, errorStatus, userId, logout, setErrorStatus }}
+      value={{
+        backendToken,
+        errorStatus,
+        userId,
+        userRole,
+        logout,
+        setErrorStatus,
+      }}
     >
       {children}
+      {errorStatus && (
+        <AuthErrorModal
+          errorStatus={errorStatus}
+          onClose={() => setErrorStatus(null)}
+        />
+      )}
     </AuthContext.Provider>
   );
 };

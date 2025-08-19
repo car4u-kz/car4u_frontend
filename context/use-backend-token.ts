@@ -1,14 +1,19 @@
 "use client";
 
+import { ValidateResponseSuccess } from "@/services/auth-service";
+import { UserRole } from "@/types/user";
 import { useCallback, useEffect, useState } from "react";
 
 const BACKEND_JWT_KEY = "backend_jwt";
+const USER_ROLE_KEY = "user_role";
 
 export function decodeJwt(token: string): Record<string, any> | null {
   try {
     const parts = token.split(".");
     if (parts.length < 2) return null;
-    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    const payload = JSON.parse(
+      atob(parts[1].replace(/-/g, "+").replace(/_/g, "/"))
+    );
     return payload;
   } catch {
     return null;
@@ -18,6 +23,7 @@ export function decodeJwt(token: string): Record<string, any> | null {
 export function useBackendToken() {
   const [token, setTokenState] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [role, setRole] = useState<UserRole | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -26,26 +32,44 @@ export function useBackendToken() {
       setTokenState(stored);
       const payload = decodeJwt(stored);
       setUserId(payload?.sub || payload?.userId || null);
+
+      const roleStr = localStorage.getItem(USER_ROLE_KEY);
+      let role: UserRole | null = null;
+
+      if (roleStr) {
+        const roleNum = Number(roleStr);
+        if (roleNum === UserRole.Admin) role = UserRole.Admin;
+        else if (roleNum === UserRole.User) role = UserRole.User;
+      }
+
+      setRole(role);
     }
   }, []);
 
-  const setToken = useCallback((jwt: string) => {
-    localStorage.setItem(BACKEND_JWT_KEY, jwt);
-    setTokenState(jwt);
-    const payload = decodeJwt(jwt);
+  const setUser = useCallback((response: ValidateResponseSuccess) => {
+    localStorage.setItem(BACKEND_JWT_KEY, response.jwt);
+
+    localStorage.setItem(USER_ROLE_KEY, response.role.toString());
+
+    setTokenState(response.jwt);
+    const payload = decodeJwt(response.jwt);
     setUserId(payload?.sub || payload?.userId || null);
+
+    setRole(response.role || null);
   }, []);
 
-  const removeToken = useCallback(() => {
+  const removeUser = useCallback(() => {
     localStorage.removeItem(BACKEND_JWT_KEY);
     setTokenState(null);
     setUserId(null);
+    setRole(null);
   }, []);
 
   return {
     token,
     userId,
-    setToken,
-    removeToken,
+    role,
+    setUser,
+    removeUser,
   };
 }
