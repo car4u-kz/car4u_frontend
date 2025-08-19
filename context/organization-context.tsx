@@ -6,7 +6,7 @@ import React, { createContext, useContext } from "react";
  
 
 type OrgCtx = {
-  organizations: Organization[] | null;
+  myOrganizations: Organization[] | null;
   activeOrganizationId: string | null;
   setActiveOrganization: (id: string) => void;
   isLoading: boolean;
