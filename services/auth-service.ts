@@ -1,6 +1,6 @@
-import { UserStatus } from "@/types/user";
+import { UserRole, UserStatus } from "@/types/user";
 
-type ValidateResponseSuccess = { jwt: string; status: UserStatus };
+export type ValidateResponseSuccess = { jwt: string; status: UserStatus; role: UserRole };
 type ValidateResponseError = { error: string };
 
 let inFlightValidate: Promise<
@@ -29,7 +29,7 @@ export async function validateClerkToken(
         return { error: data?.error || "Token validation failed" };
       }
 
-      return { jwt: data.jwt, status: data.status as UserStatus };
+      return { jwt: data.jwt, status: data.status as UserStatus, role: data.role as UserRole };
     } catch (e: any) {
       console.error("validateClerkToken error", e);
       return { error: e?.message || "Network error" };

@@ -14,6 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useOrganizationManager } from "@/hooks/use-organization-manager";
+import { useBackendAuthContext } from "@/context/auth-context";
 
 interface Props {
   open: boolean;
@@ -24,8 +25,11 @@ export default function OrganizationSwitcherModal({ open, onClose }: Props) {
   const { organizations, activeOrganizationId, setActiveOrganization } =
     useOrganizationManager();
 
+  const { userRole } = useBackendAuthContext();
+
   const handleSelect = (orgId: string) => {
     debugger;
+    console.log(userRole)
     if (orgId !== activeOrganizationId) {
       setActiveOrganization(orgId);
       onClose();
@@ -44,7 +48,6 @@ export default function OrganizationSwitcherModal({ open, onClose }: Props) {
         {organizations?.length ? (
           <List disablePadding>
             {organizations.map((org) => {
-              debugger;
               const isActive = org.id.toString() === activeOrganizationId;
               return (
                 <ListItemButton
