@@ -1,22 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getMyOrganizations } from "../services/organization-service";
+import { getAllOrganizations, getMyOrganizations } from "../services/organization-service";
 import { useFetchWithAuth } from "./use-fetch-with-auth";
 import { useBackendAuthContext } from "@/context/auth-context";
 import { useQueryClient } from "@tanstack/react-query";
+import { Organization } from "@/types/organization";
+import { UserRole } from "@/types/user";
 
 const ACTIVE_ORG_PREFIX = "active_organization_id_";
 
 export function useOrganizationManager() {
-  const { backendToken, userId } = useBackendAuthContext();
+  const { backendToken, userId, userRole } = useBackendAuthContext();
   const fetchWithAuth = useFetchWithAuth();
+  const queryClient = useQueryClient();
 
   const [isLoading, setIsLoading] = useState(true);
-  const [organizations, setOrganizations] = useState<any[] | null>(null);
-  const [activeOrganizationId, setActiveOrganizationId] = useState<
-    string | null
-  >(null);
+  const [myOrganizations, setMyOrganizations] = useState<any[] | null>(null);
+  const [allOrganizations, setAllOrganizations] = useState<any[] | null>(null);
+  const [activeOrganizationId, setActiveOrganizationId] = useState<string | null>(null);
 
   const activeOrgRef = useRef<string | null>(null);
 
@@ -25,6 +27,7 @@ export function useOrganizationManager() {
     [userId]
   );
 
+  // Загружаем id активной организации из localStorage
   useEffect(() => {
     if (!storageKey) {
       activeOrgRef.current = null;
@@ -39,7 +42,8 @@ export function useOrganizationManager() {
 
   const loadOrganizations = useCallback(async () => {
     if (!backendToken || !userId) {
-      setOrganizations(null);
+      setMyOrganizations(null);
+      setAllOrganizations(null);
       setActiveOrganizationId(null);
       activeOrgRef.current = null;
       setIsLoading(false);
@@ -48,59 +52,48 @@ export function useOrganizationManager() {
 
     setIsLoading(true);
     try {
-      const result = await getMyOrganizations(fetchWithAuth, userId);
-      if ("error" in result) {
-        console.error("Error loading organizations:", result.error);
-        setOrganizations(null);
-        setActiveOrganizationId(null);
-        activeOrgRef.current = null;
-        return;
-      }
+      const myResult = await getMyOrganizations(fetchWithAuth, userId);
+      const myOrgs: Organization[] = "error" in myResult ? [] : myResult.orgs || [];
+      setMyOrganizations(myOrgs);
+      let allOrgs : Organization[] = [];
 
-      const orgs = result.orgs || [];
-      setOrganizations(orgs);
+      if (userRole === UserRole.Admin) {
+        allOrgs = await getAllOrganizations(fetchWithAuth);
+        setAllOrganizations(allOrgs || []);
+      }
 
       const stored = storageKey ? localStorage.getItem(storageKey) : null;
-      if (stored && orgs.some((o: any) => o.id.toString() === stored)) {
-        activeOrgRef.current = stored;
-        setActiveOrganizationId(stored);
-        return;
+      let activeId: string | null = null;
+
+      if (stored && [...myOrgs, ...(allOrgs || [])].some(o => o.id.toString() === stored)) {
+        activeId = stored;
+      } else if (myOrgs.length > 0) {
+        activeId = myOrgs[0].id.toString();
+      } else if (userRole === UserRole.Admin && allOrgs && allOrgs.length > 0) {
+        activeId = allOrgs[0].id.toString();
       }
 
-      if (
-        activeOrgRef.current &&
-        orgs.some((o: any) => o.id.toString() === activeOrgRef.current)
-      ) {
-        setActiveOrganizationId(activeOrgRef.current);
-        return;
-      }
+      activeOrgRef.current = activeId;
+      setActiveOrganizationId(activeId);
 
-      if (orgs.length > 0) {
-        const first = orgs[0].id.toString();
-        activeOrgRef.current = first;
-        setActiveOrganizationId(first);
-        if (storageKey) {
-          try {
-            localStorage.setItem(storageKey, first);
-          } catch (e) {
-            console.warn("Failed to persist active organization", e);
-          }
+      if (storageKey && activeId) {
+        try {
+          localStorage.setItem(storageKey, activeId);
+        } catch (e) {
+          console.warn("Failed to persist active organization", e);
         }
-      } else {
-        activeOrgRef.current = null;
-        setActiveOrganizationId(null);
       }
+
     } catch (e) {
       console.error("Unexpected error in loadOrganizations:", e);
-      setOrganizations(null);
+      setMyOrganizations(null);
+      setAllOrganizations(null);
       setActiveOrganizationId(null);
       activeOrgRef.current = null;
     } finally {
       setIsLoading(false);
     }
-  }, [backendToken, userId, fetchWithAuth, storageKey]);
-
-  const queryClient = useQueryClient();
+  }, [backendToken, userId, userRole, fetchWithAuth, storageKey]);
 
   const setActiveOrganization = useCallback(
     (id: string) => {
@@ -129,19 +122,22 @@ export function useOrganizationManager() {
     },
     [storageKey, queryClient]
   );
+
   useEffect(() => {
     if (backendToken && userId) {
       loadOrganizations();
     } else {
       setIsLoading(false);
-      setOrganizations(null);
+      setMyOrganizations(null);
+      setAllOrganizations(null);
       setActiveOrganizationId(null);
       activeOrgRef.current = null;
     }
   }, [backendToken, userId, loadOrganizations]);
 
   return {
-    organizations,
+    myOrganizations,
+    allOrganizations,
     activeOrganizationId,
     setActiveOrganization,
     isLoading,

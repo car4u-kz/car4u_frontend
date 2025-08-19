@@ -20,10 +20,10 @@ export default function AppHeader() {
   const pathname = usePathname();
   const [orgModalOpen, setOrgModalOpen] = useState(false);
   const {
-    organizations,
+    myOrganizations,
   } = useOrganizationManager();
 
-  const hasMultipleOrgs = organizations && organizations.length > 1;
+  const hasMultipleOrgs = myOrganizations && myOrganizations.length > 1;
 
   const showNavigation = ["/ads", "/search", "/my-ads"].includes(pathname);
   const phoneNumber = (pathname === "/about_us" || pathname === "/") && (
