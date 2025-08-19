@@ -1,25 +1,44 @@
 import { UserStatus } from "@/types/user";
 
-type ValidateResponse =
-  | { jwt: string; status: UserStatus }
-  | { error: string };
+type ValidateResponseSuccess = { jwt: string; status: UserStatus };
+type ValidateResponseError = { error: string };
 
-export async function validateClerkToken(clerkToken: string): Promise<ValidateResponse> {
-  try {
-    const res = await fetch("/api/auth/validate", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${clerkToken}` },
-    });
+let inFlightValidate: Promise<
+  ValidateResponseSuccess | ValidateResponseError
+> | null = null;
 
-    const data = await res.json();
+export async function validateClerkToken(
+  clerkToken: string
+): Promise<ValidateResponseSuccess | ValidateResponseError> {
+  if (inFlightValidate) return inFlightValidate;
 
-    if (!res.ok) {
-      throw new Error(data?.error || "Token validation failed");
+  inFlightValidate = (async () => {
+    try {
+      const res = await fetch("/api/auth/validate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${clerkToken}`,
+        },
+        body: JSON.stringify({}),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return { error: data?.error || "Token validation failed" };
+      }
+
+      return { jwt: data.jwt, status: data.status as UserStatus };
+    } catch (e: any) {
+      console.error("validateClerkToken error", e);
+      return { error: e?.message || "Network error" };
+    } finally {
+      setTimeout(() => {
+        inFlightValidate = null;
+      }, 0);
     }
+  })();
 
-    return data;
-  } catch (error) {
-    console.error("AuthService validateClerkToken error:", error);
-    throw error;
-  }
+  return inFlightValidate;
 }

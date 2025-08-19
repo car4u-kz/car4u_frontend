@@ -11,9 +11,20 @@ import { usePathname } from "next/navigation";
 import { Box, Stack } from "@mui/material";
 
 import { Image, Button, Link, Typography } from "@/components";
+import OrganizationSwitcherModal from "../organization-switcher/organization-switcher";
+import { useState } from "react";
+import { useOrganizationManager } from "@/hooks/use-organization-manager";
+import ApartmentIcon from "@mui/icons-material/Apartment";
 
 export default function AppHeader() {
   const pathname = usePathname();
+  const [orgModalOpen, setOrgModalOpen] = useState(false);
+  const {
+    organizations,
+  } = useOrganizationManager();
+
+  const hasMultipleOrgs = organizations && organizations.length > 1;
+
   const showNavigation = ["/ads", "/search", "/my-ads"].includes(pathname);
   const phoneNumber = (pathname === "/about_us" || pathname === "/") && (
     <Typography>+7 701 127 7607</Typography>
@@ -79,7 +90,24 @@ export default function AppHeader() {
                   </Link>
                 </>
 
-                <UserButton />
+                {!hasMultipleOrgs && <UserButton></UserButton>}
+
+                {hasMultipleOrgs && (
+                  <UserButton>
+                    <UserButton.MenuItems>
+                      <UserButton.Action
+                        label="Сменить организацию"
+                        labelIcon={<ApartmentIcon fontSize="small" />}
+                        onClick={() => setOrgModalOpen(true)}
+                      />
+                    </UserButton.MenuItems>
+                  </UserButton>
+                )}
+
+                <OrganizationSwitcherModal
+                  open={orgModalOpen}
+                  onClose={() => setOrgModalOpen(false)}
+                />
               </Stack>
             </SignedIn>
           </Stack>

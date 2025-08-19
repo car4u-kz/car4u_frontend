@@ -9,6 +9,7 @@ import Providers from "./providers";
 import "./globals.css";
 import { AppHeader } from "@/components";
 import { AuthProvider } from "@/context/auth-context";
+import { OrganizationProvider } from "@/context/organization-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,8 +42,10 @@ export default function RootLayout({
             <CssBaseline />
             <Providers>
               <AuthProvider>
-                <AppHeader />
-                {children}
+                <OrganizationProvider>
+                  <AppHeader />
+                  {children}
+                </OrganizationProvider>
               </AuthProvider>
             </Providers>
           </AppRouterCacheProvider>
