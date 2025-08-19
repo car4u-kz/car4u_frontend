@@ -1,36 +1,70 @@
+"use client";
+
 import { useBackendAuthContext } from "@/context/auth-context";
+import { useCallback } from "react";
 import { useLoading } from "@/context/loading-context";
 
+const BACKEND_JWT_KEY = "backend_jwt";
+const ACTIVE_ORG_PREFIX = "active_organization_id_";
+
 export function useFetchWithAuth() {
-  const BACKEND_JWT_KEY = "backend_jwt";
-  const { logout } = useBackendAuthContext();
   const { startLoading, stopLoading } = useLoading();
 
-  async function fetchWithAuth(input: RequestInfo | URL, init?: RequestInit) {
-    startLoading();
-    try {
-      const headers = new Headers(init?.headers);
+  const { logout, userId } = useBackendAuthContext();
 
-      const jwt = localStorage.getItem(BACKEND_JWT_KEY);
-
-      headers.set("Authorization", `Bearer ${jwt}`);
-
-      let url = input;
-      if (typeof input === "string" && !input.startsWith("http")) {
-        url = `${url}`;
+  const fetchWithAuth = useCallback(
+    async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      if (typeof window === "undefined") {
+        throw new Error("useFetchWithAuth must be used on client side");
       }
 
-      const response = await fetch(url, { ...init, headers });
+      startLoading();
+      try {
+        const jwt = localStorage.getItem(BACKEND_JWT_KEY);
+        let organizationId: string | null = null;
+        if (userId) {
+          organizationId = localStorage.getItem(
+            `${ACTIVE_ORG_PREFIX}${userId}`
+          );
+        } else {
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith(ACTIVE_ORG_PREFIX)) {
+              organizationId = localStorage.getItem(k);
+              break;
+            }
+          }
+        }
 
-      if (response.status === 401) {
-        await logout();
+        const headers = new Headers(init?.headers ?? undefined);
+
+        if (jwt) headers.set("Authorization", `Bearer ${jwt}`);
+        if (organizationId) headers.set("X-Organization-Id", organizationId);
+
+        if (!headers.has("Accept")) headers.set("Accept", "application/json");
+
+        const url =
+          typeof input === "string"
+            ? input.startsWith("http")
+              ? input
+              : input
+            : input;
+
+        const response = await fetch(url, { ...init, headers });
+
+        if (response.status === 401) {
+          try {
+            await logout();
+          } catch {}
+        }
+
+        return response;
+      } finally {
+        stopLoading();
       }
-
-      return response;
-    } finally {
-      stopLoading();
-    }
-  }
+    },
+    [logout, userId]
+  );
 
   return fetchWithAuth;
 }

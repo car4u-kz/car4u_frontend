@@ -9,6 +9,8 @@ export async function proxyToBackend(
   try {
     const DOTNET_BASE_URL = getInternalApiUrl();
     const authHeader = request.headers.get("authorization") ?? "";
+    const organizationHeader = request.headers.get("X-Organization-Id") ?? "";
+
     const url = `${DOTNET_BASE_URL}${path}`;
 
     const headers = new Headers(options?.headers);
@@ -16,7 +18,9 @@ export async function proxyToBackend(
       headers.set("Authorization", authHeader);
     }
 
-    headers.set("X-Organization-Id", '5'); //TODO USE THE REAL VALUE
+    if (organizationHeader) {
+      headers.set("X-Organization-Id", organizationHeader);
+    }
 
     const res = await fetch(url, {
       ...options,

@@ -1,77 +1,102 @@
 "use client";
 
-import {
+import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
-  useCallback,
+  useRef,
   useState,
 } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useBackendToken } from "@/context/use-backend-token";
+
+import { validateClerkToken } from "../services/auth-service";
 import { UserStatus } from "@/types/user";
-import { AuthErrorModal } from "@/components/auth-error-modal/auth-error-modal";
-import { validateClerkToken } from "@/services/auth-service";
 import { useLoading } from "./loading-context";
+import { useBackendToken } from "./use-backend-token";
 
 type AuthContextType = {
   backendToken: string | null;
   errorStatus: UserStatus | null;
+  userId: string | null;
   logout: () => Promise<void>;
   setErrorStatus: React.Dispatch<React.SetStateAction<UserStatus | null>>;
 };
 
-const AuthContext = createContext<AuthContextType>({
-  backendToken: null,
-  errorStatus: null,
-  logout: async () => {},
-  setErrorStatus: () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { isSignedIn, getToken, signOut } = useAuth();
-  const { token: backendToken, setToken, removeToken } = useBackendToken();
+  const {
+    token: backendToken,
+    userId,
+    setToken,
+    removeToken,
+  } = useBackendToken();
   const [errorStatus, setErrorStatus] = useState<UserStatus | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const router = useRouter();
+  const { startLoading, stopLoading } = useLoading();
+
+  const mountedRef = useRef(true);
+  const initializingRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const logout = useCallback(async () => {
     removeToken();
-    await signOut();
-    router.push("/");
-  }, [signOut, router, removeToken]);
-
-  const { startLoading, stopLoading } = useLoading();
+    try {
+      await signOut();
+    } catch (e) {
+      console.warn("signOut error", e);
+    }
+    try {
+      router.push("/");
+    } catch (e) {}
+  }, [removeToken, signOut, router]);
 
   useEffect(() => {
     if (isSignedIn === undefined) return;
 
+    if (initializingRef.current) return;
+
     const init = async () => {
+      initializingRef.current = true;
+      if (mountedRef.current) setIsLoading(true);
+
       if (!isSignedIn) {
-        logout();
-        setIsLoading(false);
+        await logout();
+        if (mountedRef.current) setIsLoading(false);
+        initializingRef.current = false;
         return;
       }
 
       if (backendToken) {
-        setIsLoading(false);
+        if (mountedRef.current) setIsLoading(false);
+        initializingRef.current = false;
         return;
       }
 
+      startLoading();
       try {
-        startLoading();
         const clerkToken = await getToken({ template: "dev" });
-
         if (!clerkToken) {
           throw new Error("Clerk token is missing");
         }
+
         const data = await validateClerkToken(clerkToken);
 
         if ("error" in data) {
           setErrorStatus(UserStatus.AccessDenied);
-          logout();
+          await logout();
           return;
         }
 
@@ -81,55 +106,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           data.status === UserStatus.Deleted
         ) {
           setErrorStatus(data.status);
-          logout();
+          await logout();
           return;
         }
 
         setToken(data.jwt);
-      } catch {
-        logout();
+      } catch (e) {
+        console.error("Auth init error", e);
+        try {
+          await logout();
+        } catch {}
       } finally {
-        setIsLoading(false);
         stopLoading();
+        if (mountedRef.current) setIsLoading(false);
+        initializingRef.current = false;
       }
     };
 
     init();
-  }, [isSignedIn, getToken, logout, backendToken, setToken]);
-
-  const styles: Record<string, React.CSSProperties> = {
-    wrapper: {
-      minHeight: "100vh",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "#ffffff",
-    },
-    inner: {
-      display: "flex",
-      alignItems: "center",
-      gap: "12px",
-    },
-    loader: {
-      width: "20px",
-      height: "20px",
-      border: "2px solid #3b82f6",
-      borderTop: "2px solid transparent",
-      borderRadius: "50%",
-      animation: "spin 1s linear infinite",
-    },
-    text: {
-      fontSize: "14px",
-      color: "#4b5563",
-    },
-  };
+  }, [isSignedIn, backendToken]);
 
   if (isLoading) {
     return (
-      <div style={styles.wrapper}>
-        <div style={styles.inner}>
-          <div style={styles.loader}></div>
-          <span style={styles.text}>Проверяем авторизацию...</span>
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <div
+            style={{
+              width: 20,
+              height: 20,
+              border: "2px solid #3b82f6",
+              borderTop: "2px solid transparent",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+          <span>Проверяем авторизацию...</span>
         </div>
       </div>
     );
@@ -137,17 +155,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ backendToken, logout, errorStatus, setErrorStatus }}
+      value={{ backendToken, errorStatus, userId, logout, setErrorStatus }}
     >
       {children}
-      {errorStatus && (
-        <AuthErrorModal
-          errorStatus={errorStatus}
-          onClose={() => setErrorStatus(null)}
-        />
-      )}
     </AuthContext.Provider>
   );
 };
 
-export const useBackendAuthContext = () => useContext(AuthContext);
+export function useBackendAuthContext() {
+  const ctx = useContext(AuthContext);
+  if (!ctx)
+    throw new Error("useBackendAuthContext must be used inside AuthProvider");
+  return ctx;
+}
