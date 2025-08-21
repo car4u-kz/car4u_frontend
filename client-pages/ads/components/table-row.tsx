@@ -26,6 +26,7 @@ const menuItems = [{ label: "Сформировать отчёт", value: "gener
 const TableRows = ({ statusId, items }: Props) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
+  const fetchWithAuth = useFetchWithAuth();
 
   const open = Boolean(anchorEl);
   const handleMenuOpen = (
@@ -46,8 +47,6 @@ const TableRows = ({ statusId, items }: Props) => {
     value: string;
     adId: number;
   }) => {
-    const fetchWithAuth = useFetchWithAuth();
-
     if (item.value === "generateReport") {
       await generateReport(item.adId, fetchWithAuth);
     }
