@@ -26,7 +26,9 @@ type Props = {
   onSubmit: () => void;
   onClose: () => void;
   isLoading?: boolean;
+  isSubmitDisabled?: boolean;
   sx?: SxProps;
+  helperText?: string;
 };
 
 const Modal = ({
@@ -39,6 +41,8 @@ const Modal = ({
   onClose = () => {},
   isLoading,
   sx,
+  isSubmitDisabled,
+  helperText = "",
 }: Props) => {
   return (
     <MuiModal open={open}>
@@ -57,6 +61,11 @@ const Modal = ({
             children
           )}
         </Box>
+        {!!helperText && (
+          <Box sx={{ my: 1, textAlign: "right", color: "grey" }}>
+            <Typography variant="body2">{helperText}</Typography>
+          </Box>
+        )}
         <Box sx={{ mt: 3, textAlign: "right" }}>
           <Button
             disabled={isLoading}
@@ -68,7 +77,7 @@ const Modal = ({
             {cancelLabel}
           </Button>
           <Button
-            disabled={isLoading}
+            disabled={isLoading || isSubmitDisabled}
             onClick={onSubmit}
             variant="contained"
             size="small"

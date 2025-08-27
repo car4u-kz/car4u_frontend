@@ -1,10 +1,11 @@
 "use client";
 
-import { Stack, SelectChangeEvent, Alert } from "@mui/material";
+import { Stack, SelectChangeEvent, Alert, Box } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import { Select, TextInput } from "@/components/form";
 
 import type { AdFormData } from "../types";
-import { Typography } from "@/components";
+import { Typography, IconButton, Button } from "@/components";
 
 type Props = {
   handleChange: (
@@ -15,14 +16,18 @@ type Props = {
   formData: AdFormData;
   error?: string | null;
   parsingTemplateDataOptions: { value: number; label: string }[];
+  accountOptions: { value: number; label: string }[];
+  openAddAccountModal: () => void;
 };
 
 const Form = ({
   handleChange,
   handleSelect,
   parsingTemplateDataOptions,
+  accountOptions,
   formData,
   error,
+  openAddAccountModal,
 }: Props) => {
   return (
     <Stack direction="column" gap={2}>
@@ -38,6 +43,19 @@ const Form = ({
         handleChange={(e) => handleSelect(e, "parsingTemplateId")}
         menuItems={parsingTemplateDataOptions}
       />
+      <Stack direction="row" gap={1}>
+        <Box width="65%">
+          <Select
+            value={formData.accountId?.toString()}
+            placeholder="Аккаунт"
+            handleChange={(e) => handleSelect(e, "accountId")}
+            menuItems={accountOptions}
+          />
+        </Box>
+        <Button size="small" onClick={openAddAccountModal}>
+          Добавить Аккаунт
+        </Button>
+      </Stack>
       <TextInput
         label="URL"
         value={formData.url}

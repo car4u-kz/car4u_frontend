@@ -14,6 +14,7 @@ export type MenuItemConfig = {
 export type AdFormData = {
   name: string;
   parsingTemplateId: string;
+  accountId: number;
   url: string;
   mainImagePath: string;
   notDetectedCount: string;

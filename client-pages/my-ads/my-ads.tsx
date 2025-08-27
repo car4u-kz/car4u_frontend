@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Box, SelectChangeEvent, Typography } from "@mui/material";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { Button, Modal, Table } from "@/components";
 import TableRows from "./components/table-rows";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import Form from "./components/form";
+
+import AddNewAdForm from "./components/add-new-ad-form";
+import AddNewAccountForm from "./components/add-new-account-form";
 
 import {
   postAd,
@@ -16,6 +18,7 @@ import {
   changeAdState,
   getParsingTemplates,
 } from "@/services/ad-services";
+import { getAccounts, addAccount } from "@/services/account-services";
 
 import type { AdFormData, ActionPayloadType } from "./types";
 import { MenuItemAction } from "@/constants";
@@ -25,7 +28,8 @@ type Props = {};
 
 const headerLabels = ["Название", "Статус", "Действие"];
 
-const initialData: AdFormData = {
+const initialAdData: AdFormData = {
+  accountId: 0,
   name: "",
   parsingTemplateId: "",
   url: "",
@@ -34,6 +38,11 @@ const initialData: AdFormData = {
   depthOfMonitoring: "",
   intervalSeconds: "",
   monitoringDurationDays: "",
+};
+
+const initialAccountData = {
+  login: "",
+  password: "",
 };
 
 const Confirmation = () => {
@@ -45,11 +54,17 @@ const Confirmation = () => {
 };
 
 const MyAds = ({}: Props) => {
-  const [open, setOpen] = useState<"add" | "confirmation" | false>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<AdFormData>(initialData);
+  const [open, setOpen] = useState<"addNewAd" | "confirmation" | false>(false);
+  const [openAddAccountModal, setOpenAddAccountModal] = useState(false);
+
+  const [adError, setAdError] = useState<string | null>(null);
+  const [adFormData, setAdFormData] = useState<AdFormData>(initialAdData);
+
+  const [accountFormData, setAccountFormData] = useState(initialAccountData);
+  const [accountError, setAccountError] = useState<string | null>(null);
+
   const [action, setAction] = useState<ActionPayloadType | null>(null);
-  
+
   const fetchWithAuth = useFetchWithAuth();
 
   const query = useQuery({
@@ -64,30 +79,59 @@ const MyAds = ({}: Props) => {
     retry: false,
   });
 
-  const mutation = useMutation({
+  const accountQuery = useQuery({
+    queryKey: ["account"],
+    queryFn: () => getAccounts(fetchWithAuth),
+    retry: false,
+  });
+
+  const postAdMutation = useMutation({
     mutationFn: async (formData: AdFormData) => {
       await postAd(formData, fetchWithAuth);
     },
     onSuccess: () => {
       setOpen(false);
-      setFormData(initialData);
+      setAdFormData(initialAdData);
       query.refetch();
     },
     onError: (error: Error) => {
-      setError(error.message);
+      setAdError(error.message);
     },
   });
-  const handleChange = (
+
+  const postAccountMutation = useMutation({
+    mutationFn: async (formData: { login: string; password: string }) => {
+      await addAccount(formData, fetchWithAuth);
+    },
+    onSuccess: () => {
+      setOpenAddAccountModal(false);
+      accountQuery.refetch();
+    },
+    onError: (error: Error) => {
+      setAccountError(error.message);
+    },
+  });
+
+  const handleAdChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     key: keyof AdFormData
-  ) => setFormData((prev) => ({ ...prev, [key]: e.target.value }));
+  ) => setAdFormData((prev) => ({ ...prev, [key]: e.target.value }));
+
+  const handleAccountChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    key: "login" | "password"
+  ) => setAccountFormData((prev) => ({ ...prev, [key]: e.target.value }));
 
   const handleSelect = (e: SelectChangeEvent, key: keyof AdFormData) =>
-    setFormData((prev) => ({ ...prev, [key]: e.target.value }));
+    setAdFormData((prev) => ({ ...prev, [key]: e.target.value }));
 
   const onSubmit = async () => {
-    if (open === "add") {
-      return mutation.mutate(formData);
+    if (openAddAccountModal) {
+      return postAccountMutation.mutate(accountFormData);
+    }
+
+    if (open === "addNewAd") {
+      return postAdMutation.mutate(adFormData);
     }
 
     if (open === "confirmation") {
@@ -115,8 +159,8 @@ const MyAds = ({}: Props) => {
 
   const handleModalClose = () => {
     setOpen(false);
-    setFormData(initialData);
-    setError(null);
+    setAdFormData(initialAdData);
+    setAdError(null);
   };
 
   const parsingTemplateDataOptions = (parsingTemplateQuery?.data ?? []).map(
@@ -126,14 +170,23 @@ const MyAds = ({}: Props) => {
     })
   );
 
+  const accountOptions = accountQuery?.data?.map(
+    (item: { login: string; id: number }) => ({
+      label: item.login,
+      value: item.id,
+    })
+  );
+
   const modalComponent =
-    open === "add" ? (
-      <Form
-        error={error}
-        handleChange={handleChange}
+    open === "addNewAd" ? (
+      <AddNewAdForm
+        error={adError}
+        handleChange={handleAdChange}
         handleSelect={handleSelect}
-        formData={formData}
+        openAddAccountModal={() => setOpenAddAccountModal(true)}
+        formData={adFormData}
         parsingTemplateDataOptions={parsingTemplateDataOptions}
+        accountOptions={accountOptions}
       />
     ) : (
       <Confirmation />
@@ -148,7 +201,7 @@ const MyAds = ({}: Props) => {
               disableRipple
               sx={{ color: "white" }}
               size="small"
-              onClick={() => setOpen("add")}
+              onClick={() => setOpen("addNewAd")}
               startIcon={<AddCircleOutlineIcon fontSize="small" />}
             >
               Добавить Объявления
@@ -159,14 +212,35 @@ const MyAds = ({}: Props) => {
         headerLabels={headerLabels}
       />
       <Modal
-        isLoading={mutation.isPending || query.isFetching}
-        sx={{ width: 550 }}
+        isLoading={postAdMutation.isPending || query.isFetching}
+        sx={{ width: 550, zIndex: 10 }}
         onClose={handleModalClose}
         open={!!open}
-        title={open === "add" ? "Создать новое Объявления" : ""}
+        title={open === "addNewAd" ? "Создать новое Объявления" : ""}
         onSubmit={onSubmit}
+        isSubmitDisabled={!accountOptions?.length}
+        helperText={
+          !accountOptions?.length ? "Сначала вам нужно добавить аккаунт" : ""
+        }
       >
         {modalComponent}
+      </Modal>
+      <Modal
+        isLoading={postAccountMutation.isPending}
+        sx={{ width: 550, zIndex: 20 }}
+        onClose={() => {
+          setOpenAddAccountModal(false);
+          setAccountFormData(initialAccountData);
+        }}
+        open={openAddAccountModal}
+        title="Создать новый Аккаунт"
+        onSubmit={onSubmit}
+      >
+        <AddNewAccountForm
+          error={accountError}
+          formData={accountFormData}
+          handleChange={handleAccountChange}
+        />
       </Modal>
     </>
   );
