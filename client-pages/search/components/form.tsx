@@ -37,7 +37,7 @@ const Form = ({ handleChange, handleSelect, formData, error }: Props) => {
       />
       <TextInput
         type="number"
-        max={60 * 99}
+        max={604800}
         label="Интервалы между проходами (сек.)"
         value={formData.intervalSeconds}
         onChange={(e) => handleChange(e, "intervalSeconds")}
