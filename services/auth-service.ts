@@ -1,4 +1,3 @@
-// services/auth-service.ts
 import { UserRole, UserStatus } from "@/types/user";
 
 export type ValidateResponseSuccess = {
