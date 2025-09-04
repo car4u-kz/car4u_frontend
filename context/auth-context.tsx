@@ -64,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [removeUser, signOut, router]);
 
   const initAuth = useCallback(async () => {
-    if (didInitRef.current) return;
+    if (didInitRef.current && isSignedIn) return;
     didInitRef.current = true;
 
     const abort = new AbortController();
