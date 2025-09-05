@@ -86,6 +86,27 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     label: item?.name,
   }));
 
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    const templateValue = params.get("templateId");
+    const templates = mappedMenuItems.map(item => item.value.toString());
+
+    if (!templateValue) {
+      setSelectValue('');
+    }
+
+    if (templateValue && !queryFilterList.isLoading) {
+      if (templates.includes(templateValue)) {
+        setSelectValue(templateValue);
+      } else {
+        params.delete("templateId");
+        const newUrl = `${pathname}?${params.toString()}`;
+        window.history.pushState({}, "", newUrl);
+        setSelectValue('');
+      }
+    }
+  }, [mappedMenuItems, searchParams, queryFilterList])
+
   return (
     <Table
       dataLength={items?.length ?? 0}

@@ -19,6 +19,7 @@ import { useOrganizationManager } from "@/hooks/use-organization-manager";
 import { useBackendAuthContext } from "@/context/auth-context";
 import { useEffect, useState } from "react";
 import { UserRole } from "@/types/user";
+import { usePathname, useSearchParams } from "next/navigation";
 
 interface Organization {
   id: string | number;
@@ -38,6 +39,8 @@ export default function OrganizationSwitcherModal({ open, onClose }: Props) {
     setActiveOrganization,
   } = useOrganizationManager();
   const { userRole } = useBackendAuthContext();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   const [tab, setTab] = useState(0);
   const [loadingAll, setLoadingAll] = useState(false);
@@ -61,6 +64,11 @@ export default function OrganizationSwitcherModal({ open, onClose }: Props) {
 
   const handleSelect = (orgId: string) => {
     if (orgId !== activeOrganizationId) {
+      const params = new URLSearchParams(searchParams);
+  
+      params.delete("templateId");
+      const newUrl = `${pathname}?${params.toString()}`;
+      window.history.pushState({}, "", newUrl);
       setActiveOrganization(orgId);
       onClose();
     }
