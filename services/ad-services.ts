@@ -139,17 +139,17 @@ export const getParsingTemplates = async (fetchWithAuth: typeof fetch) => {
 
 export const generateReport = async (
   adId: number,
-  fetchWithAuth: typeof fetch
+  fetchWithAuth: typeof fetch,
+  isOurAd?: boolean,
 ) => {
   const isServer = typeof window === "undefined";
   const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
-  const url = `${basePath}/api/adview/report`;
+  let url = `${basePath}/api/adview/report?id=${adId}&for=${isOurAd ? '2' : '1'}`;
 
   try {
     const response = await fetchWithAuth(url, {
-      method: "POST",
+      method: "GET",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: adId }),
     });
 
     if (!response.ok) {

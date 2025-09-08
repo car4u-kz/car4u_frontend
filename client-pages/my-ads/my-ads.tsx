@@ -23,7 +23,7 @@ import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 
 type Props = {};
 
-const headerLabels = ["Название", "Статус", "Действие"];
+const headerLabels = ["Название", "Статус", "Действие", ""];
 
 const initialData: AdFormData = {
   name: "",

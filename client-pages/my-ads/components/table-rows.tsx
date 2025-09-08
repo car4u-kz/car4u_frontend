@@ -8,6 +8,7 @@ import { ActionPayloadType, MenuItemConfig } from "../types";
 
 import { Status, statusLabels, MenuItemAction } from "@/constants";
 import { SplitButton } from "@/components";
+import GeneratePDFDropdown from "@/components/generate-pdf/generate-pdf";
 
 const menuItems: Record<string, MenuItemConfig> = {
   start: {
@@ -52,6 +53,7 @@ const TableRows = ({ items, onClick }: Props) => {
                 onClick={(action) => onClick({ ...action, id: item.id })}
               />
             </TableCell>
+            <GeneratePDFDropdown index={id} itemId={item.id} isOurAd />
           </TableRow>
         );
       })}
