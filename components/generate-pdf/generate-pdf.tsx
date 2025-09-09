@@ -44,7 +44,7 @@ export default function GeneratePDFDropdown({ index, itemId, isOurAd }: Props) {
         handleMenuClose();
     };
     return (
-        <TableCell>
+        <TableCell sx={{ padding: '0' }}>
             <IconButton onClick={(e) => handleMenuOpen(e, index)}>
                 <MoreVert />
             </IconButton>
