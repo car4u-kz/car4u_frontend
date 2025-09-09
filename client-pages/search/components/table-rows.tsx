@@ -1,12 +1,13 @@
 "use client";
 
-import { TableRow } from "@mui/material";
+import { TableRow, Typography } from "@mui/material";
 
 import { SplitButton } from "@/components";
 import TableCell from "@/components/table/table-cell";
 
 import { Status, statusLabels, MenuItemAction } from "@/constants";
 import { ActionPayloadType, MenuItemConfig } from "../types";
+import Link from "next/link";
 
 const menuItems: Record<string, MenuItemConfig> = {
   start: {
@@ -38,7 +39,13 @@ const TableRows = ({ items, onClick }: Props) => {
 
         return (
           <TableRow key={`${id}-${item.status}`}>
-            <TableCell>{item.searchName}</TableCell>
+            <TableCell>
+              <Typography color="primary.main" sx={{ display: "inline-block" }}>
+                <Link href={`/ads?statusId=0&templateId=${item.id}`}>
+                  {item.searchName}
+                </Link>
+              </Typography>
+            </TableCell>
             <TableCell>{statusLabels[status]}</TableCell>
             <TableCell>
               <SplitButton
