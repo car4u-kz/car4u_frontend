@@ -36,6 +36,10 @@ export async function proxyToBackend(
       body = await res.text();
     }
 
+    if (res.status === 204 || res.status === 205 || res.status === 304) {
+      return new NextResponse(null, { status: res.status });
+    }
+    
     return new NextResponse(
       typeof body === "string" ? body : JSON.stringify(body),
       {

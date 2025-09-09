@@ -88,6 +88,40 @@ export const deleteAd = async (adId: number, fetchWithAuth: typeof fetch) => {
   }
 };
 
+export const markAdAsViewed = async (
+  adId: number,
+  fetchWithAuth: typeof fetch
+) => {
+  const isServer = typeof window === "undefined";
+  const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
+  const url = `${basePath}/api/adview/viewed`;
+
+  try {
+    const response = await fetchWithAuth(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        adId
+      }),
+    });
+
+    const ct = response.headers.get("content-type") || "";
+    const raw = await response.text();
+    const result = raw
+      ? (ct.includes("application/json") ? JSON.parse(raw) : raw)
+      : null;   
+
+    if (!response.ok) {
+      return Promise.reject(new Error(result?.error || "Something went wrong"));
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error during posting an Ad:", error);
+    throw error instanceof Error ? error : new Error("Something went wrong");
+  }
+};
+
 export const changeAdState = async (
   payload: { id: number; action: MenuItemAction },
   fetchWithAuth: typeof fetch

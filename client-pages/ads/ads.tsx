@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { InfiniteData, useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Checklist } from "@mui/icons-material";
 
 import { Table } from "@/components";
@@ -14,6 +14,7 @@ import { getAdFilterList } from "@/services/ad-services";
 
 import { SEARCH_QUERY as SQ } from "@/constants";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
+import { CarsPage, getPageIndexForItem } from "@/helpers/findPageIndexByItemIndex";
 
 const changebleHeader: Record<SQ, string> = {
   [SQ.all]: "Опубликовано",
@@ -42,6 +43,7 @@ const generateHeaderLabels = (carSeachParam: SQ) => {
 
 const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const fetchWithAuth = useFetchWithAuth();
+  const queryClient = useQueryClient();
 
   const [visiblePages, setVisiblePages] = useState(1);
   const [selectValue, setSelectValue] = useState("");
@@ -81,6 +83,38 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     setVisiblePages((prev) => prev + 1);
     fetchNextPage();
   };
+
+  const refetchItemPage = async (itemGlobalIndex: number) => {
+    const state = queryClient.getQueryData<InfiniteData<CarsPage>>(["car-ads", stringParams]);
+    if (!state) return;
+
+    const { pageIndex } = getPageIndexForItem(itemGlobalIndex, state.pages);
+    if (pageIndex < 0) return;
+
+    const pageParam =
+      (state.pageParams?.[pageIndex] as number | undefined) ??
+      state.pages[pageIndex]?.page ??
+      pageIndex + 1;
+
+    await queryClient.cancelQueries({ queryKey: ["car-ads", stringParams] });
+
+    const freshPage = await getCars(
+      { pageParam, params: stringParams, emailAddress },
+      fetchWithAuth
+    );
+
+    queryClient.setQueryData<InfiniteData<CarsPage>>(["car-ads", stringParams], (old) => {
+      if (!old) return old;
+      const pages = old.pages.slice();
+      pages[pageIndex] = freshPage;
+
+      const pageParams = old.pageParams.slice();
+      pageParams[pageIndex] = pageParam;
+
+      return { pages, pageParams };
+    });
+  };
+
   const mappedMenuItems = (queryFilterList.data ?? []).map((item) => ({
     value: !!item.id ? item.id : "",
     label: item?.name,
@@ -116,7 +150,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       hasNextPage={hasNextPage}
       headerLabels={headerLabels}
       visiblePages={visiblePages}
-      tableRows={<TableRows statusId={statusId} items={items!} />}
+      tableRows={<TableRows statusId={statusId} items={items!} onRefetch={refetchItemPage} />}
       tableButtons={
         <TableButtons
           selectProps={{
