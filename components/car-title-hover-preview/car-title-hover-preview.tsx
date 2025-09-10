@@ -24,17 +24,17 @@ type Props = {
   isViewed: boolean,
   adId: number,
   index: number,
-  onRefetch: (itemGlobalIndex: number) => Promise<void>
+  onUpdate: (itemGlobalIndex: number) => Promise<void>
 };
 
-export default function ({ children, shortDescription, src, adUrl, isViewed, adId, onRefetch, index }: Props) {
+export default function ({ children, shortDescription, src, adUrl, isViewed, adId, onUpdate, index }: Props) {
   const classes = useStyles();
   const fetchWithAuth = useFetchWithAuth();
 
   const handleView = async () => {
     if (!isViewed) {
       await markAdAsViewed(adId, fetchWithAuth);
-      await onRefetch(index);
+      await onUpdate(index);
     }
   }
 

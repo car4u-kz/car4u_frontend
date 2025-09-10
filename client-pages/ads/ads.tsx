@@ -98,35 +98,28 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     fetchNextPage();
   };
 
-  const refetchItemPage = async (itemGlobalIndex: number) => {
-    const state = queryClient.getQueryData<InfiniteData<CarsPage>>(["car-ads", stringParams]);
-    if (!state) return;
-
-    const { pageIndex } = getPageIndexForItem(itemGlobalIndex, state.pages);
-    if (pageIndex < 0) return;
-
-    const pageParam =
-      (state.pageParams?.[pageIndex] as number | undefined) ??
-      state.pages[pageIndex]?.page ??
-      pageIndex + 1;
-
-    await queryClient.cancelQueries({ queryKey: ["car-ads", stringParams] });
-
-    const freshPage = await getCars(
-      { pageParam, params: stringParams, emailAddress },
-      fetchWithAuth
+  const handleUpdateItemPage = async (itemGlobalIndex: number) => {
+    queryClient.setQueryData<InfiniteData<CarsPage>>(
+      ["car-ads", stringParams],
+      (old) => {
+        if (!old) return old;
+  
+        const { pageIndex, indexInPage } = getPageIndexForItem(
+          itemGlobalIndex,
+          old.pages
+        );
+        if (pageIndex < 0 || indexInPage < 0) return old;
+  
+        const pages = old.pages.slice();
+        const page = pages[pageIndex];
+        const carAds = page.carAds.slice();
+  
+        carAds[indexInPage] = { ...carAds[indexInPage], isViewed: true };
+        pages[pageIndex] = { ...page, carAds };
+  
+        return { ...old, pages };
+      }
     );
-
-    queryClient.setQueryData<InfiniteData<CarsPage>>(["car-ads", stringParams], (old) => {
-      if (!old) return old;
-      const pages = old.pages.slice();
-      pages[pageIndex] = freshPage;
-
-      const pageParams = old.pageParams.slice();
-      pageParams[pageIndex] = pageParam;
-
-      return { pages, pageParams };
-    });
   };
 
   const mappedMenuItems = (queryFilterList.data ?? []).map((item) => ({
@@ -164,7 +157,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       hasNextPage={hasNextPage}
       headerLabels={headerLabels}
       visiblePages={visiblePages}
-      tableRows={<TableRows statusId={statusId} items={items!} onRefetch={refetchItemPage} />}
+      tableRows={<TableRows statusId={statusId} items={items!} onUpdate={handleUpdateItemPage} />}
       tableButtons={
         <TableButtons
           selectProps={{

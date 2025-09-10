@@ -16,10 +16,10 @@ import GeneratePDFDropdown from "@/components/generate-pdf/generate-pdf";
 type Props = {
   items: CarAd[];
   statusId: SQ;
-  onRefetch: (itemGlobalIndex: number) => Promise<void>
+  onUpdate: (itemGlobalIndex: number) => Promise<void>
 };
 
-const TableRows = ({ statusId, items, onRefetch }: Props) => {
+const TableRows = ({ statusId, items, onUpdate }: Props) => {
   return (
     <>
       {items?.map((item, idx) => (
@@ -52,7 +52,7 @@ const TableRows = ({ statusId, items, onRefetch }: Props) => {
               adUrl={item.adUrl}
               isViewed={item.isViewed}
               adId={item.adId}
-              onRefetch={onRefetch}
+              onUpdate={onUpdate}
               index={idx}
             >
               {item.adTitle}
