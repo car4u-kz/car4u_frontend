@@ -1,6 +1,6 @@
 "use client";
 
-import { Stack, Box } from "@mui/material";
+import { Stack } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 
 import { Tooltip, Typography, Image, Link } from "../common";
@@ -49,9 +49,9 @@ export default function ({ children, shortDescription, src, adUrl, isViewed, adI
       placement="right"
       classes={{ tooltip: classes.tooltip }}
     >
-      <Typography 
-        color={isViewed ? '#FFC107' : "primary.main"} 
-        sx={{ display: "inline-block" }} 
+      <Typography
+        color={isViewed ? '#FFC107' : "primary.main"}
+        sx={{ display: "inline-block" }}
         onClick={handleView}
       >
         <Link href={adUrl}>{children}</Link>

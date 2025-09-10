@@ -15,6 +15,7 @@ import { getAdFilterList } from "@/services/ad-services";
 import { SEARCH_QUERY as SQ } from "@/constants";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import { CarsPage, getPageIndexForItem } from "@/helpers/findPageIndexByItemIndex";
+import { PaginatedCarAds } from "@/types";
 
 const changebleHeader: Record<SQ, string> = {
   [SQ.all]: "Опубликовано",
@@ -52,6 +53,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
 
   const statusId = searchParams.get("statusId") as SQ;
   const stringParams = searchParams.toString();
+  const templateId = searchParams.get("templateId");
 
   const queryFilterList = useQuery<{ id: number; name: string }[]>({
     queryKey: ["adview-filters"],
@@ -59,11 +61,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     retry: false,
   });
 
-  useEffect(() => {
-    setVisiblePages(1);
-  }, [searchParams]);
-
-  const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } =
+  const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
     useInfiniteQuery({
       queryKey: ["car-ads", stringParams],
       queryFn: ({ pageParam, queryKey }) =>
@@ -75,6 +73,22 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       getNextPageParam: (lastPage) =>
         lastPage.hasMore ? lastPage.page + 1 : undefined,
     });
+
+  useEffect(() => {
+    setVisiblePages(1);
+
+    const key = ["car-ads", searchParams.toString()] as const;
+
+    queryClient.setQueryData<InfiniteData<PaginatedCarAds>>(key, (old) => {
+      if (!old) return old;
+      return {
+        pages: old.pages.slice(0, 1),
+        pageParams: [((old.pageParams?.[0] as number) ?? 1)],
+      };
+    });
+
+    refetch();
+  }, [templateId, refetch, queryClient, searchParams]);
 
   const headerLabels = generateHeaderLabels(statusId);
   const items = data?.pages.slice(0, visiblePages).flatMap((p) => p.carAds);
