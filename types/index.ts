@@ -17,6 +17,7 @@ export type CarAd = {
   region: string;
   fuelType: string;
   firstPhotoLink: string;
+  isViewed: boolean,
 };
 
 export type PaginatedCarAds = {

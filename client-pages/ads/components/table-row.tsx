@@ -16,9 +16,10 @@ import GeneratePDFDropdown from "@/components/generate-pdf/generate-pdf";
 type Props = {
   items: CarAd[];
   statusId: SQ;
+  onUpdate: (itemGlobalIndex: number) => Promise<void>
 };
 
-const TableRows = ({ statusId, items }: Props) => {
+const TableRows = ({ statusId, items, onUpdate }: Props) => {
   return (
     <>
       {items?.map((item, idx) => (
@@ -30,6 +31,7 @@ const TableRows = ({ statusId, items }: Props) => {
             "&:hover": {
               backgroundColor: "#f5f9ff",
             },
+            opacity: item.isViewed ? '0.5' : '1'
           }}
         >
           <TableCell>
@@ -48,6 +50,10 @@ const TableRows = ({ statusId, items }: Props) => {
               src={item.firstPhotoLink}
               shortDescription={item.shortDescription}
               adUrl={item.adUrl}
+              isViewed={item.isViewed}
+              adId={item.adId}
+              onUpdate={onUpdate}
+              index={idx}
             >
               {item.adTitle}
             </CarTitleHoverPreview>

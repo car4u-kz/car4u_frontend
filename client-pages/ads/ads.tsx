@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { InfiniteData, useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Checklist } from "@mui/icons-material";
 
 import { Table } from "@/components";
@@ -14,6 +14,8 @@ import { getAdFilterList } from "@/services/ad-services";
 
 import { SEARCH_QUERY as SQ } from "@/constants";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
+import { CarsPage, getPageIndexForItem } from "@/helpers/findPageIndexByItemIndex";
+import { PaginatedCarAds } from "@/types";
 
 const changebleHeader: Record<SQ, string> = {
   [SQ.all]: "Опубликовано",
@@ -42,6 +44,7 @@ const generateHeaderLabels = (carSeachParam: SQ) => {
 
 const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const fetchWithAuth = useFetchWithAuth();
+  const queryClient = useQueryClient();
 
   const [visiblePages, setVisiblePages] = useState(1);
   const [selectValue, setSelectValue] = useState("");
@@ -50,6 +53,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
 
   const statusId = searchParams.get("statusId") as SQ;
   const stringParams = searchParams.toString();
+  const templateId = searchParams.get("templateId");
 
   const queryFilterList = useQuery<{ id: number; name: string }[]>({
     queryKey: ["adview-filters"],
@@ -57,11 +61,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     retry: false,
   });
 
-  useEffect(() => {
-    setVisiblePages(1);
-  }, [searchParams]);
-
-  const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } =
+  const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
     useInfiniteQuery({
       queryKey: ["car-ads", stringParams],
       queryFn: ({ pageParam, queryKey }) =>
@@ -74,6 +74,22 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
         lastPage.hasMore ? lastPage.page + 1 : undefined,
     });
 
+  useEffect(() => {
+    setVisiblePages(1);
+
+    const key = ["car-ads", searchParams.toString()] as const;
+
+    queryClient.setQueryData<InfiniteData<PaginatedCarAds>>(key, (old) => {
+      if (!old) return old;
+      return {
+        pages: old.pages.slice(0, 1),
+        pageParams: [((old.pageParams?.[0] as number) ?? 1)],
+      };
+    });
+
+    refetch();
+  }, [templateId, refetch, queryClient, searchParams]);
+
   const headerLabels = generateHeaderLabels(statusId);
   const items = data?.pages.slice(0, visiblePages).flatMap((p) => p.carAds);
 
@@ -81,6 +97,31 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     setVisiblePages((prev) => prev + 1);
     fetchNextPage();
   };
+
+  const handleUpdateItemPage = async (itemGlobalIndex: number) => {
+    queryClient.setQueryData<InfiniteData<CarsPage>>(
+      ["car-ads", stringParams],
+      (old) => {
+        if (!old) return old;
+  
+        const { pageIndex, indexInPage } = getPageIndexForItem(
+          itemGlobalIndex,
+          old.pages
+        );
+        if (pageIndex < 0 || indexInPage < 0) return old;
+  
+        const pages = old.pages.slice();
+        const page = pages[pageIndex];
+        const carAds = page.carAds.slice();
+  
+        carAds[indexInPage] = { ...carAds[indexInPage], isViewed: true };
+        pages[pageIndex] = { ...page, carAds };
+  
+        return { ...old, pages };
+      }
+    );
+  };
+
   const mappedMenuItems = (queryFilterList.data ?? []).map((item) => ({
     value: !!item.id ? item.id : "",
     label: item?.name,
@@ -116,7 +157,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       hasNextPage={hasNextPage}
       headerLabels={headerLabels}
       visiblePages={visiblePages}
-      tableRows={<TableRows statusId={statusId} items={items!} />}
+      tableRows={<TableRows statusId={statusId} items={items!} onUpdate={handleUpdateItemPage} />}
       tableButtons={
         <TableButtons
           selectProps={{
