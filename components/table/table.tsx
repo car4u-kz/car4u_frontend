@@ -81,7 +81,7 @@ const Table = ({
         id="scrollableDiv"
         sx={{
           maxWidth: 1920,
-          maxHeight: 600,
+          maxHeight: 580,
           bgcolor: "grey",
           margin: "0 auto",
         }}
