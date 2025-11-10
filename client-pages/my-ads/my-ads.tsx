@@ -80,7 +80,6 @@ const MyAds = ({}: Props) => {
     };
   }, [open, formData.sessionId]);
 
-  
   const handleOpenAdd = async () => {
     setError(null);
 
@@ -183,32 +182,32 @@ const MyAds = ({}: Props) => {
     })
   );
 
-  const modalComponent =
-    open === "add" ? (
-      <AdWizard
-        fetchWithAuth={fetchWithAuth}
-        sessionId={formData.sessionId}
-        accounts={accounts}
-        formData={formData}
-        setFormData={setFormData}
-        parsingTemplateDataOptions={parsingTemplateDataOptions}
-        onSubmitAd={async (data) => {
-          try {
-            await mutation.mutateAsync(data);
-            return { ok: true as const };
-          } catch (e: any) {
-            return {
-              ok: false as const,
-              error: e?.message ?? "Ошибка сохранения",
-            };
-          }
-        }}
-        // закрытие модалки
-        onClose={handleModalClose}
-      />
-    ) : (
-      <Confirmation />
-    );
+  const isAdd = open === "add";
+  const modalComponent = isAdd ? (
+    <AdWizard
+      fetchWithAuth={fetchWithAuth}
+      sessionId={formData.sessionId}
+      accounts={accounts}
+      formData={formData}
+      setFormData={setFormData}
+      parsingTemplateDataOptions={parsingTemplateDataOptions}
+      onSubmitAd={async (data) => {
+        try {
+          await mutation.mutateAsync(data);
+          return { ok: true as const };
+        } catch (e: any) {
+          return {
+            ok: false as const,
+            error: e?.message ?? "Ошибка сохранения",
+          };
+        }
+      }}
+      // закрытие модалки
+      onClose={handleModalClose}
+    />
+  ) : (
+    <Confirmation />
+  );
 
   return (
     <>
@@ -234,9 +233,9 @@ const MyAds = ({}: Props) => {
         sx={{ width: 550 }}
         onClose={handleModalClose}
         open={!!open}
-        title={open === "add" ? "Создать новое Объявления" : ""}
+        title={isAdd  ? "Создать новое Объявления" : ""}
         onSubmit={onSubmit}
-        hideFooter
+        hideFooter={isAdd}
       >
         {modalComponent}
       </Modal>
