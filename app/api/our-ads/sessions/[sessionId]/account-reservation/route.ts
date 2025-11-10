@@ -1,19 +1,15 @@
 import { NextRequest } from "next/server";
 import { proxyToBackend } from "@/lib/auth/proxy-to-backend";
 
-type Params = {
-  params: {
-    sessionId: string;
-  };
-};
-
 // POST  /api/our-ads/sessions/:sessionId/account-reservation
 // тело: { login, password }
-export async function POST(request: NextRequest, { params }: Params) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ sessionId: string }> }
+) {
   const body = await request.json();
-  const { sessionId } = params;
+  const { sessionId } = await params;
 
-  // прокидываем на реальный бекенд
   return proxyToBackend(
     request,
     `/api/our-ads/sessions/${sessionId}/account-reservation`,
@@ -29,9 +25,12 @@ export async function POST(request: NextRequest, { params }: Params) {
 
 // PUT  /api/our-ads/sessions/:sessionId/account-reservation
 // тело: { accountId: number }
-export async function PUT(request: NextRequest, { params }: Params) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ sessionId: string }> }
+) {
   const body = await request.json();
-  const { sessionId } = params;
+  const { sessionId } = await params;
 
   return proxyToBackend(
     request,

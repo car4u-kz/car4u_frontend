@@ -1,14 +1,11 @@
 import { NextRequest } from "next/server";
 import { proxyToBackend } from "@/lib/auth/proxy-to-backend";
 
-type Params = {
-  params: {
-    sessionId: string;
-  };
-};
-
-export async function POST(request: NextRequest, { params }: Params) {
-  const { sessionId } = params;
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ sessionId: string }> }
+) {
+  const { sessionId } = await params;
 
   return proxyToBackend(
     request,
