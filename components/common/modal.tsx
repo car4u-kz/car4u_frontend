@@ -39,7 +39,8 @@ const Modal = ({
   onClose = () => {},
   isLoading,
   sx,
-}: Props) => {
+  hideFooter = false,
+}: Props & { hideFooter?: boolean }) => {
   return (
     <MuiModal open={open}>
       <Box sx={{ ...style, ...sx }}>
@@ -57,26 +58,28 @@ const Modal = ({
             children
           )}
         </Box>
-        <Box sx={{ mt: 3, textAlign: "right" }}>
-          <Button
-            disabled={isLoading}
-            onClick={onClose}
-            variant="contained"
-            size="small"
-            color="error"
-          >
-            {cancelLabel}
-          </Button>
-          <Button
-            disabled={isLoading}
-            onClick={onSubmit}
-            variant="contained"
-            size="small"
-            sx={{ ml: 1.5 }}
-          >
-            {submitLabel}
-          </Button>
-        </Box>
+        {!hideFooter && (
+          <Box sx={{ mt: 3, textAlign: "right" }}>
+            <Button
+              disabled={isLoading}
+              onClick={onClose}
+              variant="contained"
+              size="small"
+              color="error"
+            >
+              {cancelLabel}
+            </Button>
+            <Button
+              disabled={isLoading}
+              onClick={onSubmit}
+              variant="contained"
+              size="small"
+              sx={{ ml: 1.5 }}
+            >
+              {submitLabel}
+            </Button>
+          </Box>
+        )}
       </Box>
     </MuiModal>
   );

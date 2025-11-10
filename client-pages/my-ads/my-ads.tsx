@@ -17,9 +17,16 @@ import {
   getParsingTemplates,
 } from "@/services/ad-services";
 
+import {
+  deleteSession,
+  getOurAdsSession,
+} from "@/services/our-ads-sessions-services";
+import { getAccounts } from "@/services/account-services";
+
 import type { AdFormData, ActionPayloadType } from "./types";
 import { MenuItemAction } from "@/constants";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
+import AdWizard from "./components/ad-wizard";
 
 type Props = {};
 
@@ -34,6 +41,8 @@ const initialData: AdFormData = {
   depthOfMonitoring: "",
   intervalSeconds: "",
   monitoringDurationDays: "",
+  sessionId: "",
+  accountId: "",
 };
 
 const Confirmation = () => {
@@ -49,8 +58,56 @@ const MyAds = ({}: Props) => {
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<AdFormData>(initialData);
   const [action, setAction] = useState<ActionPayloadType | null>(null);
-  
+  const [accounts, setAccounts] = useState<{ value: string; label: string }[]>(
+    []
+  );
+
   const fetchWithAuth = useFetchWithAuth();
+
+  useEffect(() => {
+    if (!open || open !== "add") return;
+    if (!formData.sessionId) return;
+
+    const handler = async () => {
+      try {
+        await deleteSession(fetchWithAuth, formData.sessionId);
+      } catch {}
+    };
+
+    window.addEventListener("beforeunload", handler);
+    return () => {
+      window.removeEventListener("beforeunload", handler);
+    };
+  }, [open, formData.sessionId]);
+
+  
+  const handleOpenAdd = async () => {
+    setError(null);
+
+    try {
+      const [sessionRes, accountsRes] = await Promise.all([
+        getOurAdsSession(fetchWithAuth),
+        getAccounts(fetchWithAuth),
+      ]);
+
+      const accountsOptions = accountsRes.map((a) => ({
+        value: String(a.id),
+        label: a.login,
+      }));
+
+      setAccounts(accountsOptions);
+
+      setFormData((prev) => ({
+        ...initialData,
+        sessionId: sessionRes.sessionId,
+        accountId: accountsOptions[0]?.value ?? "",
+      }));
+
+      setOpen("add");
+    } catch (e: any) {
+      setError(e.message ?? "Не удалось открыть форму");
+    }
+  };
 
   const query = useQuery({
     queryKey: ["my-ads"],
@@ -128,12 +185,26 @@ const MyAds = ({}: Props) => {
 
   const modalComponent =
     open === "add" ? (
-      <Form
-        error={error}
-        handleChange={handleChange}
-        handleSelect={handleSelect}
+      <AdWizard
+        fetchWithAuth={fetchWithAuth}
+        sessionId={formData.sessionId}
+        accounts={accounts}
         formData={formData}
+        setFormData={setFormData}
         parsingTemplateDataOptions={parsingTemplateDataOptions}
+        onSubmitAd={async (data) => {
+          try {
+            await mutation.mutateAsync(data);
+            return { ok: true as const };
+          } catch (e: any) {
+            return {
+              ok: false as const,
+              error: e?.message ?? "Ошибка сохранения",
+            };
+          }
+        }}
+        // закрытие модалки
+        onClose={handleModalClose}
       />
     ) : (
       <Confirmation />
@@ -148,7 +219,7 @@ const MyAds = ({}: Props) => {
               disableRipple
               sx={{ color: "white" }}
               size="small"
-              onClick={() => setOpen("add")}
+              onClick={handleOpenAdd}
               startIcon={<AddCircleOutlineIcon fontSize="small" />}
             >
               Добавить Объявления
@@ -165,6 +236,7 @@ const MyAds = ({}: Props) => {
         open={!!open}
         title={open === "add" ? "Создать новое Объявления" : ""}
         onSubmit={onSubmit}
+        hideFooter
       >
         {modalComponent}
       </Modal>
