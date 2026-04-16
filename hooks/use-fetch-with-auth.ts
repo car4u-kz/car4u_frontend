@@ -3,9 +3,7 @@
 import { useBackendAuthContext } from "@/context/auth-context";
 import { useCallback } from "react";
 import { useLoading } from "@/context/loading-context";
-
-const BACKEND_JWT_KEY = "backend_jwt";
-const ACTIVE_ORG_PREFIX = "active_organization_id_";
+import { ACTIVE_ORG_PREFIX, AuthStorage } from "@/lib/auth/auth-storage";
 
 export function useFetchWithAuth() {
   const { startLoading, stopLoading } = useLoading();
@@ -20,7 +18,7 @@ export function useFetchWithAuth() {
 
       startLoading();
       try {
-        const jwt = localStorage.getItem(BACKEND_JWT_KEY);
+        const jwt = AuthStorage.getJWT();
         let organizationId: string | null = null;
         if (userId) {
           organizationId = localStorage.getItem(

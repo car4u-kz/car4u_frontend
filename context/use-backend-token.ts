@@ -1,10 +1,10 @@
 "use client";
 
+import { AuthStorage } from "@/lib/auth/auth-storage";
 import { ValidateResponseSuccess } from "@/services/auth-service";
 import { UserRole } from "@/types/user";
 import { useCallback, useEffect, useState } from "react";
 
-const BACKEND_JWT_KEY = "backend_jwt";
 const USER_ROLE_KEY = "user_role";
 
 export function decodeJwt(token: string): Record<string, any> | null {
@@ -27,7 +27,7 @@ export function useBackendToken() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const stored = localStorage.getItem(BACKEND_JWT_KEY);
+    const stored = AuthStorage.getJWT();
     if (stored) {
       setTokenState(stored);
       const payload = decodeJwt(stored);
@@ -47,7 +47,7 @@ export function useBackendToken() {
   }, []);
 
   const setUser = useCallback((response: ValidateResponseSuccess) => {
-    localStorage.setItem(BACKEND_JWT_KEY, response.jwt);
+    AuthStorage.setJWT(response.jwt);
 
     localStorage.setItem(USER_ROLE_KEY, response.role.toString());
 
@@ -59,7 +59,7 @@ export function useBackendToken() {
   }, []);
 
   const removeUser = useCallback(() => {
-    localStorage.removeItem(BACKEND_JWT_KEY);
+    AuthStorage.clearJWT();
     setTokenState(null);
     setUserId(null);
     setRole(null);
