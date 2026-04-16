@@ -63,7 +63,7 @@ export default function GeneratePDFDropdown({ index, itemId, isOurAd }: Props) {
                         {menuItem.label}
                     </MenuItem>
                 ))}
-            </Menu>
+            </Menu> 
         </TableCell>
     )
 }

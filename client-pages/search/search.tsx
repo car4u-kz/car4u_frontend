@@ -23,6 +23,7 @@ const headerLabels = [
   "Действие",
   "Дата создания",
   "Источник",
+  "",
 ];
 
 const initialData: SearchFormData = {

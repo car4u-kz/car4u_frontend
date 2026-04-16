@@ -4,7 +4,7 @@ import { MenuItemAction } from "@/constants";
 
 export const postSearch = async (
   formData: SearchFormData,
-  fetchWithAuth: typeof fetch
+  fetchWithAuth: typeof fetch,
 ): Promise<true | Error> => {
   const isServer = typeof window === "undefined";
   const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
@@ -20,7 +20,7 @@ export const postSearch = async (
     if (!response.ok) {
       const error = await response.json();
       return Promise.reject(
-        new Error(error?.error || error?.message || "Something went wrong")
+        new Error(error?.error || error?.message || "Something went wrong"),
       );
     }
 
@@ -28,7 +28,7 @@ export const postSearch = async (
   } catch (error) {
     console.error("Error during posting a search:", error);
     return Promise.reject(
-      error instanceof Error ? error : new Error("Something went wrong")
+      error instanceof Error ? error : new Error("Something went wrong"),
     );
   }
 };
@@ -59,7 +59,7 @@ export const changeParsingTemplateState = async (
     id: number;
     action: MenuItemAction;
   },
-  fetchWithAuth: typeof fetch
+  fetchWithAuth: typeof fetch,
 ) => {
   const isServer = typeof window === "undefined";
   const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
@@ -84,7 +84,53 @@ export const changeParsingTemplateState = async (
   } catch (error) {
     console.log("Error during changing state of parsing-template:", error);
     return Promise.reject(
-      error instanceof Error ? error : new Error("Something went wrong")
+      error instanceof Error ? error : new Error("Something went wrong"),
     );
   }
+};
+
+export const exportAdsArchive = async (
+  templateId: number,
+  fetchWithAuth: (
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ) => Promise<Response>,
+) => {
+  const response = await fetchWithAuth(
+    `/api/adview/export-zip?templateId=${templateId}`,
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/zip",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "Не удалось выгрузить архив");
+  }
+
+  const blob = await response.blob();
+
+  const contentDisposition = response.headers.get("content-disposition");
+  let fileName = "ads-export.zip";
+
+  if (contentDisposition) {
+    const match = contentDisposition.match(
+      /filename\*?=(?:UTF-8'')?["']?([^"';\n]+)["']?/i,
+    );
+    if (match?.[1]) {
+      fileName = decodeURIComponent(match[1]);
+    }
+  }
+
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
 };
