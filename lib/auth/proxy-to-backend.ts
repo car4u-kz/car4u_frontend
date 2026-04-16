@@ -17,7 +17,7 @@ export async function proxyToBackend(
     if (authHeader) {
       headers.set("Authorization", authHeader);
     }
-
+ 
     if (organizationHeader) {
       headers.set("X-Organization-Id", organizationHeader);
     }
