@@ -2,7 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { InfiniteData, useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  InfiniteData,
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { Checklist } from "@mui/icons-material";
 
 import { Table } from "@/components";
@@ -14,7 +19,10 @@ import { getAdFilterList } from "@/services/ad-services";
 
 import { SEARCH_QUERY as SQ } from "@/constants";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
-import { CarsPage, getPageIndexForItem } from "@/helpers/findPageIndexByItemIndex";
+import {
+  CarsPage,
+  getPageIndexForItem,
+} from "@/helpers/findPageIndexByItemIndex";
 import { PaginatedCarAds } from "@/types";
 
 const changebleHeader: Record<SQ, string> = {
@@ -24,11 +32,32 @@ const changebleHeader: Record<SQ, string> = {
   [SQ.myAds]: "Мои Объявления",
 };
 
-const generateHeaderLabels = (carSeachParam: SQ) => {
+const generateHeaderLabels = (
+  carSeachParam: SQ,
+  sortBy: string | null,
+  sortOrder: string | null,
+  onDateSortClick: () => void,
+) => {
   const firstheader = changebleHeader[carSeachParam];
+  const isActive = sortBy === "date";
+  const arrow = !isActive ? "" : sortOrder === "asc" ? " ↑" : " ↓";
 
   return [
-    firstheader,
+    <button
+      type="button"
+      onClick={onDateSortClick}
+      style={{
+        background: "none",
+        border: "none",
+        padding: 0,
+        cursor: "pointer",
+        font: "inherit",
+        fontWeight: 500,
+      }}
+    >
+      {firstheader}
+      {arrow}
+    </button>,
     <Checklist />,
     "Автомобиль",
     "Год",
@@ -55,24 +84,47 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const stringParams = searchParams.toString();
   const templateId = searchParams.get("templateId");
 
+  const sortBy = searchParams.get("sortBy");
+  const sortOrder = searchParams.get("sortOrder");
+
+    const handleDateSortClick = () => {
+    const params = new URLSearchParams(searchParams);
+
+    const currentSortBy = params.get("sortBy");
+    const currentSortOrder = params.get("sortOrder");
+
+    if (currentSortBy !== "date") {
+      params.set("sortBy", "date");
+      params.set("sortOrder", "desc");
+    } else {
+      params.set("sortOrder", currentSortOrder === "asc" ? "desc" : "asc");
+    }
+
+    const newUrl = `${pathname}?${params.toString()}`;
+    window.history.pushState({}, "", newUrl);
+  };
+  
   const queryFilterList = useQuery<{ id: number; name: string }[]>({
     queryKey: ["adview-filters"],
     queryFn: () => getAdFilterList(fetchWithAuth),
     retry: false,
   });
 
-  const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
-    useInfiniteQuery({
-      queryKey: ["car-ads", stringParams],
-      queryFn: ({ pageParam, queryKey }) =>
-        getCars(
-          { pageParam, params: queryKey[1], emailAddress },
-          fetchWithAuth
-        ),
-      initialPageParam: 1,
-      getNextPageParam: (lastPage) =>
-        lastPage.hasMore ? lastPage.page + 1 : undefined,
-    });
+  const {
+    data,
+    isFetching,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey: ["car-ads", stringParams],
+    queryFn: ({ pageParam, queryKey }) =>
+      getCars({ pageParam, params: queryKey[1], emailAddress }, fetchWithAuth),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.page + 1 : undefined,
+  });
 
   useEffect(() => {
     setVisiblePages(1);
@@ -83,14 +135,19 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       if (!old) return old;
       return {
         pages: old.pages.slice(0, 1),
-        pageParams: [((old.pageParams?.[0] as number) ?? 1)],
+        pageParams: [(old.pageParams?.[0] as number) ?? 1],
       };
     });
 
     refetch();
   }, [templateId, refetch, queryClient, searchParams]);
 
-  const headerLabels = generateHeaderLabels(statusId);
+  const headerLabels = generateHeaderLabels(
+    statusId,
+    sortBy,
+    sortOrder,
+    handleDateSortClick,
+  );
   const items = data?.pages.slice(0, visiblePages).flatMap((p) => p.carAds);
 
   const onFetchNext = () => {
@@ -98,27 +155,28 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     fetchNextPage();
   };
 
+
   const handleUpdateItemPage = async (itemGlobalIndex: number) => {
     queryClient.setQueryData<InfiniteData<CarsPage>>(
       ["car-ads", stringParams],
       (old) => {
         if (!old) return old;
-  
+
         const { pageIndex, indexInPage } = getPageIndexForItem(
           itemGlobalIndex,
-          old.pages
+          old.pages,
         );
         if (pageIndex < 0 || indexInPage < 0) return old;
-  
+
         const pages = old.pages.slice();
         const page = pages[pageIndex];
         const carAds = page.carAds.slice();
-  
+
         carAds[indexInPage] = { ...carAds[indexInPage], isViewed: true };
         pages[pageIndex] = { ...page, carAds };
-  
+
         return { ...old, pages };
-      }
+      },
     );
   };
 
@@ -130,10 +188,10 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
     const templateValue = params.get("templateId");
-    const templates = mappedMenuItems.map(item => item.value.toString());
+    const templates = mappedMenuItems.map((item) => item.value.toString());
 
     if (!templateValue) {
-      setSelectValue('');
+      setSelectValue("");
     }
 
     if (templateValue && !queryFilterList.isLoading) {
@@ -143,10 +201,10 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
         params.delete("templateId");
         const newUrl = `${pathname}?${params.toString()}`;
         window.history.pushState({}, "", newUrl);
-        setSelectValue('');
+        setSelectValue("");
       }
     }
-  }, [mappedMenuItems, searchParams, queryFilterList])
+  }, [mappedMenuItems, searchParams, queryFilterList]);
 
   return (
     <Table
@@ -157,7 +215,13 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       hasNextPage={hasNextPage}
       headerLabels={headerLabels}
       visiblePages={visiblePages}
-      tableRows={<TableRows statusId={statusId} items={items!} onUpdate={handleUpdateItemPage} />}
+      tableRows={
+        <TableRows
+          statusId={statusId}
+          items={items!}
+          onUpdate={handleUpdateItemPage}
+        />
+      }
       tableButtons={
         <TableButtons
           selectProps={{
