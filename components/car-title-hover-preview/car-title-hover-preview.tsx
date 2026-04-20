@@ -46,7 +46,7 @@ export default function ({ children, shortDescription, src, adUrl, isViewed, adI
           <Typography variant="body2">{shortDescription}</Typography>
         </Stack>
       }
-      placement="right"
+      placement="left"
       classes={{ tooltip: classes.tooltip }}
     >
       <Typography

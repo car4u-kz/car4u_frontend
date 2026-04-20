@@ -130,7 +130,7 @@ const TableRows = ({ items, onClick }: Props) => {
             <ArchiveIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>
-            {isExporting ? "Выгрузка..." : "Выгрузить результаты поиска"}
+            {isExporting ? "Выгрузка..." : "Выгрузить результаты"}
           </ListItemText>
         </MenuItem>
       </Menu>
