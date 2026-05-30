@@ -89,6 +89,46 @@ export const changeParsingTemplateState = async (
   }
 };
 
+export const deleteParsingTemplate = async (
+  id: number,
+  fetchWithAuth: typeof fetch,
+) => {
+  const isServer = typeof window === "undefined";
+  const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
+  const url = `${basePath}/api/parsing-template/delete`;
+
+  try {
+    const response = await fetchWithAuth(url, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id }),
+    });
+
+    if (!response.ok) {
+      let message = "Something went wrong";
+
+      try {
+        const result = await response.json();
+        message = result?.error || result?.message || message;
+      } catch {
+        const text = await response.text();
+        message = text || message;
+      }
+
+      return Promise.reject(new Error(message));
+    }
+
+    return true;
+  } catch (error) {
+    console.log("Error during deleting parsing-template:", error);
+    return Promise.reject(
+      error instanceof Error ? error : new Error("Something went wrong"),
+    );
+  }
+};
+
 export const exportAdsArchive = async (
   templateId: number,
   fetchWithAuth: (

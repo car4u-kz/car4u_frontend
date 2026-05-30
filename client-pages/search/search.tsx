@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Box, SelectChangeEvent, Typography } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -14,15 +14,17 @@ import {
   postSearch,
   getParsingTemplates,
   changeParsingTemplateState,
+  deleteParsingTemplate,
 } from "@/services/search-services";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
+import { MenuItemAction } from "@/constants";
 
 const headerLabels = [
-  "Название",
-  "Статус",
-  "Действие",
-  "Дата создания",
-  "Источник",
+  "РќР°Р·РІР°РЅРёРµ",
+  "РЎС‚Р°С‚СѓСЃ",
+  "Р”РµР№СЃС‚РІРёРµ",
+  "Р”Р°С‚Р° СЃРѕР·РґР°РЅРёСЏ",
+  "РСЃС‚РѕС‡РЅРёРє",
   "",
 ];
 
@@ -34,10 +36,19 @@ const initialData: SearchFormData = {
   searchDurationDays: "",
 };
 
-const Confirmation = () => {
+const Confirmation = ({
+  method,
+}: {
+  method?: ActionPayloadType["method"];
+}) => {
+  const text =
+    method === MenuItemAction.delete
+      ? "Вы уверены, что хотите удалить поиск? Будут удалены и все связанные объявления."
+      : "Вы уверены, что хотите выполнить это действие?";
+
   return (
     <Box>
-      <Typography>Ви уверени что хотите запустить Действие?</Typography>
+      <Typography>{text}</Typography>
     </Box>
   );
 };
@@ -56,48 +67,61 @@ const SearchPage = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: async (formData: SearchFormData) => {
-      await postSearch(formData, fetchWithAuth);
+    mutationFn: async (payload: SearchFormData | ActionPayloadType) => {
+      if ("searchName" in payload) {
+        return postSearch(payload, fetchWithAuth);
+      }
+
+      if (payload.method === MenuItemAction.delete) {
+        return deleteParsingTemplate(payload.id!, fetchWithAuth);
+      }
+
+      // @ts-ignore backend accepts start/stop only
+      return changeParsingTemplateState(
+        { id: payload.id, action: payload.method },
+        fetchWithAuth,
+      );
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setOpen(false);
       setFormData(initialData);
-      query.refetch();
+      setAction(null);
+      await query.refetch();
     },
-    onError: (error: Error) => {
-      setError(error.message);
+    onError: (mutationError: Error) => {
+      setError(mutationError.message);
     },
   });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    key: keyof SearchFormData
+    key: keyof SearchFormData,
   ) => setFormData((prev) => ({ ...prev, [key]: e.target.value }));
 
   const handleSelect = (e: SelectChangeEvent) =>
     setFormData((prev) => ({ ...prev, source: e.target.value }));
 
   const onSubmit = async () => {
-    if (open === "add") return mutation.mutate(formData);
+    if (open === "add") {
+      return mutation.mutate(formData);
+    }
 
-    if (open === "confirmation") {
-      const { method, id } = action!;
-
-      // @ts-ignore
-      await changeParsingTemplateState({ id, action: method }, fetchWithAuth);
-      await query.refetch();
-      setOpen(false);
+    if (open === "confirmation" && action) {
+      return mutation.mutate(action);
     }
   };
-  const onButtonClick = (action: ActionPayloadType) => {
+
+  const onButtonClick = (nextAction: ActionPayloadType) => {
+    setError(null);
     setOpen("confirmation");
-    setAction(action);
+    setAction(nextAction);
   };
 
   const handleModalClose = () => {
     setOpen(false);
     setFormData(initialData);
     setError(null);
+    setAction(null);
   };
 
   const modalComponent =
@@ -109,8 +133,14 @@ const SearchPage = () => {
         formData={formData}
       />
     ) : (
-      <Confirmation />
+      <Confirmation method={action?.method} />
     );
+
+  const confirmationTitle =
+    action?.method === MenuItemAction.delete ? "Удалить поиск" : "Подтверждение";
+
+  const submitLabel =
+    action?.method === MenuItemAction.delete ? "Удалить" : "Подтвердить";
 
   return (
     <>
@@ -124,7 +154,7 @@ const SearchPage = () => {
               onClick={() => setOpen("add")}
               startIcon={<AddCircleOutlineIcon fontSize="small" />}
             >
-              Новый поиск
+              РќРѕРІС‹Р№ РїРѕРёСЃРє
             </Button>
           </Box>
         }
@@ -135,7 +165,8 @@ const SearchPage = () => {
         isLoading={mutation.isPending || query.isPending}
         onClose={handleModalClose}
         open={!!open}
-        title={open === "add" ? "Создать Поиск" : ""}
+        title={open === "add" ? "РЎРѕР·РґР°С‚СЊ РџРѕРёСЃРє" : confirmationTitle}
+        submitLabel={open === "add" ? undefined : submitLabel}
         onSubmit={onSubmit}
       >
         {modalComponent}

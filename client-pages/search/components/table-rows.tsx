@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArchiveIcon from "@mui/icons-material/Archive";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 import { SplitButton } from "@/components";
 import TableCell from "@/components/table/table-cell";
@@ -24,12 +25,16 @@ import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 
 const menuItems: Record<string, MenuItemConfig> = {
   start: {
-    label: "Запустить",
+    label: "Р—Р°РїСѓСЃС‚РёС‚СЊ",
     value: MenuItemAction.start,
   },
   stop: {
-    label: "Завершить",
+    label: "Р—Р°РІРµСЂС€РёС‚СЊ",
     value: MenuItemAction.stop,
+  },
+  delete: {
+    label: "Удалить",
+    value: MenuItemAction.delete,
   },
 };
 
@@ -52,7 +57,7 @@ const TableRows = ({ items, onClick }: Props) => {
 
   const handleMenuOpen = (
     event: React.MouseEvent<HTMLElement>,
-    templateId: number
+    templateId: number,
   ) => {
     setAnchorEl(event.currentTarget);
     setSelectedTemplateId(templateId);
@@ -70,11 +75,18 @@ const TableRows = ({ items, onClick }: Props) => {
       setIsExporting(true);
       await exportAdsArchive(selectedTemplateId, fetchWithAuth);
     } catch (error) {
-      console.error("Ошибка при выгрузке архива", error);
+      console.error("РћС€РёР±РєР° РїСЂРё РІС‹РіСЂСѓР·РєРµ Р°СЂС…РёРІР°", error);
     } finally {
       setIsExporting(false);
       handleMenuClose();
     }
+  };
+
+  const handleDeleteClick = () => {
+    if (selectedTemplateId) {
+      onClick({ id: selectedTemplateId, method: MenuItemAction.delete });
+    }
+    handleMenuClose();
   };
 
   return (
@@ -130,8 +142,14 @@ const TableRows = ({ items, onClick }: Props) => {
             <ArchiveIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>
-            {isExporting ? "Выгрузка..." : "Выгрузить результаты"}
+            {isExporting ? "Р’С‹РіСЂСѓР·РєР°..." : "Р’С‹РіСЂСѓР·РёС‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚С‹"}
           </ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleDeleteClick}>
+          <ListItemIcon>
+            <DeleteOutlineIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Удалить поиск</ListItemText>
         </MenuItem>
       </Menu>
     </>
