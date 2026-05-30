@@ -72,11 +72,14 @@ const SearchPage = () => {
         return postSearch(payload, fetchWithAuth);
       }
 
-      if (payload.method === MenuItemAction.delete) {
-        return deleteParsingTemplate(payload.id!, fetchWithAuth);
+      if (payload.id == null || payload.method == null) {
+        return Promise.reject(new Error("Некорректное действие для поиска"));
       }
 
-      // @ts-ignore backend accepts start/stop only
+      if (payload.method === MenuItemAction.delete) {
+        return deleteParsingTemplate(payload.id, fetchWithAuth);
+      }
+
       return changeParsingTemplateState(
         { id: payload.id, action: payload.method },
         fetchWithAuth,
