@@ -20,11 +20,11 @@ import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import { MenuItemAction } from "@/constants";
 
 const headerLabels = [
-  "РќР°Р·РІР°РЅРёРµ",
-  "РЎС‚Р°С‚СѓСЃ",
-  "Р”РµР№СЃС‚РІРёРµ",
-  "Р”Р°С‚Р° СЃРѕР·РґР°РЅРёСЏ",
-  "РСЃС‚РѕС‡РЅРёРє",
+  "Название",
+  "Статус",
+  "Действие",
+  "Дата создания",
+  "Источник",
   "",
 ];
 
@@ -157,7 +157,7 @@ const SearchPage = () => {
               onClick={() => setOpen("add")}
               startIcon={<AddCircleOutlineIcon fontSize="small" />}
             >
-              РќРѕРІС‹Р№ РїРѕРёСЃРє
+              Новый поиск
             </Button>
           </Box>
         }
@@ -168,7 +168,7 @@ const SearchPage = () => {
         isLoading={mutation.isPending || query.isPending}
         onClose={handleModalClose}
         open={!!open}
-        title={open === "add" ? "РЎРѕР·РґР°С‚СЊ РџРѕРёСЃРє" : confirmationTitle}
+        title={open === "add" ? "Создать поиск" : confirmationTitle}
         submitLabel={open === "add" ? undefined : submitLabel}
         onSubmit={onSubmit}
       >

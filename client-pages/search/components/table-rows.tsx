@@ -25,11 +25,11 @@ import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 
 const menuItems: Record<string, MenuItemConfig> = {
   start: {
-    label: "Р—Р°РїСѓСЃС‚РёС‚СЊ",
+    label: "Запустить",
     value: MenuItemAction.start,
   },
   stop: {
-    label: "Р—Р°РІРµСЂС€РёС‚СЊ",
+    label: "Завершить",
     value: MenuItemAction.stop,
   },
   delete: {
@@ -75,7 +75,7 @@ const TableRows = ({ items, onClick }: Props) => {
       setIsExporting(true);
       await exportAdsArchive(selectedTemplateId, fetchWithAuth);
     } catch (error) {
-      console.error("РћС€РёР±РєР° РїСЂРё РІС‹РіСЂСѓР·РєРµ Р°СЂС…РёРІР°", error);
+      console.error("Ошибка при выгрузке архива", error);
     } finally {
       setIsExporting(false);
       handleMenuClose();
@@ -142,7 +142,7 @@ const TableRows = ({ items, onClick }: Props) => {
             <ArchiveIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>
-            {isExporting ? "Р’С‹РіСЂСѓР·РєР°..." : "Р’С‹РіСЂСѓР·РёС‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚С‹"}
+            {isExporting ? "Выгрузка..." : "Выгрузить результаты"}
           </ListItemText>
         </MenuItem>
         <MenuItem onClick={handleDeleteClick}>
