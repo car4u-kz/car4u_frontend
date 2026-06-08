@@ -22,4 +22,5 @@ export type SearchFormData = {
 export type ParsingTemplateItem = SearchFormData & {
   id: number;
   status: number;
+  createdAt: string;
 };

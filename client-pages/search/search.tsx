@@ -24,14 +24,7 @@ import {
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import { MenuItemAction } from "@/constants";
 
-const headerLabels = [
-  "Название",
-  "Статус",
-  "Действие",
-  "Дата создания",
-  "Источник",
-  "",
-];
+const headerLabels = ["Название", "Статус", "Дата создания", "Источник", ""];
 
 const initialData: SearchFormData = {
   source: "",
@@ -180,7 +173,9 @@ const SearchPage = () => {
     );
 
   const confirmationTitle =
-    action?.method === MenuItemAction.delete ? "Удалить поиск" : "Подтверждение";
+    action?.method === MenuItemAction.delete
+      ? "Удалить поиск"
+      : "Подтверждение";
 
   const modalTitle =
     open === "add"
@@ -193,10 +188,10 @@ const SearchPage = () => {
     open === "add"
       ? "Создать"
       : open === "edit"
-      ? "Сохранить"
-      : action?.method === MenuItemAction.delete
-        ? "Удалить"
-        : "Подтвердить";
+        ? "Сохранить"
+        : action?.method === MenuItemAction.delete
+          ? "Удалить"
+          : "Подтвердить";
 
   return (
     <>

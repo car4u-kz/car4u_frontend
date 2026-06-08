@@ -54,6 +54,18 @@ type Props = {
   items: ParsingTemplateItem[];
 };
 
+const formatCreatedAt = (value: string) => {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return date.toLocaleDateString("ru-RU");
+};
+
 const TableRows = ({ items, onClick, onEdit }: Props) => {
   const fetchWithAuth = useFetchWithAuth();
 
@@ -138,7 +150,7 @@ const TableRows = ({ items, onClick, onEdit }: Props) => {
 
             <TableCell>-</TableCell>
 
-            <TableCell>-</TableCell>
+            <TableCell>{formatCreatedAt(item.createdAt)}</TableCell>
 
             <TableCell>{item.source}</TableCell>
 
