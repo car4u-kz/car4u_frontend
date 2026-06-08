@@ -138,7 +138,7 @@ const TableRows = ({ items, onClick, onEdit }: Props) => {
 
         return (
           <TableRow key={`${id}-${item.status}`}>
-            <TableCell>
+            <TableCell sx={{ textAlign: "left" }}>
               <Typography color="primary.main" sx={{ display: "inline-block" }}>
                 <Link href={`/ads?statusId=0&templateId=${item.id}`}>
                   {item.searchName}
