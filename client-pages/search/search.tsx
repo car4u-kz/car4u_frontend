@@ -9,9 +9,14 @@ import TableRows from "./components/table-rows";
 import Form from "./components/form";
 import { Button, Table, Modal } from "@/components";
 
-import type { ActionPayloadType, SearchFormData } from "./types";
+import type {
+  ActionPayloadType,
+  ParsingTemplateItem,
+  SearchFormData,
+} from "./types";
 import {
   postSearch,
+  putSearch,
   getParsingTemplates,
   changeParsingTemplateState,
   deleteParsingTemplate,
@@ -53,11 +58,26 @@ const Confirmation = ({
   );
 };
 
+const mapTemplateToFormData = (
+  template: ParsingTemplateItem,
+): SearchFormData => ({
+  source: template.source,
+  url: template.url,
+  searchName: template.searchName,
+  intervalSeconds: template.intervalSeconds,
+  searchDurationDays: template.searchDurationDays,
+});
+
 const SearchPage = () => {
-  const [open, setOpen] = useState<"add" | "confirmation" | false>(false);
+  const [open, setOpen] = useState<"add" | "edit" | "confirmation" | false>(
+    false,
+  );
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<SearchFormData>(initialData);
   const [action, setAction] = useState<ActionPayloadType | null>(null);
+  const [editingTemplateId, setEditingTemplateId] = useState<number | null>(
+    null,
+  );
 
   const fetchWithAuth = useFetchWithAuth();
   const query = useQuery({
@@ -67,28 +87,35 @@ const SearchPage = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: async (payload: SearchFormData | ActionPayloadType) => {
-      if ("searchName" in payload) {
-        return postSearch(payload, fetchWithAuth);
+    mutationFn: async (
+      payload:
+        | { type: "create"; formData: SearchFormData }
+        | { type: "edit"; id: number; formData: SearchFormData }
+        | { type: "action"; action: ActionPayloadType },
+    ) => {
+      if (payload.type === "create") {
+        return postSearch(payload.formData, fetchWithAuth);
       }
 
-      if (payload.id == null || payload.method == null) {
+      if (payload.type === "edit") {
+        return putSearch(payload.id, payload.formData, fetchWithAuth);
+      }
+
+      if (payload.action.id == null || payload.action.method == null) {
         return Promise.reject(new Error("Некорректное действие для поиска"));
       }
 
-      if (payload.method === MenuItemAction.delete) {
-        return deleteParsingTemplate(payload.id, fetchWithAuth);
+      if (payload.action.method === MenuItemAction.delete) {
+        return deleteParsingTemplate(payload.action.id, fetchWithAuth);
       }
 
       return changeParsingTemplateState(
-        { id: payload.id, action: payload.method },
+        { id: payload.action.id, action: payload.action.method },
         fetchWithAuth,
       );
     },
     onSuccess: async () => {
-      setOpen(false);
-      setFormData(initialData);
-      setAction(null);
+      handleModalClose();
       await query.refetch();
     },
     onError: (mutationError: Error) => {
@@ -106,11 +133,15 @@ const SearchPage = () => {
 
   const onSubmit = async () => {
     if (open === "add") {
-      return mutation.mutate(formData);
+      return mutation.mutate({ type: "create", formData });
+    }
+
+    if (open === "edit" && editingTemplateId != null) {
+      return mutation.mutate({ type: "edit", id: editingTemplateId, formData });
     }
 
     if (open === "confirmation" && action) {
-      return mutation.mutate(action);
+      return mutation.mutate({ type: "action", action });
     }
   };
 
@@ -120,15 +151,24 @@ const SearchPage = () => {
     setAction(nextAction);
   };
 
+  const onEditClick = (template: ParsingTemplateItem) => {
+    setError(null);
+    setAction(null);
+    setEditingTemplateId(template.id);
+    setFormData(mapTemplateToFormData(template));
+    setOpen("edit");
+  };
+
   const handleModalClose = () => {
     setOpen(false);
     setFormData(initialData);
     setError(null);
     setAction(null);
+    setEditingTemplateId(null);
   };
 
   const modalComponent =
-    open === "add" ? (
+    open === "add" || open === "edit" ? (
       <Form
         error={error}
         handleChange={handleChange}
@@ -142,8 +182,21 @@ const SearchPage = () => {
   const confirmationTitle =
     action?.method === MenuItemAction.delete ? "Удалить поиск" : "Подтверждение";
 
+  const modalTitle =
+    open === "add"
+      ? "Создать поиск"
+      : open === "edit"
+        ? "Редактировать поиск"
+        : confirmationTitle;
+
   const submitLabel =
-    action?.method === MenuItemAction.delete ? "Удалить" : "Подтвердить";
+    open === "add"
+      ? "Создать"
+      : open === "edit"
+      ? "Сохранить"
+      : action?.method === MenuItemAction.delete
+        ? "Удалить"
+        : "Подтвердить";
 
   return (
     <>
@@ -161,15 +214,21 @@ const SearchPage = () => {
             </Button>
           </Box>
         }
-        tableRows={<TableRows onClick={onButtonClick} items={query?.data} />}
+        tableRows={
+          <TableRows
+            onClick={onButtonClick}
+            onEdit={onEditClick}
+            items={query.data ?? []}
+          />
+        }
         headerLabels={headerLabels}
       />
       <Modal
         isLoading={mutation.isPending || query.isPending}
         onClose={handleModalClose}
         open={!!open}
-        title={open === "add" ? "Создать поиск" : confirmationTitle}
-        submitLabel={open === "add" ? undefined : submitLabel}
+        title={modalTitle}
+        submitLabel={submitLabel}
         onSubmit={onSubmit}
       >
         {modalComponent}

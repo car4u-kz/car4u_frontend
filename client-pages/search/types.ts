@@ -18,3 +18,8 @@ export type SearchFormData = {
   intervalSeconds: string;
   searchDurationDays: string;
 };
+
+export type ParsingTemplateItem = SearchFormData & {
+  id: number;
+  status: number;
+};

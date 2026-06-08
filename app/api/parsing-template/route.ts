@@ -14,3 +14,11 @@ export async function POST(request: NextRequest) {
     headers: { "Content-Type": "application/json" },
   });
 }
+
+export async function PUT(request: NextRequest) {
+  return proxyToBackend(request, "/api/parsing-template", {
+    method: "PUT",
+    body: await request.text(),
+    headers: { "Content-Type": "application/json" },
+  });
+}

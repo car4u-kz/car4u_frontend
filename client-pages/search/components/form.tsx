@@ -8,7 +8,7 @@ import type { SearchFormData } from "../types";
 type Props = {
   handleChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    key: keyof SearchFormData
+    key: keyof SearchFormData,
   ) => void;
   handleSelect: (e: SelectChangeEvent) => void;
   formData: SearchFormData;
@@ -31,7 +31,7 @@ const Form = ({ handleChange, handleSelect, formData, error }: Props) => {
         onChange={(e) => handleChange(e, "url")}
       />
       <TextInput
-        label="Название Поиска"
+        label="Название поиска"
         value={formData.searchName}
         onChange={(e) => handleChange(e, "searchName")}
       />

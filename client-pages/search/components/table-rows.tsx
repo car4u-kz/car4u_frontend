@@ -13,12 +13,17 @@ import {
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 
 import { SplitButton } from "@/components";
 import TableCell from "@/components/table/table-cell";
 
 import { Status, statusLabels, MenuItemAction } from "@/constants";
-import { ActionPayloadType, MenuItemConfig } from "../types";
+import {
+  ActionPayloadType,
+  MenuItemConfig,
+  ParsingTemplateItem,
+} from "../types";
 import Link from "next/link";
 import { exportAdsArchive } from "@/services/search-services";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
@@ -45,35 +50,37 @@ const statusActionsMap: Partial<Record<Status, MenuItemConfig[]>> = {
 
 type Props = {
   onClick: (action: ActionPayloadType) => void;
-  items: any[];
+  onEdit: (template: ParsingTemplateItem) => void;
+  items: ParsingTemplateItem[];
 };
 
-const TableRows = ({ items, onClick }: Props) => {
+const TableRows = ({ items, onClick, onEdit }: Props) => {
   const fetchWithAuth = useFetchWithAuth();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<ParsingTemplateItem | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
   const handleMenuOpen = (
     event: React.MouseEvent<HTMLElement>,
-    templateId: number,
+    template: ParsingTemplateItem,
   ) => {
     setAnchorEl(event.currentTarget);
-    setSelectedTemplateId(templateId);
+    setSelectedTemplate(template);
   };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-    setSelectedTemplateId(null);
+    setSelectedTemplate(null);
   };
 
   const handleExportArchive = async () => {
-    if (!selectedTemplateId) return;
+    if (!selectedTemplate) return;
 
     try {
       setIsExporting(true);
-      await exportAdsArchive(selectedTemplateId, fetchWithAuth);
+      await exportAdsArchive(selectedTemplate.id, fetchWithAuth);
     } catch (error) {
       console.error("Ошибка при выгрузке архива", error);
     } finally {
@@ -83,16 +90,23 @@ const TableRows = ({ items, onClick }: Props) => {
   };
 
   const handleDeleteClick = () => {
-    if (selectedTemplateId) {
-      onClick({ id: selectedTemplateId, method: MenuItemAction.delete });
+    if (selectedTemplate) {
+      onClick({ id: selectedTemplate.id, method: MenuItemAction.delete });
+    }
+    handleMenuClose();
+  };
+
+  const handleEditClick = () => {
+    if (selectedTemplate) {
+      onEdit(selectedTemplate);
     }
     handleMenuClose();
   };
 
   return (
     <>
-      {items?.map((item, id) => {
-        const status = item?.status as Status;
+      {items.map((item, id) => {
+        const status = item.status as Status;
         const rowMenuItems = statusActionsMap[status];
 
         return (
@@ -121,7 +135,7 @@ const TableRows = ({ items, onClick }: Props) => {
             <TableCell align="right" sx={{ width: 56 }}>
               <IconButton
                 size="small"
-                onClick={(e) => handleMenuOpen(e, item.id)}
+                onClick={(e) => handleMenuOpen(e, item)}
               >
                 <MoreVertIcon fontSize="small" />
               </IconButton>
@@ -137,6 +151,12 @@ const TableRows = ({ items, onClick }: Props) => {
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
+        <MenuItem onClick={handleEditClick}>
+          <ListItemIcon>
+            <EditOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Редактировать поиск</ListItemText>
+        </MenuItem>
         <MenuItem onClick={handleExportArchive} disabled={isExporting}>
           <ListItemIcon>
             <ArchiveIcon fontSize="small" />

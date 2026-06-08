@@ -1,5 +1,8 @@
 // Alias for parsing-template
-import { SearchFormData } from "@/client-pages/search/types";
+import {
+  ParsingTemplateItem,
+  SearchFormData,
+} from "@/client-pages/search/types";
 import { MenuItemAction } from "@/constants";
 
 export const postSearch = async (
@@ -33,7 +36,41 @@ export const postSearch = async (
   }
 };
 
-export const getParsingTemplates = async (fetchWithAuth: typeof fetch) => {
+export const putSearch = async (
+  id: number,
+  formData: SearchFormData,
+  fetchWithAuth: typeof fetch,
+): Promise<true | Error> => {
+  const isServer = typeof window === "undefined";
+  const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
+  const url = `${basePath}/api/parsing-template`;
+
+  try {
+    const response = await fetchWithAuth(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...formData }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return Promise.reject(
+        new Error(error?.error || error?.message || "Something went wrong"),
+      );
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error during updating a search:", error);
+    return Promise.reject(
+      error instanceof Error ? error : new Error("Something went wrong"),
+    );
+  }
+};
+
+export const getParsingTemplates = async (
+  fetchWithAuth: typeof fetch,
+): Promise<ParsingTemplateItem[]> => {
   const isServer = typeof window === "undefined";
   const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
   const url = `${basePath}/api/parsing-template`;
