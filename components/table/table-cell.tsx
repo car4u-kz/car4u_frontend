@@ -5,9 +5,9 @@ const TableCell = ({ sx, children, colSpan }: TableCellProps) => {
     <MUITableCell
       colSpan={colSpan}
       sx={{
-        ...sx,
         p: 1,
         textAlign: "center",
+        ...sx,
       }}
     >
       {children}
