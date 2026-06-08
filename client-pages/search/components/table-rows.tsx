@@ -14,19 +14,19 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import PlayArrowOutlinedIcon from "@mui/icons-material/PlayArrowOutlined";
+import StopOutlinedIcon from "@mui/icons-material/StopOutlined";
+import Link from "next/link";
 
-import { SplitButton } from "@/components";
 import TableCell from "@/components/table/table-cell";
-
+import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
+import { exportAdsArchive } from "@/services/search-services";
 import { Status, statusLabels, MenuItemAction } from "@/constants";
 import {
   ActionPayloadType,
   MenuItemConfig,
   ParsingTemplateItem,
 } from "../types";
-import Link from "next/link";
-import { exportAdsArchive } from "@/services/search-services";
-import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 
 const menuItems: Record<string, MenuItemConfig> = {
   start: {
@@ -34,7 +34,7 @@ const menuItems: Record<string, MenuItemConfig> = {
     value: MenuItemAction.start,
   },
   stop: {
-    label: "Завершить",
+    label: "Остановить",
     value: MenuItemAction.stop,
   },
   delete: {
@@ -103,11 +103,26 @@ const TableRows = ({ items, onClick, onEdit }: Props) => {
     handleMenuClose();
   };
 
+  const handleStateActionClick = () => {
+    if (!selectedTemplate) return;
+
+    const status = selectedTemplate.status as Status;
+    const stateAction = statusActionsMap[status]?.[0];
+
+    if (!stateAction) return;
+
+    onClick({ id: selectedTemplate.id, method: stateAction.value });
+    handleMenuClose();
+  };
+
+  const selectedTemplateStatusAction = selectedTemplate
+    ? statusActionsMap[selectedTemplate.status as Status]?.[0]
+    : undefined;
+
   return (
     <>
       {items.map((item, id) => {
         const status = item.status as Status;
-        const rowMenuItems = statusActionsMap[status];
 
         return (
           <TableRow key={`${id}-${item.status}`}>
@@ -121,12 +136,7 @@ const TableRows = ({ items, onClick, onEdit }: Props) => {
 
             <TableCell>{statusLabels[status]}</TableCell>
 
-            <TableCell>
-              <SplitButton
-                menuItems={rowMenuItems}
-                onClick={(action) => onClick({ ...action, id: item.id })}
-              />
-            </TableCell>
+            <TableCell>-</TableCell>
 
             <TableCell>-</TableCell>
 
@@ -151,6 +161,18 @@ const TableRows = ({ items, onClick, onEdit }: Props) => {
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
+        {selectedTemplateStatusAction && (
+          <MenuItem onClick={handleStateActionClick}>
+            <ListItemIcon>
+              {selectedTemplateStatusAction.value === MenuItemAction.start ? (
+                <PlayArrowOutlinedIcon fontSize="small" />
+              ) : (
+                <StopOutlinedIcon fontSize="small" />
+              )}
+            </ListItemIcon>
+            <ListItemText>{selectedTemplateStatusAction.label}</ListItemText>
+          </MenuItem>
+        )}
         <MenuItem onClick={handleEditClick}>
           <ListItemIcon>
             <EditOutlinedIcon fontSize="small" />

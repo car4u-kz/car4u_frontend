@@ -44,6 +44,7 @@ const Form = ({ handleChange, handleSelect, formData, error }: Props) => {
       />
       <TextInput
         type="number"
+        max={999}
         label="Длительность поиска (дней)"
         value={formData.searchDurationDays}
         onChange={(e) => handleChange(e, "searchDurationDays")}
