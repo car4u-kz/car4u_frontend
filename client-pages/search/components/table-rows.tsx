@@ -148,8 +148,6 @@ const TableRows = ({ items, onClick, onEdit }: Props) => {
 
             <TableCell>{statusLabels[status]}</TableCell>
 
-            <TableCell>-</TableCell>
-
             <TableCell>{formatCreatedAt(item.createdAt)}</TableCell>
 
             <TableCell>{item.source}</TableCell>
