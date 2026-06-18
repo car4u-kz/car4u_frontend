@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams, usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import { Box, SxProps } from "@mui/material";
 import { Button } from "@/components";
@@ -61,6 +61,13 @@ const TableButtons = ({ selectProps }: Props) => {
           onClick={() => onClick(SQ.archived)}
         >
           Архивные
+        </Button>
+        <Button
+          size="small"
+          sx={sxProps(SQ.pendingArchiveValidation)}
+          onClick={() => onClick(SQ.pendingArchiveValidation)}
+        >
+          Ожид. архивирования
         </Button>
       </Box>
       <Box mt={2}>

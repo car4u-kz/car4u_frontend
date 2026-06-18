@@ -2,6 +2,7 @@ export enum SEARCH_QUERY {
   all = "0",
   new = "1",
   archived = "2",
+  pendingArchiveValidation = "5",
   myAds = "myAds",
 }
 

@@ -16,7 +16,21 @@ import GeneratePDFDropdown from "@/components/generate-pdf/generate-pdf";
 type Props = {
   items: CarAd[];
   statusId: SQ;
-  onUpdate: (itemGlobalIndex: number) => Promise<void>
+  onUpdate: (itemGlobalIndex: number) => Promise<void>;
+};
+
+const getDisplayDate = (item: CarAd, statusId: SQ): string => {
+  switch (statusId) {
+    case SQ.all:
+      return item.publicationDate as string;
+    case SQ.new:
+      return item.lastCheckDate as string;
+    case SQ.pendingArchiveValidation:
+      return item.lastCheckDate as string;
+    case SQ.archived:
+    default:
+      return item.latestAdUpdateDate as string;
+  }
 };
 
 const TableRows = ({ statusId, items, onUpdate }: Props) => {
@@ -31,17 +45,13 @@ const TableRows = ({ statusId, items, onUpdate }: Props) => {
             "&:hover": {
               backgroundColor: "#f5f9ff",
             },
-            opacity: item.isViewed ? '0.5' : '1'
+            opacity: item.isViewed ? "0.5" : "1",
           }}
         >
           <TableCell>
             <DateTimeTypography
               carSearchParam={statusId}
-              date={
-                statusId === SQ.all
-                  ? (item.publicationDate as string)
-                  : (item.latestAdUpdateDate as string)
-              }
+              date={getDisplayDate(item, statusId)}
             />
           </TableCell>
           <TableCell>ID объявления: {getAdIdFromUrl(item.adUrl)}</TableCell>

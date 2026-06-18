@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   InfiniteData,
@@ -27,9 +27,10 @@ import { PaginatedCarAds } from "@/types";
 
 const changebleHeader: Record<SQ, string> = {
   [SQ.all]: "Опубликовано",
-  [SQ.new]: "Дата Обнаружения",
-  [SQ.archived]: "Помещено В Архив",
-  [SQ.myAds]: "Мои Объявления",
+  [SQ.new]: "Дата обнаружения",
+  [SQ.archived]: "Помещено в архив",
+  [SQ.pendingArchiveValidation]: "Отправлено на проверку",
+  [SQ.myAds]: "Мои объявления",
 };
 
 const generateHeaderLabels = (
@@ -87,7 +88,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const sortBy = searchParams.get("sortBy");
   const sortOrder = searchParams.get("sortOrder");
 
-    const handleDateSortClick = () => {
+  const handleDateSortClick = () => {
     const params = new URLSearchParams(searchParams);
 
     const currentSortBy = params.get("sortBy");
@@ -103,7 +104,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     const newUrl = `${pathname}?${params.toString()}`;
     window.history.pushState({}, "", newUrl);
   };
-  
+
   const queryFilterList = useQuery<{ id: number; name: string }[]>({
     queryKey: ["adview-filters"],
     queryFn: () => getAdFilterList(fetchWithAuth),
@@ -154,7 +155,6 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     setVisiblePages((prev) => prev + 1);
     fetchNextPage();
   };
-
 
   const handleUpdateItemPage = async (itemGlobalIndex: number) => {
     queryClient.setQueryData<InfiniteData<CarsPage>>(
