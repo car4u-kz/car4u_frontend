@@ -24,8 +24,8 @@ const getDisplayDate = (item: CarAd, statusId: SQ): string => {
     case SQ.all:
       return item.publicationDate as string;
     case SQ.new:
-      return item.lastCheckDate as string;
     case SQ.pendingArchiveValidation:
+    case SQ.notFound404:
       return item.lastCheckDate as string;
     case SQ.archived:
     default:

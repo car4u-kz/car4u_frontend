@@ -2,16 +2,60 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 
-import { Box, SxProps } from "@mui/material";
+import { Box, SxProps, Typography } from "@mui/material";
 import { Button } from "@/components";
 import { Select, SelectProps } from "@/components/form";
 import { SEARCH_QUERY as SQ } from "@/constants";
+import { AdStatusStats } from "@/types";
 
 type Props = {
   selectProps: SelectProps;
+  stats?: AdStatusStats;
+  isStatsLoading?: boolean;
 };
 
-const TableButtons = ({ selectProps }: Props) => {
+const formatDelta = (value: number | undefined) => {
+  if (!value) {
+    return "0 за 24ч";
+  }
+
+  return `+${value} за 24ч`;
+};
+
+const StatCard = ({
+  label,
+  value,
+  delta,
+}: {
+  label: string;
+  value: number | undefined;
+  delta?: number;
+}) => (
+  <Box
+    sx={{
+      minWidth: 150,
+      padding: 1.5,
+      borderRadius: 2,
+      border: "1px solid",
+      borderColor: "grey.300",
+      backgroundColor: "grey.50",
+    }}
+  >
+    <Typography variant="body2" color="text.secondary">
+      {label}
+    </Typography>
+    <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
+      {value ?? 0}
+    </Typography>
+    {typeof delta === "number" && (
+      <Typography variant="caption" color="text.secondary">
+        {formatDelta(delta)}
+      </Typography>
+    )}
+  </Box>
+);
+
+const TableButtons = ({ selectProps, stats, isStatsLoading = false }: Props) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -24,7 +68,7 @@ const TableButtons = ({ selectProps }: Props) => {
       statusId: btnType,
     });
 
-    if (!!templateId) {
+    if (templateId) {
       query.set("templateId", templateId);
     }
 
@@ -40,7 +84,37 @@ const TableButtons = ({ selectProps }: Props) => {
 
   return (
     <Box padding={2}>
-      <Box display="flex" gap={2}>
+      <Box display="flex" gap={1.5} flexWrap="wrap" mb={2}>
+        <StatCard label="Всего объявлений" value={stats?.totalAds} />
+        <StatCard
+          label="Новые"
+          value={stats?.newAds}
+          delta={stats?.newAdsLast24Hours}
+        />
+        <StatCard
+          label="В архиве"
+          value={stats?.archivedAds}
+          delta={stats?.archivedAdsLast24Hours}
+        />
+        <StatCard
+          label="Ожидают архивирования"
+          value={stats?.pendingArchiveValidationAds}
+          delta={stats?.pendingArchiveValidationAdsLast24Hours}
+        />
+        <StatCard
+          label="404"
+          value={stats?.notFound404Ads}
+          delta={stats?.notFound404AdsLast24Hours}
+        />
+      </Box>
+
+      {isStatsLoading && (
+        <Typography variant="caption" color="text.secondary" display="block" mb={2}>
+          Загрузка статистики...
+        </Typography>
+      )}
+
+      <Box display="flex" gap={2} flexWrap="wrap">
         <Button
           size="small"
           sx={sxProps(SQ.all)}
@@ -68,6 +142,13 @@ const TableButtons = ({ selectProps }: Props) => {
           onClick={() => onClick(SQ.pendingArchiveValidation)}
         >
           Ожид. архивирования
+        </Button>
+        <Button
+          size="small"
+          sx={sxProps(SQ.notFound404)}
+          onClick={() => onClick(SQ.notFound404)}
+        >
+          404
         </Button>
       </Box>
       <Box mt={2}>

@@ -15,7 +15,7 @@ import TableRows from "./components/table-row";
 import TableButtons from "./components/table-buttons";
 
 import { getCars } from "@/services/car-services";
-import { getAdFilterList } from "@/services/ad-services";
+import { getAdFilterList, getAdStats } from "@/services/ad-services";
 
 import { SEARCH_QUERY as SQ } from "@/constants";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
@@ -23,13 +23,14 @@ import {
   CarsPage,
   getPageIndexForItem,
 } from "@/helpers/findPageIndexByItemIndex";
-import { PaginatedCarAds } from "@/types";
+import { AdStatusStats, PaginatedCarAds } from "@/types";
 
 const changebleHeader: Record<SQ, string> = {
   [SQ.all]: "Опубликовано",
   [SQ.new]: "Дата обнаружения",
   [SQ.archived]: "Помещено в архив",
   [SQ.pendingArchiveValidation]: "Отправлено на проверку",
+  [SQ.notFound404]: "404",
   [SQ.myAds]: "Мои объявления",
 };
 
@@ -81,7 +82,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const statusId = searchParams.get("statusId") as SQ;
+  const statusId = (searchParams.get("statusId") as SQ) || SQ.all;
   const stringParams = searchParams.toString();
   const templateId = searchParams.get("templateId");
 
@@ -108,6 +109,12 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const queryFilterList = useQuery<{ id: number; name: string }[]>({
     queryKey: ["adview-filters"],
     queryFn: () => getAdFilterList(fetchWithAuth),
+    retry: false,
+  });
+
+  const queryStats = useQuery<AdStatusStats>({
+    queryKey: ["adview-stats", templateId ?? ""],
+    queryFn: () => getAdStats(templateId, fetchWithAuth),
     retry: false,
   });
 
@@ -218,12 +225,14 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       tableRows={
         <TableRows
           statusId={statusId}
-          items={items!}
+          items={items ?? []}
           onUpdate={handleUpdateItemPage}
         />
       }
       tableButtons={
         <TableButtons
+          stats={queryStats.data}
+          isStatsLoading={queryStats.isLoading}
           selectProps={{
             menuItems: mappedMenuItems,
             value: selectValue,

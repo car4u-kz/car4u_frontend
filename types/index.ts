@@ -26,3 +26,15 @@ export type PaginatedCarAds = {
   page: number;
   pageSize: number;
 };
+
+export type AdStatusStats = {
+  totalAds: number;
+  newAds: number;
+  archivedAds: number;
+  pendingArchiveValidationAds: number;
+  notFound404Ads: number;
+  newAdsLast24Hours: number;
+  archivedAdsLast24Hours: number;
+  pendingArchiveValidationAdsLast24Hours: number;
+  notFound404AdsLast24Hours: number;
+};

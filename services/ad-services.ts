@@ -1,5 +1,6 @@
 import { MenuItemAction } from "@/constants";
 import { AdFormData } from "@/client-pages/my-ads/types";
+import { AdStatusStats } from "@/types";
 
 export const getAds = async (fetchWithAuth: typeof fetch) => {
   const isServer = typeof window === "undefined";
@@ -32,6 +33,37 @@ export const getAdFilterList = async (fetchWithAuth: typeof fetch) => {
 
     if (!response.ok) {
       throw new Error("Failed to fetch filter list");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+export const getAdStats = async (
+  templateId: string | null,
+  fetchWithAuth: typeof fetch
+): Promise<AdStatusStats> => {
+  const isServer = typeof window === "undefined";
+  const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
+  const params = new URLSearchParams();
+
+  if (templateId) {
+    params.set("templateId", templateId);
+  }
+
+  const suffix = params.toString();
+  const url = `${basePath}/api/adview/stats${suffix ? `?${suffix}` : ""}`;
+
+  try {
+    const response = await fetchWithAuth(url, {
+      method: "GET",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch ad stats");
     }
 
     return await response.json();

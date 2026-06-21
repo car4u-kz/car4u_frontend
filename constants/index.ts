@@ -3,6 +3,7 @@ export enum SEARCH_QUERY {
   new = "1",
   archived = "2",
   pendingArchiveValidation = "5",
+  notFound404 = "6",
   myAds = "myAds",
 }
 
