@@ -92,14 +92,14 @@ const TableButtons = ({ selectProps, stats, isStatsLoading = false }: Props) => 
           delta={stats?.newAdsLast24Hours}
         />
         <StatCard
-          label="В архиве"
-          value={stats?.archivedAds}
-          delta={stats?.archivedAdsLast24Hours}
-        />
-        <StatCard
           label="Ожидают архивирования"
           value={stats?.pendingArchiveValidationAds}
           delta={stats?.pendingArchiveValidationAdsLast24Hours}
+        />
+        <StatCard
+          label="В архиве"
+          value={stats?.archivedAds}
+          delta={stats?.archivedAdsLast24Hours}
         />
         <StatCard
           label="404"

@@ -25,6 +25,7 @@ export async function proxyToBackend(
     const res = await fetch(url, {
       ...options,
       headers,
+      cache: "no-store",
     });
 
     const contentType = res.headers.get("content-type") || "";
@@ -44,7 +45,12 @@ export async function proxyToBackend(
       typeof body === "string" ? body : JSON.stringify(body),
       {
         status: res.status,
-        headers: { "Content-Type": contentType },
+        headers: {
+          "Content-Type": contentType,
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
       }
     );
   } catch (error) {
@@ -81,6 +87,7 @@ export async function proxyFileToBackend(
     const res = await fetch(url, {
       ...options,
       headers,
+      cache: "no-store",
     });
 
     if (!res.ok) {
