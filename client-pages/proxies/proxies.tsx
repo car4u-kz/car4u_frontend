@@ -31,7 +31,7 @@ import type {
   ProxyListItem,
 } from "./types";
 
-const headerLabels = ["РџСЂРѕРєСЃРё", "РЎРµСЂРІРёСЃ", ""];
+const headerLabels = ["Прокси", "Сервис", ""];
 
 const initialFormData: ProxyBatchCreatePayload = {
   serviceName: "",
@@ -152,6 +152,8 @@ const ProxiesPage = () => {
     if (open === "delete" && selectedProxy) {
       return deleteMutation.mutate(selectedProxy.proxy);
     }
+
+    handleClose();
   };
 
   const renderAddModal = () => (
@@ -159,9 +161,9 @@ const ProxiesPage = () => {
       {error && <Alert severity="error">{error}</Alert>}
       {result && (
         <Alert severity={result.addedCount > 0 ? "success" : "info"}>
-          <div>Р”РѕР±Р°РІР»РµРЅРѕ: {result.addedCount}</div>
-          <div>Р”СѓР±Р»РёРєР°С‚С‹: {result.duplicateCount}</div>
-          <div>РќРµРІР°Р»РёРґРЅС‹Рµ СЃС‚СЂРѕРєРё: {result.invalidCount}</div>
+          <div>Добавлено: {result.addedCount}</div>
+          <div>Дубликаты: {result.duplicateCount}</div>
+          <div>Невалидные строки: {result.invalidCount}</div>
         </Alert>
       )}
       <Select
@@ -182,7 +184,7 @@ const ProxiesPage = () => {
         ))}
       </Select>
       <TextField
-        label="РџСЂРѕРєСЃРё"
+        label="Прокси"
         value={formData.proxiesText}
         onChange={(e) =>
           setFormData((prev) => ({
@@ -193,18 +195,18 @@ const ProxiesPage = () => {
         multiline
         minRows={8}
         placeholder="185.176.27.31:8000:kUDg7v:qFfExm"
-        helperText="РџРѕ РѕРґРЅРѕРјСѓ РїСЂРѕРєСЃРё РІ СЃС‚СЂРѕРєРµ РІ С„РѕСЂРјР°С‚Рµ ip:port:login:password"
+        helperText="По одному прокси в строке в формате ip:port:login:password"
         fullWidth
       />
       {result?.duplicateProxies?.length ? (
         <Alert severity="warning">
-          Р”СѓР±Р»РёРєР°С‚С‹: {result.duplicateProxies.slice(0, 10).join(", ")}
+          Дубликаты: {result.duplicateProxies.slice(0, 10).join(", ")}
           {result.duplicateProxies.length > 10 ? " ..." : ""}
         </Alert>
       ) : null}
       {result?.invalidLines?.length ? (
         <Alert severity="warning">
-          РќРµРІР°Р»РёРґРЅС‹Рµ СЃС‚СЂРѕРєРё: {result.invalidLines.slice(0, 10).join(", ")}
+          Невалидные строки: {result.invalidLines.slice(0, 10).join(", ")}
           {result.invalidLines.length > 10 ? " ..." : ""}
         </Alert>
       ) : null}
@@ -215,7 +217,7 @@ const ProxiesPage = () => {
     <Box>
       {error && <Alert severity="error">{error}</Alert>}
       <Typography>
-        РЈРґР°Р»РёС‚СЊ РїСЂРѕРєСЃРё <strong>{selectedProxy?.proxy}</strong>?
+        Удалить прокси <strong>{selectedProxy?.proxy}</strong>?
       </Typography>
     </Box>
   );
@@ -275,7 +277,7 @@ const ProxiesPage = () => {
               onClick={handleOpenAdd}
               startIcon={<AddCircleOutlineIcon fontSize="small" />}
             >
-              Р”РѕР±Р°РІРёС‚СЊ РїСЂРѕРєСЃРё
+              Добавить прокси
             </Button>
           </Box>
         }
@@ -299,14 +301,20 @@ const ProxiesPage = () => {
         open={!!open}
         title={
           open === "add"
-            ? "Р”РѕР±Р°РІРёС‚СЊ РїСЂРѕРєСЃРё"
+            ? "Добавить прокси"
             : open === "delete"
-              ? "РЈРґР°Р»РёС‚СЊ РїСЂРѕРєСЃРё"
-              : "РџСЂРѕРІРµСЂРёС‚СЊ РїСЂРѕРєСЃРё"
+              ? "Удалить прокси"
+              : "Проверить прокси"
         }
-        submitLabel={open === "add" ? "РЎРѕС…СЂР°РЅРёС‚СЊ" : "РЈРґР°Р»РёС‚СЊ"}
+        submitLabel={
+          open === "add"
+            ? "Сохранить"
+            : open === "delete"
+              ? "Удалить"
+              : "Закрыть"
+        }
+        cancelLabel="Отмена"
         onSubmit={handleSubmit}
-        hideFooter={open === "check"}
       >
         {open === "add"
           ? renderAddModal()
