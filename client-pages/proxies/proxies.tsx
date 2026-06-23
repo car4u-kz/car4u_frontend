@@ -164,6 +164,7 @@ const ProxiesPage = () => {
           <div>Добавлено: {result.addedCount}</div>
           <div>Дубликаты: {result.duplicateCount}</div>
           <div>Невалидные строки: {result.invalidCount}</div>
+          <div>Не удалось добавить: {result.failedCount}</div>
         </Alert>
       )}
       <Select
@@ -208,6 +209,12 @@ const ProxiesPage = () => {
         <Alert severity="warning">
           Невалидные строки: {result.invalidLines.slice(0, 10).join(", ")}
           {result.invalidLines.length > 10 ? " ..." : ""}
+        </Alert>
+      ) : null}
+      {result?.failedProxies?.length ? (
+        <Alert severity="error">
+          Не удалось добавить: {result.failedProxies.slice(0, 10).join(", ")}
+          {result.failedProxies.length > 10 ? " ..." : ""}
         </Alert>
       ) : null}
     </Stack>

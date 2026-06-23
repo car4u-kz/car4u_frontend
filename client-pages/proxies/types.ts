@@ -12,9 +12,11 @@ export type ProxyBatchCreateResult = {
   addedCount: number;
   duplicateCount: number;
   invalidCount: number;
+  failedCount: number;
   addedProxies: string[];
   duplicateProxies: string[];
   invalidLines: string[];
+  failedProxies: string[];
 };
 
 export type ProxyCheckResult = {
