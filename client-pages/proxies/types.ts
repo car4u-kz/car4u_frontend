@@ -19,7 +19,6 @@ export type ProxyBatchCreateResult = {
 
 export type ProxyCheckResult = {
   success: boolean;
-  isBlocked: boolean;
   statusCode?: number | null;
   responseTimeMs: number;
   message: string;

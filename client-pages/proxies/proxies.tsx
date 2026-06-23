@@ -227,13 +227,7 @@ const ProxiesPage = () => {
       {error && <Alert severity="error">{error}</Alert>}
       {!error && checkResult && (
         <Alert
-          severity={
-            checkResult.success
-              ? "success"
-              : checkResult.isBlocked
-                ? "warning"
-                : "error"
-          }
+          severity={checkResult.success ? "success" : "error"}
         >
           {checkResult.message}
         </Alert>
@@ -251,9 +245,6 @@ const ProxiesPage = () => {
           </Typography>
           <Typography>
             <strong>Время ответа:</strong> {checkResult.responseTimeMs} мс
-          </Typography>
-          <Typography>
-            <strong>Блокировка:</strong> {checkResult.isBlocked ? "Да" : "Нет"}
           </Typography>
           {checkResult.snippet ? (
             <Alert severity="info">{checkResult.snippet}</Alert>
