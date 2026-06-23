@@ -16,3 +16,13 @@ export type ProxyBatchCreateResult = {
   duplicateProxies: string[];
   invalidLines: string[];
 };
+
+export type ProxyCheckResult = {
+  success: boolean;
+  isBlocked: boolean;
+  statusCode?: number | null;
+  responseTimeMs: number;
+  message: string;
+  snippet?: string | null;
+  url: string;
+};

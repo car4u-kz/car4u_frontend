@@ -2,16 +2,18 @@
 
 import { TableRow, Typography, IconButton } from "@mui/material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 
 import TableCell from "@/components/table/table-cell";
 import type { ProxyListItem } from "../types";
 
 type Props = {
   items: ProxyListItem[];
+  onCheck: (item: ProxyListItem) => void;
   onDelete: (item: ProxyListItem) => void;
 };
 
-const TableRows = ({ items, onDelete }: Props) => {
+const TableRows = ({ items, onCheck, onDelete }: Props) => {
   return (
     <>
       {items.map((item) => (
@@ -22,7 +24,10 @@ const TableRows = ({ items, onDelete }: Props) => {
             </Typography>
           </TableCell>
           <TableCell>{item.serviceName}</TableCell>
-          <TableCell align="right" sx={{ width: 56 }}>
+          <TableCell align="right" sx={{ width: 96 }}>
+            <IconButton size="small" onClick={() => onCheck(item)}>
+              <HealthAndSafetyOutlinedIcon fontSize="small" />
+            </IconButton>
             <IconButton size="small" onClick={() => onDelete(item)}>
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>

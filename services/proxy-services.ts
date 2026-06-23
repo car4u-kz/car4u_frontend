@@ -1,6 +1,7 @@
 import type {
   ProxyBatchCreatePayload,
   ProxyBatchCreateResult,
+  ProxyCheckResult,
   ProxyListItem,
 } from "@/client-pages/proxies/types";
 
@@ -75,4 +76,31 @@ export const deleteProxy = async (
   }
 
   return true;
+};
+
+export const checkProxy = async (
+  proxy: string,
+  fetchWithAuth: typeof fetch,
+): Promise<ProxyCheckResult> => {
+  const response = await fetchWithAuth("/api/proxies/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ proxy }),
+  });
+
+  if (!response.ok) {
+    let message = "Something went wrong";
+
+    try {
+      const result = await response.json();
+      message = result?.error || result?.message || message;
+    } catch {
+      const text = await response.text();
+      message = text || message;
+    }
+
+    return Promise.reject(new Error(message));
+  }
+
+  return response.json();
 };
