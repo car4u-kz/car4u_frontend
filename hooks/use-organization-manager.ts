@@ -7,8 +7,7 @@ import { useBackendAuthContext } from "@/context/auth-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { Organization } from "@/types/organization";
 import { UserRole } from "@/types/user";
-
-const ACTIVE_ORG_PREFIX = "active_organization_id_";
+import { ACTIVE_ORG_PREFIX } from "@/lib/auth/auth-storage";
 
 export function useOrganizationManager() {
   const { backendToken, userId, userRole } = useBackendAuthContext();
