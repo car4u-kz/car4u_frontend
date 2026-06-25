@@ -75,6 +75,7 @@ const generateHeaderLabels = (
 
 const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const fetchWithAuth = useFetchWithAuth();
+  const fetchWithAuthNoLoading = useFetchWithAuth({ trackLoading: false });
   const queryClient = useQueryClient();
 
   const [visiblePages, setVisiblePages] = useState(1);
@@ -114,7 +115,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
 
   const queryStats = useQuery<AdStatusStats>({
     queryKey: ["adview-stats", templateId ?? ""],
-    queryFn: () => getAdStats(templateId, fetchWithAuth),
+    queryFn: () => getAdStats(templateId, fetchWithAuthNoLoading),
     retry: false,
   });
 

@@ -7,7 +7,7 @@ import { useLoading } from "@/context/loading-context";
 const BACKEND_JWT_KEY = "backend_jwt";
 const ACTIVE_ORG_PREFIX = "active_organization_id_";
 
-export function useFetchWithAuth() {
+export function useFetchWithAuth(options?: { trackLoading?: boolean }) {
   const { startLoading, stopLoading } = useLoading();
 
   const { logout, userId } = useBackendAuthContext();
@@ -18,7 +18,9 @@ export function useFetchWithAuth() {
         throw new Error("useFetchWithAuth must be used on client side");
       }
 
-      startLoading();
+      if (options?.trackLoading !== false) {
+        startLoading();
+      }
       try {
         const jwt = localStorage.getItem(BACKEND_JWT_KEY);
         let organizationId: string | null = null;
@@ -60,10 +62,12 @@ export function useFetchWithAuth() {
 
         return response;
       } finally {
-        stopLoading();
+        if (options?.trackLoading !== false) {
+          stopLoading();
+        }
       }
     },
-    [logout, userId]
+    [logout, options?.trackLoading, startLoading, stopLoading, userId]
   );
 
   return fetchWithAuth;

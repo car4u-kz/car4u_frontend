@@ -11,9 +11,15 @@ type Props = {
   items: ProxyListItem[];
   onCheck: (item: ProxyListItem) => void;
   onDelete: (item: ProxyListItem) => void;
+  formatServiceName: (serviceName: string) => string;
 };
 
-const TableRows = ({ items, onCheck, onDelete }: Props) => {
+const TableRows = ({
+  items,
+  onCheck,
+  onDelete,
+  formatServiceName,
+}: Props) => {
   return (
     <>
       {items.map((item) => (
@@ -23,7 +29,9 @@ const TableRows = ({ items, onCheck, onDelete }: Props) => {
               {item.proxy}
             </Typography>
           </TableCell>
-          <TableCell>{item.serviceNames.join(", ")}</TableCell>
+          <TableCell>
+            {item.serviceNames.map(formatServiceName).join(", ")}
+          </TableCell>
           <TableCell align="right" sx={{ width: 96 }}>
             <IconButton size="small" onClick={() => onCheck(item)}>
               <HealthAndSafetyOutlinedIcon fontSize="small" />

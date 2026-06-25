@@ -2,7 +2,7 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 
-import { Box, SxProps, Typography } from "@mui/material";
+import { Box, Skeleton, SxProps, Typography } from "@mui/material";
 import { Button } from "@/components";
 import { Select, SelectProps } from "@/components/form";
 import { SEARCH_QUERY as SQ } from "@/constants";
@@ -22,6 +22,15 @@ const formatDelta = (value: number | undefined) => {
   return `+${value} за 24ч`;
 };
 
+const cardSx = {
+  minWidth: 150,
+  padding: 1.5,
+  borderRadius: 2,
+  border: "1px solid",
+  borderColor: "grey.300",
+  backgroundColor: "grey.50",
+};
+
 const StatCard = ({
   label,
   value,
@@ -31,16 +40,7 @@ const StatCard = ({
   value: number | undefined;
   delta?: number;
 }) => (
-  <Box
-    sx={{
-      minWidth: 150,
-      padding: 1.5,
-      borderRadius: 2,
-      border: "1px solid",
-      borderColor: "grey.300",
-      backgroundColor: "grey.50",
-    }}
-  >
+  <Box sx={cardSx}>
     <Typography variant="body2" color="text.secondary">
       {label}
     </Typography>
@@ -52,6 +52,14 @@ const StatCard = ({
         {formatDelta(delta)}
       </Typography>
     )}
+  </Box>
+);
+
+const StatCardSkeleton = () => (
+  <Box sx={cardSx}>
+    <Skeleton variant="text" width="70%" height={20} />
+    <Skeleton variant="text" width="45%" height={34} />
+    <Skeleton variant="text" width="55%" height={18} />
   </Box>
 );
 
@@ -82,51 +90,51 @@ const TableButtons = ({ selectProps, stats, isStatsLoading = false }: Props) => 
     color: btnName === statusId ? "black" : "white",
   });
 
+  const showStatsSkeleton = isStatsLoading && !stats;
+
   return (
     <Box padding={2}>
       <Box display="flex" gap={1.5} flexWrap="wrap" mb={2}>
-        <StatCard label="Всего объявлений" value={stats?.totalAds} />
-        <StatCard
-          label="Новые"
-          value={stats?.newAds}
-          delta={stats?.newAdsLast24Hours}
-        />
-        <StatCard
-          label="Ожидают архивирования"
-          value={stats?.pendingArchiveValidationAds}
-          delta={stats?.pendingArchiveValidationAdsLast24Hours}
-        />
-        <StatCard
-          label="В архиве"
-          value={stats?.archivedAds}
-          delta={stats?.archivedAdsLast24Hours}
-        />
-        <StatCard
-          label="404"
-          value={stats?.notFound404Ads}
-          delta={stats?.notFound404AdsLast24Hours}
-        />
+        {showStatsSkeleton ? (
+          <>
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </>
+        ) : (
+          <>
+            <StatCard label="Всего объявлений" value={stats?.totalAds} />
+            <StatCard
+              label="Новые"
+              value={stats?.newAds}
+              delta={stats?.newAdsLast24Hours}
+            />
+            <StatCard
+              label="Ожидают архивирования"
+              value={stats?.pendingArchiveValidationAds}
+              delta={stats?.pendingArchiveValidationAdsLast24Hours}
+            />
+            <StatCard
+              label="В архиве"
+              value={stats?.archivedAds}
+              delta={stats?.archivedAdsLast24Hours}
+            />
+            <StatCard
+              label="404"
+              value={stats?.notFound404Ads}
+              delta={stats?.notFound404AdsLast24Hours}
+            />
+          </>
+        )}
       </Box>
 
-      {isStatsLoading && (
-        <Typography variant="caption" color="text.secondary" display="block" mb={2}>
-          Загрузка статистики...
-        </Typography>
-      )}
-
       <Box display="flex" gap={2} flexWrap="wrap">
-        <Button
-          size="small"
-          sx={sxProps(SQ.all)}
-          onClick={() => onClick(SQ.all)}
-        >
+        <Button size="small" sx={sxProps(SQ.all)} onClick={() => onClick(SQ.all)}>
           Все
         </Button>
-        <Button
-          size="small"
-          sx={sxProps(SQ.new)}
-          onClick={() => onClick(SQ.new)}
-        >
+        <Button size="small" sx={sxProps(SQ.new)} onClick={() => onClick(SQ.new)}>
           Новые
         </Button>
         <Button

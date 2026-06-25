@@ -34,7 +34,13 @@ import type {
   ProxyListItem,
 } from "./types";
 
-const headerLabels = ["Прокси", "Сервис", ""];
+const headerLabels = ["Прокси", "Назначение", ""];
+const hiddenServiceNames = new Set(["CatalogMonitor"]);
+const serviceLabelMap: Record<string, string> = {
+  PendingArchiveValidationProcessor: "Проверка архива",
+  TemplateMode1Processor: "Парсинг каталога",
+  TemplateMode2Processor: "Мои объявления",
+};
 
 const initialFormData: ProxyBatchCreatePayload = {
   serviceNames: [],
@@ -51,6 +57,9 @@ const ProxiesPage = () => {
   const [result, setResult] = useState<ProxyBatchCreateResult | null>(null);
   const [checkResult, setCheckResult] = useState<ProxyCheckResult | null>(null);
 
+  const formatServiceName = (serviceName: string) =>
+    serviceLabelMap[serviceName] ?? serviceName;
+
   const proxiesQuery = useQuery({
     queryKey: ["proxies"],
     queryFn: () => getProxies(fetchWithAuth),
@@ -60,6 +69,8 @@ const ProxiesPage = () => {
   const servicesQuery = useQuery({
     queryKey: ["proxy-services"],
     queryFn: () => getProxyServices(fetchWithAuth),
+    select: (serviceNames: string[]) =>
+      serviceNames.filter((serviceName) => !hiddenServiceNames.has(serviceName)),
     retry: false,
   });
 
@@ -181,7 +192,9 @@ const ProxiesPage = () => {
         multiple
         value={formData.serviceNames}
         input={<OutlinedInput />}
-        renderValue={(selected) => (selected as string[]).join(", ")}
+        renderValue={(selected) =>
+          (selected as string[]).map(formatServiceName).join(", ")
+        }
         onChange={(e) =>
           setFormData((prev) => ({
             ...prev,
@@ -195,7 +208,7 @@ const ProxiesPage = () => {
         {(servicesQuery.data ?? []).map((serviceName) => (
           <MenuItem key={serviceName} value={serviceName}>
             <Checkbox checked={formData.serviceNames.includes(serviceName)} />
-            <ListItemText primary={serviceName} />
+            <ListItemText primary={formatServiceName(serviceName)} />
           </MenuItem>
         ))}
       </Select>
@@ -248,9 +261,7 @@ const ProxiesPage = () => {
     <Stack direction="column" gap={2}>
       {error && <Alert severity="error">{error}</Alert>}
       {!error && checkResult && (
-        <Alert
-          severity={checkResult.success ? "success" : "error"}
-        >
+        <Alert severity={checkResult.success ? "success" : "error"}>
           {checkResult.message}
         </Alert>
       )}
@@ -299,6 +310,7 @@ const ProxiesPage = () => {
             items={sortedItems}
             onCheck={handleOpenCheck}
             onDelete={handleOpenDelete}
+            formatServiceName={formatServiceName}
           />
         }
       />
