@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import {
   isServer,
   QueryClient,
@@ -31,7 +32,59 @@ function getQueryClient() {
 
 function LoadingOverlay() {
   const { isLoading } = useLoading();
-  if (!isLoading) return null;
+  const [isVisible, setIsVisible] = useState(false);
+  const shownAtRef = useRef<number | null>(null);
+  const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const clearTimers = () => {
+      if (showTimerRef.current) {
+        clearTimeout(showTimerRef.current);
+        showTimerRef.current = null;
+      }
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+      }
+    };
+
+    if (isLoading) {
+      if (isVisible) {
+        return clearTimers;
+      }
+
+      if (!showTimerRef.current) {
+        showTimerRef.current = setTimeout(() => {
+          shownAtRef.current = Date.now();
+          setIsVisible(true);
+          showTimerRef.current = null;
+        }, 250);
+      }
+
+      return clearTimers;
+    }
+
+    clearTimers();
+
+    if (!isVisible) {
+      return clearTimers;
+    }
+
+    const shownAt = shownAtRef.current ?? Date.now();
+    const elapsed = Date.now() - shownAt;
+    const remainingVisibleMs = Math.max(0, 250 - elapsed);
+
+    hideTimerRef.current = setTimeout(() => {
+      setIsVisible(false);
+      shownAtRef.current = null;
+      hideTimerRef.current = null;
+    }, remainingVisibleMs);
+
+    return clearTimers;
+  }, [isLoading, isVisible]);
+
+  if (!isVisible) return null;
 
   return (
     <div

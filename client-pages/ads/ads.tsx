@@ -109,7 +109,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
 
   const queryFilterList = useQuery<{ id: number; name: string }[]>({
     queryKey: ["adview-filters"],
-    queryFn: () => getAdFilterList(fetchWithAuth),
+    queryFn: () => getAdFilterList(fetchWithAuthNoLoading),
     retry: false,
   });
 
