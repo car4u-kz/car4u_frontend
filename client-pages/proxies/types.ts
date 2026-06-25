@@ -1,10 +1,10 @@
 export type ProxyListItem = {
   proxy: string;
-  serviceName: string;
+  serviceNames: string[];
 };
 
 export type ProxyBatchCreatePayload = {
-  serviceName: string;
+  serviceNames: string[];
   proxiesText: string;
 };
 

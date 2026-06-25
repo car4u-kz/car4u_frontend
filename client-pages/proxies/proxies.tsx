@@ -4,7 +4,10 @@ import { useMemo, useState } from "react";
 import {
   Alert,
   Box,
+  Checkbox,
+  ListItemText,
   MenuItem,
+  OutlinedInput,
   Select,
   Stack,
   TextField,
@@ -34,7 +37,7 @@ import type {
 const headerLabels = ["Прокси", "Сервис", ""];
 
 const initialFormData: ProxyBatchCreatePayload = {
-  serviceName: "",
+  serviceNames: [],
   proxiesText: "",
 };
 
@@ -101,8 +104,8 @@ const ProxiesPage = () => {
   const sortedItems = useMemo(
     () =>
       [...(proxiesQuery.data ?? [])].sort((a, b) =>
-        `${a.serviceName}:${a.proxy}`.localeCompare(
-          `${b.serviceName}:${b.proxy}`,
+        `${a.serviceNames.join("|")}:${a.proxy}`.localeCompare(
+          `${b.serviceNames.join("|")}:${b.proxy}`,
           "ru",
         ),
       ),
@@ -125,7 +128,12 @@ const ProxiesPage = () => {
     setCheckResult(null);
     setFormData((prev) => ({
       ...prev,
-      serviceName: prev.serviceName || servicesQuery.data?.[0] || "",
+      serviceNames:
+        prev.serviceNames.length > 0
+          ? prev.serviceNames
+          : servicesQuery.data?.[0]
+            ? [servicesQuery.data[0]]
+            : [],
     }));
   };
 
@@ -170,17 +178,24 @@ const ProxiesPage = () => {
       <Select
         size="small"
         fullWidth
-        value={formData.serviceName}
+        multiple
+        value={formData.serviceNames}
+        input={<OutlinedInput />}
+        renderValue={(selected) => (selected as string[]).join(", ")}
         onChange={(e) =>
           setFormData((prev) => ({
             ...prev,
-            serviceName: e.target.value,
+            serviceNames:
+              typeof e.target.value === "string"
+                ? e.target.value.split(",")
+                : e.target.value,
           }))
         }
       >
         {(servicesQuery.data ?? []).map((serviceName) => (
           <MenuItem key={serviceName} value={serviceName}>
-            {serviceName}
+            <Checkbox checked={formData.serviceNames.includes(serviceName)} />
+            <ListItemText primary={serviceName} />
           </MenuItem>
         ))}
       </Select>

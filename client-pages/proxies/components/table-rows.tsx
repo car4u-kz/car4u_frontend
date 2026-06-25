@@ -17,13 +17,13 @@ const TableRows = ({ items, onCheck, onDelete }: Props) => {
   return (
     <>
       {items.map((item) => (
-        <TableRow key={`${item.serviceName}-${item.proxy}`}>
+        <TableRow key={item.proxy}>
           <TableCell sx={{ textAlign: "left" }}>
             <Typography sx={{ fontFamily: "monospace", fontSize: 13 }}>
               {item.proxy}
             </Typography>
           </TableCell>
-          <TableCell>{item.serviceName}</TableCell>
+          <TableCell>{item.serviceNames.join(", ")}</TableCell>
           <TableCell align="right" sx={{ width: 96 }}>
             <IconButton size="small" onClick={() => onCheck(item)}>
               <HealthAndSafetyOutlinedIcon fontSize="small" />
