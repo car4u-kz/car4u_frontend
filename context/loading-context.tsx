@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 
 interface LoadingContextValue {
   loadingCount: number;
@@ -12,13 +12,20 @@ const LoadingContext = createContext<LoadingContextValue | undefined>(undefined)
 export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loadingCount, setLoadingCount] = useState(0);
 
-  const startLoading = () => setLoadingCount((c) => c + 1);
-  const stopLoading = () => setLoadingCount((c) => Math.max(0, c - 1));
+  const startLoading = useCallback(() => setLoadingCount((c) => c + 1), []);
+  const stopLoading = useCallback(() => setLoadingCount((c) => Math.max(0, c - 1)), []);
+  const value = useMemo(
+    () => ({
+      loadingCount,
+      startLoading,
+      stopLoading,
+      isLoading: loadingCount > 0,
+    }),
+    [loadingCount, startLoading, stopLoading],
+  );
 
   return (
-    <LoadingContext.Provider
-      value={{ loadingCount, startLoading, stopLoading, isLoading: loadingCount > 0 }}
-    >
+    <LoadingContext.Provider value={value}>
       {children}
     </LoadingContext.Provider>
   );

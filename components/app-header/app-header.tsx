@@ -13,15 +13,13 @@ import { Box, Stack } from "@mui/material";
 import { Image, Button, Link, Typography } from "@/components";
 import OrganizationSwitcherModal from "../organization-switcher/organization-switcher";
 import { useState } from "react";
-import { useOrganizationManager } from "@/hooks/use-organization-manager";
 import ApartmentIcon from "@mui/icons-material/Apartment";
+import { useOrganization } from "@/context/organization-context";
 
 export default function AppHeader() {
   const pathname = usePathname();
   const [orgModalOpen, setOrgModalOpen] = useState(false);
-  const {
-    myOrganizations,
-  } = useOrganizationManager();
+  const { myOrganizations } = useOrganization();
 
   const hasMultipleOrgs = myOrganizations && myOrganizations.length > 1;
 

@@ -15,11 +15,11 @@ import {
   Tabs,
   Tab,
 } from "@mui/material";
-import { useOrganizationManager } from "@/hooks/use-organization-manager";
 import { useBackendAuthContext } from "@/context/auth-context";
 import { useEffect, useState } from "react";
 import { UserRole } from "@/types/user";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useOrganization } from "@/context/organization-context";
 
 interface Organization {
   id: string | number;
@@ -37,7 +37,7 @@ export default function OrganizationSwitcherModal({ open, onClose }: Props) {
     activeOrganizationId,
     allOrganizations,
     setActiveOrganization,
-  } = useOrganizationManager();
+  } = useOrganization();
   const { userRole } = useBackendAuthContext();
   const searchParams = useSearchParams();
   const pathname = usePathname();
