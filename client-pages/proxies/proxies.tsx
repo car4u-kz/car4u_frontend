@@ -24,6 +24,7 @@ import {
   deleteProxy,
   getProxies,
   getProxyServices,
+  updateProxy,
 } from "@/services/proxy-services";
 
 import TableRows from "./components/table-rows";
@@ -32,9 +33,10 @@ import type {
   ProxyBatchCreateResult,
   ProxyCheckResult,
   ProxyListItem,
+  ProxyUpdatePayload,
 } from "./types";
 
-const headerLabels = ["Прокси", "Назначение", ""];
+const headerLabels = ["Прокси", "Назначение", "Комментарий", ""];
 const hiddenServiceNames = new Set(["CatalogMonitor"]);
 const serviceLabelMap: Record<string, string> = {
   PendingArchiveValidationProcessor: "Проверка архива",
@@ -45,13 +47,22 @@ const serviceLabelMap: Record<string, string> = {
 const initialFormData: ProxyBatchCreatePayload = {
   serviceNames: [],
   proxiesText: "",
+  comment: "",
+};
+
+const initialEditFormData: ProxyUpdatePayload = {
+  proxy: "",
+  serviceNames: [],
+  comment: "",
 };
 
 const ProxiesPage = () => {
   const fetchWithAuth = useFetchWithAuth();
-  const [open, setOpen] = useState<"add" | "delete" | "check" | false>(false);
+  const [open, setOpen] = useState<"add" | "edit" | "delete" | "check" | false>(false);
   const [formData, setFormData] =
     useState<ProxyBatchCreatePayload>(initialFormData);
+  const [editFormData, setEditFormData] =
+    useState<ProxyUpdatePayload>(initialEditFormData);
   const [selectedProxy, setSelectedProxy] = useState<ProxyListItem | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ProxyBatchCreateResult | null>(null);
@@ -85,6 +96,17 @@ const ProxiesPage = () => {
     },
     onError: (mutationError: Error) => {
       setResult(null);
+      setError(mutationError.message);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (payload: ProxyUpdatePayload) => updateProxy(payload, fetchWithAuth),
+    onSuccess: async () => {
+      handleClose();
+      await proxiesQuery.refetch();
+    },
+    onError: (mutationError: Error) => {
       setError(mutationError.message);
     },
   });
@@ -127,6 +149,7 @@ const ProxiesPage = () => {
     setOpen(false);
     setSelectedProxy(null);
     setFormData(initialFormData);
+    setEditFormData(initialEditFormData);
     setError(null);
     setResult(null);
     setCheckResult(null);
@@ -146,6 +169,18 @@ const ProxiesPage = () => {
             ? [servicesQuery.data[0]]
             : [],
     }));
+  };
+
+  const handleOpenEdit = (item: ProxyListItem) => {
+    setSelectedProxy(item);
+    setEditFormData({
+      proxy: item.proxy,
+      serviceNames: item.serviceNames,
+      comment: item.comment ?? "",
+    });
+    setOpen("edit");
+    setError(null);
+    setCheckResult(null);
   };
 
   const handleOpenDelete = (item: ProxyListItem) => {
@@ -168,12 +203,46 @@ const ProxiesPage = () => {
       return addMutation.mutate(formData);
     }
 
+    if (open === "edit") {
+      return updateMutation.mutate(editFormData);
+    }
+
     if (open === "delete" && selectedProxy) {
       return deleteMutation.mutate(selectedProxy.proxy);
     }
 
     handleClose();
   };
+
+  const renderServiceSelector = (
+    value: string[],
+    onChange: (serviceNames: string[]) => void,
+  ) => (
+    <Select
+      size="small"
+      fullWidth
+      multiple
+      value={value}
+      input={<OutlinedInput />}
+      renderValue={(selected) =>
+        (selected as string[]).map(formatServiceName).join(", ")
+      }
+      onChange={(e) =>
+        onChange(
+          typeof e.target.value === "string"
+            ? e.target.value.split(",")
+            : e.target.value,
+        )
+      }
+    >
+      {(servicesQuery.data ?? []).map((serviceName) => (
+        <MenuItem key={serviceName} value={serviceName}>
+          <Checkbox checked={value.includes(serviceName)} />
+          <ListItemText primary={formatServiceName(serviceName)} />
+        </MenuItem>
+      ))}
+    </Select>
+  );
 
   const renderAddModal = () => (
     <Stack direction="column" gap={2}>
@@ -186,32 +255,20 @@ const ProxiesPage = () => {
           <div>Не удалось добавить: {result.failedCount}</div>
         </Alert>
       )}
-      <Select
-        size="small"
-        fullWidth
-        multiple
-        value={formData.serviceNames}
-        input={<OutlinedInput />}
-        renderValue={(selected) =>
-          (selected as string[]).map(formatServiceName).join(", ")
-        }
+      {renderServiceSelector(formData.serviceNames, (serviceNames) =>
+        setFormData((prev) => ({ ...prev, serviceNames })),
+      )}
+      <TextField
+        label="Комментарий"
+        value={formData.comment ?? ""}
         onChange={(e) =>
           setFormData((prev) => ({
             ...prev,
-            serviceNames:
-              typeof e.target.value === "string"
-                ? e.target.value.split(",")
-                : e.target.value,
+            comment: e.target.value,
           }))
         }
-      >
-        {(servicesQuery.data ?? []).map((serviceName) => (
-          <MenuItem key={serviceName} value={serviceName}>
-            <Checkbox checked={formData.serviceNames.includes(serviceName)} />
-            <ListItemText primary={formatServiceName(serviceName)} />
-          </MenuItem>
-        ))}
-      </Select>
+        fullWidth
+      />
       <TextField
         label="Прокси"
         value={formData.proxiesText}
@@ -248,6 +305,32 @@ const ProxiesPage = () => {
     </Stack>
   );
 
+  const renderEditModal = () => (
+    <Stack direction="column" gap={2}>
+      {error && <Alert severity="error">{error}</Alert>}
+      <TextField
+        label="Прокси"
+        value={editFormData.proxy}
+        fullWidth
+        disabled
+      />
+      {renderServiceSelector(editFormData.serviceNames, (serviceNames) =>
+        setEditFormData((prev) => ({ ...prev, serviceNames })),
+      )}
+      <TextField
+        label="Комментарий"
+        value={editFormData.comment ?? ""}
+        onChange={(e) =>
+          setEditFormData((prev) => ({
+            ...prev,
+            comment: e.target.value,
+          }))
+        }
+        fullWidth
+      />
+    </Stack>
+  );
+
   const renderDeleteModal = () => (
     <Box>
       {error && <Alert severity="error">{error}</Alert>}
@@ -268,6 +351,11 @@ const ProxiesPage = () => {
       <Typography>
         <strong>Прокси:</strong> {selectedProxy?.proxy}
       </Typography>
+      {selectedProxy?.comment ? (
+        <Typography>
+          <strong>Комментарий:</strong> {selectedProxy.comment}
+        </Typography>
+      ) : null}
       {checkResult && (
         <>
           <Typography>
@@ -310,6 +398,7 @@ const ProxiesPage = () => {
             items={sortedItems}
             onCheck={handleOpenCheck}
             onDelete={handleOpenDelete}
+            onEdit={handleOpenEdit}
             formatServiceName={formatServiceName}
           />
         }
@@ -318,6 +407,7 @@ const ProxiesPage = () => {
       <Modal
         isLoading={
           addMutation.isPending ||
+          updateMutation.isPending ||
           checkMutation.isPending ||
           deleteMutation.isPending ||
           servicesQuery.isPending
@@ -327,25 +417,31 @@ const ProxiesPage = () => {
         title={
           open === "add"
             ? "Добавить прокси"
-            : open === "delete"
-              ? "Удалить прокси"
-              : "Проверить прокси"
+            : open === "edit"
+              ? "Редактировать прокси"
+              : open === "delete"
+                ? "Удалить прокси"
+                : "Проверить прокси"
         }
         submitLabel={
           open === "add"
             ? "Сохранить"
-            : open === "delete"
-              ? "Удалить"
-              : "Закрыть"
+            : open === "edit"
+              ? "Сохранить"
+              : open === "delete"
+                ? "Удалить"
+                : "Закрыть"
         }
         cancelLabel="Отмена"
         onSubmit={handleSubmit}
       >
         {open === "add"
           ? renderAddModal()
-          : open === "delete"
-            ? renderDeleteModal()
-            : renderCheckModal()}
+          : open === "edit"
+            ? renderEditModal()
+            : open === "delete"
+              ? renderDeleteModal()
+              : renderCheckModal()}
       </Modal>
     </>
   );

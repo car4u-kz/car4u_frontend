@@ -3,6 +3,7 @@ import type {
   ProxyBatchCreateResult,
   ProxyCheckResult,
   ProxyListItem,
+  ProxyUpdatePayload,
 } from "@/client-pages/proxies/types";
 
 export const getProxies = async (
@@ -59,6 +60,33 @@ export const deleteProxy = async (
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ proxy }),
+  });
+
+  if (!response.ok) {
+    let message = "Something went wrong";
+
+    try {
+      const result = await response.json();
+      message = result?.error || result?.message || message;
+    } catch {
+      const text = await response.text();
+      message = text || message;
+    }
+
+    return Promise.reject(new Error(message));
+  }
+
+  return true;
+};
+
+export const updateProxy = async (
+  payload: ProxyUpdatePayload,
+  fetchWithAuth: typeof fetch,
+) => {
+  const response = await fetchWithAuth("/api/proxies", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {

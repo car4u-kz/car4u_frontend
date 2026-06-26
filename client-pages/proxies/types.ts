@@ -1,11 +1,19 @@
 export type ProxyListItem = {
   proxy: string;
+  comment?: string | null;
   serviceNames: string[];
 };
 
 export type ProxyBatchCreatePayload = {
   serviceNames: string[];
   proxiesText: string;
+  comment?: string;
+};
+
+export type ProxyUpdatePayload = {
+  proxy: string;
+  serviceNames: string[];
+  comment?: string;
 };
 
 export type ProxyBatchCreateResult = {

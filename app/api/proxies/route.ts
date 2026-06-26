@@ -22,3 +22,11 @@ export async function DELETE(request: NextRequest) {
     headers: { "Content-Type": "application/json" },
   });
 }
+
+export async function PUT(request: NextRequest) {
+  return proxyToBackend(request, "/api/proxies", {
+    method: "PUT",
+    body: await request.text(),
+    headers: { "Content-Type": "application/json" },
+  });
+}
