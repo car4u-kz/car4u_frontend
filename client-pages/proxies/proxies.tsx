@@ -56,6 +56,9 @@ const initialEditFormData: ProxyUpdatePayload = {
   comment: "",
 };
 
+const normalizeEditableServiceNames = (serviceNames: string[]) =>
+  serviceNames.filter((serviceName) => !hiddenServiceNames.has(serviceName));
+
 const ProxiesPage = () => {
   const fetchWithAuth = useFetchWithAuth();
   const [open, setOpen] = useState<"add" | "edit" | "delete" | "check" | false>(false);
@@ -175,7 +178,7 @@ const ProxiesPage = () => {
     setSelectedProxy(item);
     setEditFormData({
       proxy: item.proxy,
-      serviceNames: item.serviceNames,
+      serviceNames: normalizeEditableServiceNames(item.serviceNames),
       comment: item.comment ?? "",
     });
     setOpen("edit");
@@ -200,11 +203,17 @@ const ProxiesPage = () => {
 
   const handleSubmit = async () => {
     if (open === "add") {
-      return addMutation.mutate(formData);
+      return addMutation.mutate({
+        ...formData,
+        serviceNames: normalizeEditableServiceNames(formData.serviceNames),
+      });
     }
 
     if (open === "edit") {
-      return updateMutation.mutate(editFormData);
+      return updateMutation.mutate({
+        ...editFormData,
+        serviceNames: normalizeEditableServiceNames(editFormData.serviceNames),
+      });
     }
 
     if (open === "delete" && selectedProxy) {
