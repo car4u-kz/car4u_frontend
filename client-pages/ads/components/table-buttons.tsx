@@ -1,10 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 import { Box, Skeleton, SxProps, Typography } from "@mui/material";
 import { Button } from "@/components";
-import { Select, SelectProps } from "@/components/form";
+import { Select, SelectProps, TextInput } from "@/components/form";
 import { SEARCH_QUERY as SQ } from "@/constants";
 import { AdStatusStats } from "@/types";
 
@@ -12,6 +13,8 @@ type Props = {
   selectProps: SelectProps;
   stats?: AdStatusStats;
   isStatsLoading?: boolean;
+  initialAdId?: string;
+  initialAccountId?: string;
 };
 
 const formatDelta = (value: number | undefined) => {
@@ -63,9 +66,25 @@ const StatCardSkeleton = () => (
   </Box>
 );
 
-const TableButtons = ({ selectProps, stats, isStatsLoading = false }: Props) => {
+const TableButtons = ({
+  selectProps,
+  stats,
+  isStatsLoading = false,
+  initialAdId = "",
+  initialAccountId = "",
+}: Props) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [adId, setAdId] = useState(initialAdId);
+  const [accountId, setAccountId] = useState(initialAccountId);
+
+  useEffect(() => {
+    setAdId(initialAdId);
+  }, [initialAdId]);
+
+  useEffect(() => {
+    setAccountId(initialAccountId);
+  }, [initialAccountId]);
 
   const statusId = searchParams.get("statusId") as string;
 
@@ -80,6 +99,17 @@ const TableButtons = ({ selectProps, stats, isStatsLoading = false }: Props) => 
       query.set("templateId", templateId);
     }
 
+    const adIdValue = searchParams.get("adId");
+    const accountIdValue = searchParams.get("accountId");
+
+    if (adIdValue) {
+      query.set("adId", adIdValue);
+    }
+
+    if (accountIdValue) {
+      query.set("accountId", accountIdValue);
+    }
+
     const url = `${pathname}?${query.toString()}`;
 
     window.history.pushState({}, "", url);
@@ -89,6 +119,36 @@ const TableButtons = ({ selectProps, stats, isStatsLoading = false }: Props) => 
     backgroundColor: btnName === statusId ? "white" : "black",
     color: btnName === statusId ? "black" : "white",
   });
+
+  const applySearch = () => {
+    const params = new URLSearchParams(searchParams);
+
+    if (adId.trim()) {
+      params.set("adId", adId.trim());
+    } else {
+      params.delete("adId");
+    }
+
+    if (accountId.trim()) {
+      params.set("accountId", accountId.trim());
+    } else {
+      params.delete("accountId");
+    }
+
+    const url = `${pathname}?${params.toString()}`;
+    window.history.pushState({}, "", url);
+  };
+
+  const resetSearch = () => {
+    setAdId("");
+    setAccountId("");
+
+    const params = new URLSearchParams(searchParams);
+    params.delete("adId");
+    params.delete("accountId");
+    const url = `${pathname}?${params.toString()}`;
+    window.history.pushState({}, "", url);
+  };
 
   const showStatsSkeleton = isStatsLoading && !stats;
 
@@ -159,8 +219,39 @@ const TableButtons = ({ selectProps, stats, isStatsLoading = false }: Props) => 
           404
         </Button>
       </Box>
-      <Box mt={2}>
+      <Box
+        mt={2}
+        display="grid"
+        gridTemplateColumns={{ xs: "1fr", md: "minmax(280px, 1fr) minmax(360px, 1fr)" }}
+        gap={2}
+        alignItems="start"
+      >
         <Select {...selectProps} />
+        <Box
+          display="grid"
+          gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr auto auto" }}
+          gap={1.5}
+          alignItems="center"
+        >
+          <TextInput
+            label="Ad ID"
+            value={adId}
+            onChange={(e) => setAdId(e.target.value)}
+            placeholder="Ad ID"
+          />
+          <TextInput
+            label="Account ID"
+            value={accountId}
+            onChange={(e) => setAccountId(e.target.value)}
+            placeholder="Account ID"
+          />
+          <Button size="small" onClick={applySearch}>
+            Search
+          </Button>
+          <Button size="small" onClick={resetSearch}>
+            Reset
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

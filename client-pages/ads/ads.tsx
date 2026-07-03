@@ -86,6 +86,8 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const statusId = (searchParams.get("statusId") as SQ) || SQ.all;
   const stringParams = searchParams.toString();
   const templateId = searchParams.get("templateId");
+  const adId = searchParams.get("adId") ?? "";
+  const accountId = searchParams.get("accountId") ?? "";
 
   const sortBy = searchParams.get("sortBy");
   const sortOrder = searchParams.get("sortOrder");
@@ -234,6 +236,8 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
         <TableButtons
           stats={queryStats.data}
           isStatsLoading={queryStats.isLoading}
+          initialAdId={adId}
+          initialAccountId={accountId}
           selectProps={{
             menuItems: mappedMenuItems,
             value: selectValue,
