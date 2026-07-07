@@ -60,7 +60,7 @@ const generateHeaderLabels = (
       {firstheader}
       {arrow}
     </button>,
-    <Checklist />,
+    "ID объявления",
     "Account ID",
     "Автомобиль",
     "Год",
@@ -167,6 +167,17 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     fetchNextPage();
   };
 
+  const handleAccountClick = (clickedAccountId: string) => {
+    const params = new URLSearchParams(searchParams);
+
+    params.set("accountId", clickedAccountId);
+    params.delete("adId");
+    params.delete("page");
+
+    const newUrl = `${pathname}?${params.toString()}`;
+    window.history.pushState({}, "", newUrl);
+  };
+
   const handleUpdateItemPage = async (itemGlobalIndex: number) => {
     queryClient.setQueryData<InfiniteData<CarsPage>>(
       ["car-ads", stringParams],
@@ -231,6 +242,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
           statusId={statusId}
           items={items ?? []}
           onUpdate={handleUpdateItemPage}
+          onAccountClick={handleAccountClick}
         />
       }
       tableButtons={

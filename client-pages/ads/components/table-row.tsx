@@ -17,6 +17,7 @@ type Props = {
   items: CarAd[];
   statusId: SQ;
   onUpdate: (itemGlobalIndex: number) => Promise<void>;
+  onAccountClick: (accountId: string) => void;
 };
 
 const getDisplayDate = (item: CarAd, statusId: SQ): string => {
@@ -33,7 +34,7 @@ const getDisplayDate = (item: CarAd, statusId: SQ): string => {
   }
 };
 
-const TableRows = ({ statusId, items, onUpdate }: Props) => {
+const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
   return (
     <>
       {items?.map((item, idx) => (
@@ -54,8 +55,28 @@ const TableRows = ({ statusId, items, onUpdate }: Props) => {
               date={getDisplayDate(item, statusId)}
             />
           </TableCell>
-          <TableCell>ID объявления: {getAdIdFromUrl(item.adUrl)}</TableCell>
-          <TableCell>{item.sellerUserId || "-"}</TableCell>
+          <TableCell>{getAdIdFromUrl(item.adUrl)}</TableCell>
+          <TableCell>
+            {item.sellerUserId ? (
+              <button
+                type="button"
+                onClick={() => onAccountClick(item.sellerUserId!)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  color: "#1976d2",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  font: "inherit",
+                }}
+              >
+                {item.sellerUserId}
+              </button>
+            ) : (
+              "-"
+            )}
+          </TableCell>
           <TableCell sx={{ maxWidth: "350px" }}>
             <CarTitleHoverPreview
               src={item.firstPhotoLink}
