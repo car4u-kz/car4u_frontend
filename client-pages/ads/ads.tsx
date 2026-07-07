@@ -61,6 +61,7 @@ const generateHeaderLabels = (
       {arrow}
     </button>,
     <Checklist />,
+    "Account ID",
     "Автомобиль",
     "Год",
     "Цена",

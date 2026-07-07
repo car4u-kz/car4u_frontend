@@ -55,6 +55,7 @@ const TableRows = ({ statusId, items, onUpdate }: Props) => {
             />
           </TableCell>
           <TableCell>ID объявления: {getAdIdFromUrl(item.adUrl)}</TableCell>
+          <TableCell>{item.sellerUserId || "-"}</TableCell>
           <TableCell sx={{ maxWidth: "350px" }}>
             <CarTitleHoverPreview
               src={item.firstPhotoLink}

@@ -2,6 +2,7 @@ export type CarAd = {
   dynamicInfoId: number;
   adId: number;
   adTitle: string;
+  sellerUserId?: string;
   engineVolume: number;
   shortDescription: string;
   adUrl: string;
