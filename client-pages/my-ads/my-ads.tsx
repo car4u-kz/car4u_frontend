@@ -212,6 +212,7 @@ const MyAds = ({}: Props) => {
   return (
     <>
       <Table
+        title="Мои объявления"
         tableButtons={
           <Box sx={{ p: 0.5, pl: 1 }}>
             <Button

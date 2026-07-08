@@ -196,6 +196,7 @@ const SearchPage = () => {
   return (
     <>
       <Table
+        title="Поиски"
         tableButtons={
           <Box sx={{ p: 0.5, pl: 1 }}>
             <Button

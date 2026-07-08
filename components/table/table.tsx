@@ -17,6 +17,7 @@ import TableBody from "./table-body";
 import TableCell from "./table-cell";
 
 type Props = {
+  title?: string;
   headerLabels: any[];
   dataLength?: number;
   isFetching?: boolean;
@@ -29,6 +30,7 @@ type Props = {
 };
 
 const Table = ({
+  title,
   dataLength = 0,
   isFetching = false,
   isFetchingNextPage = false,
@@ -82,6 +84,19 @@ const Table = ({
           overflow: "visible",
         }}
       >
+        {!!title && (
+          <Typography
+            sx={{
+              mb: 2,
+              fontSize: 28,
+              lineHeight: 1.1,
+              fontWeight: 700,
+              color: "#0f172a",
+            }}
+          >
+            {title}
+          </Typography>
+        )}
         {!!tableButtons && tableButtons}
         <MUITable sx={{ bgcolor: "white" }} stickyHeader>
           <TableHead>

@@ -387,6 +387,7 @@ const ProxiesPage = () => {
   return (
     <>
       <Table
+        title="Прокси"
         isFetching={proxiesQuery.isPending}
         headerLabels={headerLabels}
         tableButtons={
