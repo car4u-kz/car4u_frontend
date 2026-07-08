@@ -28,9 +28,9 @@ import { AdStatusStats, PaginatedCarAds } from "@/types";
 
 const changeableHeader: Record<SQ, string> = {
   [SQ.all]: "Опубликовано",
-  [SQ.new]: "Дата обнаружения",
-  [SQ.archived]: "Помещено в архив",
-  [SQ.pendingArchiveValidation]: "Отправлено на проверку",
+  [SQ.new]: "Дата",
+  [SQ.archived]: "В архиве",
+  [SQ.pendingArchiveValidation]: "На проверке",
   [SQ.notFound404]: "404",
   [SQ.myAds]: "Мои объявления",
 };

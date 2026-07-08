@@ -124,6 +124,8 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
                       "& a": {
                         display: "inline-block",
                         maxWidth: "100%",
+                        padding: 0,
+                        borderRadius: 0,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
@@ -155,8 +157,9 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
                   <Box
                     sx={{
                       display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
+                      flexDirection: "column",
+                      alignItems: "self-start",
+                      gap: 0,
                       fontSize: 12,
                       lineHeight: "16px",
                       fontWeight: 500,
