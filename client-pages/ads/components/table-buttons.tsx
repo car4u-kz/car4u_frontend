@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
-import { Box, Skeleton, SxProps, Typography } from "@mui/material";
+import { Box, Paper, Skeleton, SxProps, Typography } from "@mui/material";
 import { Button } from "@/components";
-import { Select, SelectProps, TextInput } from "@/components/form";
+import { Select, SelectProps } from "@/components/form";
 import { SEARCH_QUERY as SQ } from "@/constants";
 import { AdStatusStats } from "@/types";
 
@@ -13,8 +12,6 @@ type Props = {
   selectProps: SelectProps;
   stats?: AdStatusStats;
   isStatsLoading?: boolean;
-  initialAdId?: string;
-  initialAccountId?: string;
 };
 
 const formatDelta = (value: number | undefined) => {
@@ -27,11 +24,13 @@ const formatDelta = (value: number | undefined) => {
 
 const cardSx = {
   minWidth: 150,
-  padding: 1.5,
-  borderRadius: 2,
+  padding: 1.75,
+  borderRadius: 3,
   border: "1px solid",
   borderColor: "grey.300",
-  backgroundColor: "grey.50",
+  background:
+    "linear-gradient(180deg, rgba(250,250,250,1) 0%, rgba(243,244,246,1) 100%)",
+  boxShadow: "0 10px 24px rgba(15, 23, 42, 0.04)",
 };
 
 const StatCard = ({
@@ -47,7 +46,7 @@ const StatCard = ({
     <Typography variant="body2" color="text.secondary">
       {label}
     </Typography>
-    <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
+    <Typography variant="h6" fontWeight={700} lineHeight={1.15}>
       {value ?? 0}
     </Typography>
     {typeof delta === "number" && (
@@ -70,91 +69,37 @@ const TableButtons = ({
   selectProps,
   stats,
   isStatsLoading = false,
-  initialAdId = "",
-  initialAccountId = "",
 }: Props) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [adId, setAdId] = useState(initialAdId);
-  const [accountId, setAccountId] = useState(initialAccountId);
-
-  useEffect(() => {
-    setAdId(initialAdId);
-  }, [initialAdId]);
-
-  useEffect(() => {
-    setAccountId(initialAccountId);
-  }, [initialAccountId]);
-
   const statusId = searchParams.get("statusId") as string;
 
   const onClick = (btnType: SQ) => {
-    const templateId = searchParams.get("templateId") as string;
+    const query = new URLSearchParams(searchParams);
+    query.set("statusId", btnType);
+    query.delete("page");
 
-    const query = new URLSearchParams({
-      statusId: btnType,
-    });
-
-    if (templateId) {
-      query.set("templateId", templateId);
-    }
-
-    const adIdValue = searchParams.get("adId");
-    const accountIdValue = searchParams.get("accountId");
-
-    if (adIdValue) {
-      query.set("adId", adIdValue);
-    }
-
-    if (accountIdValue) {
-      query.set("accountId", accountIdValue);
-    }
-
-    const url = `${pathname}?${query.toString()}`;
-
-    window.history.pushState({}, "", url);
+    window.history.pushState({}, "", `${pathname}?${query.toString()}`);
   };
 
   const sxProps = (btnName: string): SxProps => ({
-    backgroundColor: btnName === statusId ? "white" : "black",
-    color: btnName === statusId ? "black" : "white",
+    borderRadius: 999,
+    px: 1.75,
+    backgroundColor: btnName === statusId ? "#111827" : "white",
+    color: btnName === statusId ? "white" : "#111827",
+    border: "1px solid",
+    borderColor: btnName === statusId ? "#111827" : "grey.300",
+    boxShadow: btnName === statusId ? "0 10px 24px rgba(17,24,39,0.14)" : "none",
+    "&:hover": {
+      backgroundColor: btnName === statusId ? "#111827" : "grey.100",
+    },
   });
-
-  const applySearch = () => {
-    const params = new URLSearchParams(searchParams);
-
-    if (adId.trim()) {
-      params.set("adId", adId.trim());
-    } else {
-      params.delete("adId");
-    }
-
-    if (accountId.trim()) {
-      params.set("accountId", accountId.trim());
-    } else {
-      params.delete("accountId");
-    }
-
-    const url = `${pathname}?${params.toString()}`;
-    window.history.pushState({}, "", url);
-  };
-
-  const resetSearch = () => {
-    setAdId("");
-    setAccountId("");
-
-    const params = new URLSearchParams(searchParams);
-    params.delete("adId");
-    params.delete("accountId");
-    const url = `${pathname}?${params.toString()}`;
-    window.history.pushState({}, "", url);
-  };
 
   const showStatsSkeleton = isStatsLoading && !stats;
 
   return (
-    <Box padding={2}>
-      <Box display="flex" gap={1.5} flexWrap="wrap" mb={2}>
+    <Box padding={2.5}>
+      <Box display="flex" gap={1.5} flexWrap="wrap" mb={2.25}>
         {showStatsSkeleton ? (
           <>
             <StatCardSkeleton />
@@ -190,62 +135,66 @@ const TableButtons = ({
         )}
       </Box>
 
-      <Box display="flex" gap={2} flexWrap="wrap">
-        <Button size="small" sx={sxProps(SQ.all)} onClick={() => onClick(SQ.all)}>
-          Все
-        </Button>
-        <Button size="small" sx={sxProps(SQ.new)} onClick={() => onClick(SQ.new)}>
-          Новые
-        </Button>
-        <Button
-          size="small"
-          sx={sxProps(SQ.archived)}
-          onClick={() => onClick(SQ.archived)}
-        >
-          Архивные
-        </Button>
-        <Button
-          size="small"
-          sx={sxProps(SQ.pendingArchiveValidation)}
-          onClick={() => onClick(SQ.pendingArchiveValidation)}
-        >
-          Ожид. архивирования
-        </Button>
-        <Button
-          size="small"
-          sx={sxProps(SQ.notFound404)}
-          onClick={() => onClick(SQ.notFound404)}
-        >
-          404
-        </Button>
-      </Box>
-      <Box
-        mt={2}
-        display="grid"
-        gridTemplateColumns={{ xs: "1fr", md: "minmax(240px, 280px) 1fr 1fr auto auto" }}
-        gap={1.5}
-        alignItems="center"
+      <Paper
+        elevation={0}
+        sx={{
+          p: 1.5,
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "grey.300",
+          backgroundColor: "white",
+        }}
       >
-        <Select {...selectProps} />
-        <TextInput
-          label="Ad ID"
-          value={adId}
-          onChange={(e) => setAdId(e.target.value)}
-          placeholder="Ad ID"
-        />
-        <TextInput
-          label="Account ID"
-          value={accountId}
-          onChange={(e) => setAccountId(e.target.value)}
-          placeholder="Account ID"
-        />
-        <Button size="small" onClick={applySearch}>
-          Search
-        </Button>
-        <Button size="small" onClick={resetSearch}>
-          Reset
-        </Button>
-      </Box>
+        <Box
+          display="flex"
+          alignItems={{ xs: "stretch", md: "center" }}
+          justifyContent="space-between"
+          gap={1.5}
+          flexDirection={{ xs: "column", md: "row" }}
+        >
+          <Box>
+            <Typography variant="subtitle1" fontWeight={700}>
+              Объявления
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Выберите поиск слева, а детальные фильтры используйте в правой панели.
+            </Typography>
+          </Box>
+          <Box sx={{ minWidth: { xs: "100%", md: 280 } }}>
+            <Select {...selectProps} />
+          </Box>
+        </Box>
+
+        <Box display="flex" gap={1} flexWrap="wrap" mt={1.5}>
+          <Button size="small" sx={sxProps(SQ.all)} onClick={() => onClick(SQ.all)}>
+            Все
+          </Button>
+          <Button size="small" sx={sxProps(SQ.new)} onClick={() => onClick(SQ.new)}>
+            Новые
+          </Button>
+          <Button
+            size="small"
+            sx={sxProps(SQ.archived)}
+            onClick={() => onClick(SQ.archived)}
+          >
+            Архивные
+          </Button>
+          <Button
+            size="small"
+            sx={sxProps(SQ.pendingArchiveValidation)}
+            onClick={() => onClick(SQ.pendingArchiveValidation)}
+          >
+            Ожид. архивирования
+          </Button>
+          <Button
+            size="small"
+            sx={sxProps(SQ.notFound404)}
+            onClick={() => onClick(SQ.notFound404)}
+          >
+            404
+          </Button>
+        </Box>
+      </Paper>
     </Box>
   );
 };

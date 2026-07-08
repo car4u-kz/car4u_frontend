@@ -22,17 +22,25 @@ const REGION_OPTIONS = [
 ];
 
 const sectionTitleSx = {
-  fontSize: 13,
-  fontWeight: 700,
-  letterSpacing: "0.04em",
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: "0.08em",
   textTransform: "uppercase",
   color: "text.secondary",
+};
+
+const fieldGridSx = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 1.25,
 };
 
 const FiltersSidebar = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  const [adId, setAdId] = useState(searchParams.get("adId") ?? "");
+  const [accountId, setAccountId] = useState(searchParams.get("accountId") ?? "");
   const [publishedFrom, setPublishedFrom] = useState(
     searchParams.get("publishedFrom") ?? "",
   );
@@ -50,6 +58,8 @@ const FiltersSidebar = () => {
   const [region, setRegion] = useState(searchParams.get("region") ?? "");
 
   useEffect(() => {
+    setAdId(searchParams.get("adId") ?? "");
+    setAccountId(searchParams.get("accountId") ?? "");
     setPublishedFrom(searchParams.get("publishedFrom") ?? "");
     setPublishedTo(searchParams.get("publishedTo") ?? "");
     setPriceFrom(searchParams.get("priceFrom") ?? "");
@@ -64,6 +74,8 @@ const FiltersSidebar = () => {
   const activeFiltersCount = useMemo(
     () =>
       [
+        adId,
+        accountId,
         publishedFrom,
         publishedTo,
         priceFrom,
@@ -75,6 +87,8 @@ const FiltersSidebar = () => {
         region,
       ].filter(Boolean).length,
     [
+      accountId,
+      adId,
       mileageFrom,
       mileageTo,
       priceFrom,
@@ -98,6 +112,8 @@ const FiltersSidebar = () => {
       }
     };
 
+    setOrDelete("adId", adId);
+    setOrDelete("accountId", accountId);
     setOrDelete("publishedFrom", publishedFrom);
     setOrDelete("publishedTo", publishedTo);
     setOrDelete("priceFrom", priceFrom);
@@ -113,6 +129,8 @@ const FiltersSidebar = () => {
   };
 
   const resetFilters = () => {
+    setAdId("");
+    setAccountId("");
     setPublishedFrom("");
     setPublishedTo("");
     setPriceFrom("");
@@ -125,6 +143,8 @@ const FiltersSidebar = () => {
 
     const params = new URLSearchParams(searchParams);
     [
+      "adId",
+      "accountId",
       "publishedFrom",
       "publishedTo",
       "priceFrom",
@@ -144,7 +164,7 @@ const FiltersSidebar = () => {
     <Paper
       elevation={0}
       sx={{
-        position: { xs: "static", lg: "sticky" },
+        position: { xs: "static", xl: "sticky" },
         top: 16,
         borderRadius: 3,
         border: "1px solid",
@@ -152,25 +172,27 @@ const FiltersSidebar = () => {
         background:
           "linear-gradient(180deg, rgba(248,249,251,1) 0%, rgba(255,255,255,1) 100%)",
         overflow: "hidden",
+        boxShadow: "0 18px 40px rgba(15, 23, 42, 0.05)",
       }}
     >
       <Box
         sx={{
           px: 2.5,
-          py: 2,
+          py: 2.25,
           borderBottom: "1px solid",
           borderColor: "grey.200",
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "space-between",
+          gap: 1.5,
         }}
       >
         <Box>
           <Typography variant="h6" fontWeight={700}>
-            Filters
+            Фильтры
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Frontend layout for future ad filtering
+            Поиск по аккаунту и расширенная выборка объявлений
           </Typography>
         </Box>
         <Chip
@@ -181,12 +203,38 @@ const FiltersSidebar = () => {
         />
       </Box>
 
-      <Box sx={{ p: 2.5, display: "grid", gap: 2.5 }}>
+      <Box sx={{ p: 2.5, display: "grid", gap: 2.25 }}>
+        <Box
+          sx={{
+            p: 1.5,
+            borderRadius: 2.5,
+            backgroundColor: "rgba(17, 24, 39, 0.03)",
+            border: "1px solid",
+            borderColor: "grey.200",
+            display: "grid",
+            gap: 1.25,
+          }}
+        >
+          <Typography sx={sectionTitleSx}>Quick Search</Typography>
+          <TextInput
+            label="Ad ID"
+            value={adId}
+            onChange={(e) => setAdId(e.target.value)}
+            placeholder="225204584"
+          />
+          <TextInput
+            label="Account ID"
+            value={accountId}
+            onChange={(e) => setAccountId(e.target.value)}
+            placeholder="26255863"
+          />
+        </Box>
+
+        <Divider />
+
         <Box sx={{ display: "grid", gap: 1.25 }}>
           <Typography sx={sectionTitleSx}>Publication Date</Typography>
-          <Box
-            sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.25 }}
-          >
+          <Box sx={fieldGridSx}>
             <TextInput
               label="From"
               type="date"
@@ -208,15 +256,13 @@ const FiltersSidebar = () => {
 
         <Box sx={{ display: "grid", gap: 1.25 }}>
           <Typography sx={sectionTitleSx}>Price</Typography>
-          <Box
-            sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.25 }}
-          >
+          <Box sx={fieldGridSx}>
             <TextInput
               label="From"
               type="number"
               value={priceFrom}
               onChange={(e) => setPriceFrom(e.target.value)}
-              placeholder="2 000 000"
+              placeholder="2000000"
               max={999999999}
             />
             <TextInput
@@ -224,7 +270,7 @@ const FiltersSidebar = () => {
               type="number"
               value={priceTo}
               onChange={(e) => setPriceTo(e.target.value)}
-              placeholder="5 000 000"
+              placeholder="5000000"
               max={999999999}
             />
           </Box>
@@ -234,9 +280,7 @@ const FiltersSidebar = () => {
 
         <Box sx={{ display: "grid", gap: 1.25 }}>
           <Typography sx={sectionTitleSx}>Mileage</Typography>
-          <Box
-            sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.25 }}
-          >
+          <Box sx={fieldGridSx}>
             <TextInput
               label="From"
               type="number"
@@ -260,9 +304,7 @@ const FiltersSidebar = () => {
 
         <Box sx={{ display: "grid", gap: 1.25 }}>
           <Typography sx={sectionTitleSx}>Production Year</Typography>
-          <Box
-            sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.25 }}
-          >
+          <Box sx={fieldGridSx}>
             <TextInput
               label="From"
               type="number"
@@ -294,7 +336,14 @@ const FiltersSidebar = () => {
           />
         </Box>
 
-        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.25 }}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 1.25,
+            pt: 0.5,
+          }}
+        >
           <Button size="small" onClick={applyFilters}>
             Apply
           </Button>

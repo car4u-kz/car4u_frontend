@@ -259,8 +259,6 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
           <TableButtons
             stats={queryStats.data}
             isStatsLoading={queryStats.isLoading}
-            initialAdId={adId}
-            initialAccountId={accountId}
             selectProps={{
               menuItems: mappedMenuItems,
               value: selectValue,
