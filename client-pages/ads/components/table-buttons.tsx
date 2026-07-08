@@ -147,40 +147,49 @@ const TableButtons = ({
       >
         <Box
           display="flex"
-          alignItems="center"
-          gap={1}
-          flexWrap="wrap"
+          alignItems={{ xs: "stretch", md: "center" }}
+          justifyContent="space-between"
+          gap={1.5}
+          flexDirection={{ xs: "column-reverse", md: "row" }}
         >
-          <Box sx={{ minWidth: { xs: "100%", md: 280 }, flexShrink: 0 }}>
+          <Box display="flex" gap={1} flexWrap="wrap" justifyContent="flex-start">
+            <Button size="small" sx={sxProps(SQ.all)} onClick={() => onClick(SQ.all)}>
+              Все
+            </Button>
+            <Button size="small" sx={sxProps(SQ.new)} onClick={() => onClick(SQ.new)}>
+              Новые
+            </Button>
+            <Button
+              size="small"
+              sx={sxProps(SQ.archived)}
+              onClick={() => onClick(SQ.archived)}
+            >
+              Архивные
+            </Button>
+            <Button
+              size="small"
+              sx={sxProps(SQ.pendingArchiveValidation)}
+              onClick={() => onClick(SQ.pendingArchiveValidation)}
+            >
+              Ожид. архивирования
+            </Button>
+            <Button
+              size="small"
+              sx={sxProps(SQ.notFound404)}
+              onClick={() => onClick(SQ.notFound404)}
+            >
+              404
+            </Button>
+          </Box>
+          <Box
+            sx={{
+              minWidth: { xs: "100%", md: 280 },
+              maxWidth: { xs: "100%", md: 320 },
+              flexShrink: 0,
+            }}
+          >
             <Select {...selectProps} />
           </Box>
-          <Button size="small" sx={sxProps(SQ.all)} onClick={() => onClick(SQ.all)}>
-            Все
-          </Button>
-          <Button size="small" sx={sxProps(SQ.new)} onClick={() => onClick(SQ.new)}>
-            Новые
-          </Button>
-          <Button
-            size="small"
-            sx={sxProps(SQ.archived)}
-            onClick={() => onClick(SQ.archived)}
-          >
-            Архивные
-          </Button>
-          <Button
-            size="small"
-            sx={sxProps(SQ.pendingArchiveValidation)}
-            onClick={() => onClick(SQ.pendingArchiveValidation)}
-          >
-            Ожид. архивирования
-          </Button>
-          <Button
-            size="small"
-            sx={sxProps(SQ.notFound404)}
-            onClick={() => onClick(SQ.notFound404)}
-          >
-            404
-          </Button>
         </Box>
       </Paper>
     </Box>

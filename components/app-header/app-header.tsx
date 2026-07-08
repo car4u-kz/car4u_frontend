@@ -33,8 +33,9 @@ export default function AppHeader() {
   return (
     <Box
       sx={{
+        width: "100%",
         py: 2.5,
-        px: 10,
+        px: { xs: 3, md: 5 },
         mb: 5,
         borderBottom: "1px solid",
         borderColor: "grey.400",
@@ -42,7 +43,7 @@ export default function AppHeader() {
     >
       <Stack
         direction="row"
-        justifyContent="space-around"
+        justifyContent="space-between"
         alignItems="center"
         gap={1}
       >
