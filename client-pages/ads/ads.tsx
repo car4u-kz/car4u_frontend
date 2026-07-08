@@ -234,7 +234,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) 340px" },
+        gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1fr) 320px" },
         gap: 2.5,
         alignItems: "start",
         width: "100%",
@@ -284,7 +284,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
           }
         />
       </Box>
-      <Box sx={{ width: 340, maxWidth: "100%", justifySelf: { xs: "stretch", xl: "end" } }}>
+      <Box sx={{ width: 320, maxWidth: "100%", justifySelf: { xs: "stretch", lg: "end" } }}>
         <FiltersSidebar />
       </Box>
     </Box>

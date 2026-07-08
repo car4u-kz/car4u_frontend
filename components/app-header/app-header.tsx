@@ -36,7 +36,7 @@ export default function AppHeader() {
         width: "100%",
         py: 2.5,
         px: { xs: 3, md: 5 },
-        mb: 5,
+        mb: 3,
         borderBottom: "1px solid",
         borderColor: "grey.400",
       }}
