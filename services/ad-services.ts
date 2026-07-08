@@ -1,6 +1,6 @@
 import { MenuItemAction } from "@/constants";
 import { AdFormData } from "@/client-pages/my-ads/types";
-import { AdStatusStats } from "@/types";
+import { AdStatusStats, AdViewFiltersResponse } from "@/types";
 
 export const getAds = async (fetchWithAuth: typeof fetch) => {
   const isServer = typeof window === "undefined";
@@ -21,7 +21,9 @@ export const getAds = async (fetchWithAuth: typeof fetch) => {
   }
 };
 
-export const getAdFilterList = async (fetchWithAuth: typeof fetch) => {
+export const getAdFilterList = async (
+  fetchWithAuth: typeof fetch
+): Promise<AdViewFiltersResponse> => {
   const isServer = typeof window === "undefined";
   const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
   const url = `${basePath}/api/adview/filters`;

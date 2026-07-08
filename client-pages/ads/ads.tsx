@@ -26,7 +26,7 @@ import {
   CarsPage,
   getPageIndexForItem,
 } from "@/helpers/findPageIndexByItemIndex";
-import { AdStatusStats, PaginatedCarAds } from "@/types";
+import { AdStatusStats, AdViewFiltersResponse, PaginatedCarAds } from "@/types";
 
 const changeableHeader: Record<SQ, string> = {
   [SQ.all]: "Опубликовано",
@@ -116,7 +116,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     window.history.pushState({}, "", newUrl);
   };
 
-  const queryFilterList = useQuery<{ id: number; name: string }[]>({
+  const queryFilterList = useQuery<AdViewFiltersResponse>({
     queryKey: ["adview-filters"],
     queryFn: () => getAdFilterList(fetchWithAuthNoLoading),
     retry: false,
@@ -194,7 +194,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     );
   };
 
-  const mappedMenuItems = (queryFilterList.data ?? []).map((item) => ({
+  const mappedMenuItems = (queryFilterList.data?.templates ?? []).map((item) => ({
     value: item.id || "",
     label: item.name,
   }));
@@ -299,7 +299,10 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
             transition: "opacity 180ms ease, transform 220ms ease",
           }}
         >
-          <FiltersSidebar onCollapse={() => setFiltersOpen(false)} />
+          <FiltersSidebar
+            onCollapse={() => setFiltersOpen(false)}
+            regions={queryFilterList.data?.regions ?? []}
+          />
         </Box>
       ) : (
         <IconButton

@@ -8,20 +8,6 @@ import KeyboardDoubleArrowRightRoundedIcon from "@mui/icons-material/KeyboardDou
 import { Button, IconButton } from "@/components";
 import { Select, TextInput } from "@/components/form";
 
-const REGION_OPTIONS = [
-  { value: "", label: "All regions" },
-  { value: "almaty", label: "Almaty" },
-  { value: "astana", label: "Astana" },
-  { value: "shymkent", label: "Shymkent" },
-  { value: "karaganda", label: "Karaganda" },
-  { value: "aktobe", label: "Aktobe" },
-  { value: "atyrau", label: "Atyrau" },
-  { value: "taraz", label: "Taraz" },
-  { value: "kostanay", label: "Kostanay" },
-  { value: "pavlodar", label: "Pavlodar" },
-  { value: "kokshetau", label: "Kokshetau" },
-];
-
 const filterLabelSx = {
   fontSize: 13,
   lineHeight: "18px",
@@ -152,9 +138,10 @@ const applyButtonSx = {
 
 type Props = {
   onCollapse: () => void;
+  regions: string[];
 };
 
-const FiltersSidebar = ({ onCollapse }: Props) => {
+const FiltersSidebar = ({ onCollapse, regions }: Props) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -250,6 +237,14 @@ const FiltersSidebar = ({ onCollapse }: Props) => {
     window.history.pushState({}, "", `${pathname}?${params.toString()}`);
     window.scrollTo({ top: 0, behavior: "auto" });
   };
+
+  const regionOptions = [
+    { value: "", label: "All regions" },
+    ...regions.map((item) => ({
+      value: item,
+      label: item,
+    })),
+  ];
 
   return (
     <Paper
@@ -431,7 +426,7 @@ const FiltersSidebar = ({ onCollapse }: Props) => {
             <Select
               value={region}
               handleChange={(e) => setRegion(e.target.value)}
-              menuItems={REGION_OPTIONS}
+              menuItems={regionOptions}
               placeholder="All regions"
             />
           </Box>

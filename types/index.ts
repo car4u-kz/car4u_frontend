@@ -40,3 +40,13 @@ export type AdStatusStats = {
   pendingArchiveValidationAdsLast24Hours: number;
   notFound404AdsLast24Hours: number;
 };
+
+export type TemplateFilterOption = {
+  id: number | null;
+  name: string;
+};
+
+export type AdViewFiltersResponse = {
+  templates: TemplateFilterOption[];
+  regions: string[];
+};
