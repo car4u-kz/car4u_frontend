@@ -26,6 +26,7 @@ export type PaginatedCarAds = {
   hasMore: boolean;
   page: number;
   pageSize: number;
+  totalCount?: number;
 };
 
 export type AdStatusStats = {

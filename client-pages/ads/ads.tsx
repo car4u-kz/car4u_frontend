@@ -9,9 +9,8 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Checklist } from "@mui/icons-material";
 
-import { Table } from "@/components";
+import AdsTable from "./components/ads-table";
 import TableRows from "./components/table-row";
 import TableButtons from "./components/table-buttons";
 import FiltersSidebar from "./components/filters-sidebar";
@@ -27,7 +26,7 @@ import {
 } from "@/helpers/findPageIndexByItemIndex";
 import { AdStatusStats, PaginatedCarAds } from "@/types";
 
-const changebleHeader: Record<SQ, string> = {
+const changeableHeader: Record<SQ, string> = {
   [SQ.all]: "Опубликовано",
   [SQ.new]: "Дата обнаружения",
   [SQ.archived]: "Помещено в архив",
@@ -36,43 +35,48 @@ const changebleHeader: Record<SQ, string> = {
   [SQ.myAds]: "Мои объявления",
 };
 
-const generateHeaderLabels = (
-  carSeachParam: SQ,
+const generateHeaderCells = (
+  carSearchParam: SQ,
   sortBy: string | null,
   sortOrder: string | null,
   onDateSortClick: () => void,
 ) => {
-  const firstheader = changebleHeader[carSeachParam];
+  const firstHeader = changeableHeader[carSearchParam];
   const isActive = sortBy === "date";
   const arrow = !isActive ? "" : sortOrder === "asc" ? " ↑" : " ↓";
 
   return [
-    <button
-      type="button"
-      onClick={onDateSortClick}
-      style={{
-        background: "none",
-        border: "none",
-        padding: 0,
-        cursor: "pointer",
-        font: "inherit",
-        fontWeight: 500,
-      }}
-    >
-      {firstheader}
-      {arrow}
-    </button>,
-    "ID объявления",
-    "Account ID",
-    "Автомобиль",
-    "Год",
-    "Цена",
-    "Пробег",
-    "Двигатель",
-    "КПП",
-    "Кузов",
-    "Регион",
-    "",
+    {
+      key: "published",
+      className: "published-col",
+      label: (
+        <button
+          type="button"
+          onClick={onDateSortClick}
+          style={{
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+            font: "inherit",
+            fontWeight: 700,
+            color: "inherit",
+          }}
+        >
+          {firstHeader}
+          {arrow}
+        </button>
+      ),
+    },
+    { key: "car", className: "car-col", label: "Автомобиль" },
+    { key: "year", className: "year-col", label: "Год" },
+    { key: "price", className: "price-col", label: "Цена" },
+    { key: "mileage", className: "mileage-col", label: "Пробег" },
+    { key: "engine", className: "engine-col", label: "Двигатель" },
+    { key: "gearbox", className: "gearbox-col", label: "КПП" },
+    { key: "body", className: "body-col", label: "Кузов" },
+    { key: "region", className: "region-col", label: "Регион" },
+    { key: "actions", className: "actions-col", label: "" },
   ];
 };
 
@@ -81,7 +85,6 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const fetchWithAuthNoLoading = useFetchWithAuth({ trackLoading: false });
   const queryClient = useQueryClient();
 
-  const [visiblePages, setVisiblePages] = useState(1);
   const [selectValue, setSelectValue] = useState("");
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -89,8 +92,6 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const statusId = (searchParams.get("statusId") as SQ) || SQ.all;
   const stringParams = searchParams.toString();
   const templateId = searchParams.get("templateId");
-  const adId = searchParams.get("adId") ?? "";
-  const accountId = searchParams.get("accountId") ?? "";
 
   const sortBy = searchParams.get("sortBy");
   const sortOrder = searchParams.get("sortOrder");
@@ -127,7 +128,9 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const {
     data,
     isFetching,
+    isError,
     isFetchingNextPage,
+    isFetchNextPageError,
     fetchNextPage,
     hasNextPage,
     refetch,
@@ -141,33 +144,17 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   });
 
   useEffect(() => {
-    setVisiblePages(1);
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [stringParams]);
 
-    const key = ["car-ads", searchParams.toString()] as const;
-
-    queryClient.setQueryData<InfiniteData<PaginatedCarAds>>(key, (old) => {
-      if (!old) return old;
-      return {
-        pages: old.pages.slice(0, 1),
-        pageParams: [(old.pageParams?.[0] as number) ?? 1],
-      };
-    });
-
-    refetch();
-  }, [templateId, refetch, queryClient, searchParams]);
-
-  const headerLabels = generateHeaderLabels(
+  const headerCells = generateHeaderCells(
     statusId,
     sortBy,
     sortOrder,
     handleDateSortClick,
   );
-  const items = data?.pages.slice(0, visiblePages).flatMap((p) => p.carAds);
-
-  const onFetchNext = () => {
-    setVisiblePages((prev) => prev + 1);
-    fetchNextPage();
-  };
+  const items = data?.pages.flatMap((page) => page.carAds) ?? [];
+  const totalCount = data?.pages?.[0]?.totalCount;
 
   const handleAccountClick = (clickedAccountId: string) => {
     const params = new URLSearchParams(searchParams);
@@ -205,8 +192,8 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   };
 
   const mappedMenuItems = (queryFilterList.data ?? []).map((item) => ({
-    value: !!item.id ? item.id : "",
-    label: item?.name,
+    value: item.id || "",
+    label: item.name,
   }));
 
   useEffect(() => {
@@ -228,7 +215,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
         setSelectValue("");
       }
     }
-  }, [mappedMenuItems, searchParams, queryFilterList]);
+  }, [mappedMenuItems, searchParams, queryFilterList, pathname]);
 
   return (
     <Box
@@ -241,50 +228,66 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       }}
     >
       <Box sx={{ minWidth: 0, width: "100%" }}>
-        <Table
-          dataLength={items?.length ?? 0}
-          isFetching={isFetching}
-          isFetchingNextPage={isFetchingNextPage}
-          onFetchNext={onFetchNext}
+        <TableButtons
+          stats={queryStats.data}
+          isStatsLoading={queryStats.isLoading}
+          selectProps={{
+            menuItems: mappedMenuItems,
+            value: selectValue,
+            handleChange: (e) => {
+              const value = e.target.value;
+              setSelectValue(value);
+
+              const params = new URLSearchParams(searchParams);
+
+              if (value) {
+                params.set("templateId", value);
+              } else {
+                params.delete("templateId");
+              }
+
+              const newUrl = `${pathname}?${params.toString()}`;
+              window.history.pushState({}, "", newUrl);
+            },
+          }}
+        />
+
+        <AdsTable
+          headerCells={headerCells}
+          dataLength={items.length}
+          totalCount={totalCount}
           hasNextPage={hasNextPage}
-          headerLabels={headerLabels}
-          visiblePages={visiblePages}
+          isInitialLoading={isFetching && !isFetchingNextPage && items.length === 0}
+          isLoadingMore={isFetchingNextPage}
+          isError={isError}
+          isLoadMoreError={isFetchNextPageError}
+          onFetchNext={() => fetchNextPage()}
+          onRetry={() => {
+            if (items.length > 0 && hasNextPage) {
+              fetchNextPage();
+              return;
+            }
+
+            refetch();
+          }}
           tableRows={
             <TableRows
               statusId={statusId}
-              items={items ?? []}
+              items={items}
               onUpdate={handleUpdateItemPage}
               onAccountClick={handleAccountClick}
             />
           }
-          tableButtons={
-            <TableButtons
-              stats={queryStats.data}
-              isStatsLoading={queryStats.isLoading}
-              selectProps={{
-                menuItems: mappedMenuItems,
-                value: selectValue,
-                handleChange: (e) => {
-                  const value = e.target.value;
-                  setSelectValue(value);
-
-                  const params = new URLSearchParams(searchParams);
-
-                  if (value) {
-                    params.set("templateId", value);
-                  } else {
-                    params.delete("templateId");
-                  }
-
-                  const newUrl = `${pathname}?${params.toString()}`;
-                  window.history.pushState({}, "", newUrl);
-                },
-              }}
-            />
-          }
         />
       </Box>
-      <Box sx={{ width: 320, maxWidth: "100%", justifySelf: { xs: "stretch", lg: "end" } }}>
+
+      <Box
+        sx={{
+          width: 320,
+          maxWidth: "100%",
+          justifySelf: { xs: "stretch", lg: "end" },
+        }}
+      >
         <FiltersSidebar />
       </Box>
     </Box>
