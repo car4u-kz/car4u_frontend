@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Box, Divider, Paper, Typography } from "@mui/material";
+import { Box, Paper, Typography } from "@mui/material";
 
 import { Button } from "@/components";
 import { Select, TextInput } from "@/components/form";
@@ -21,18 +21,132 @@ const REGION_OPTIONS = [
   { value: "kokshetau", label: "Kokshetau" },
 ];
 
-const sectionTitleSx = {
-  fontSize: 12,
-  fontWeight: 800,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  color: "text.secondary",
+const filterLabelSx = {
+  fontSize: 13,
+  lineHeight: "18px",
+  fontWeight: 700,
+  color: "#0f172a",
 };
 
 const fieldGridSx = {
   display: "grid",
   gridTemplateColumns: "1fr 1fr",
-  gap: 1.25,
+  gap: "12px",
+};
+
+const inputSx = {
+  "& .MuiInputBase-root": {
+    height: 38,
+    borderRadius: "8px",
+    background: "#ffffff",
+    fontSize: 13,
+    fontWeight: 500,
+    color: "#0f172a",
+  },
+  "& .MuiInputBase-input": {
+    height: 38,
+    boxSizing: "border-box",
+    px: "12px",
+    py: 0,
+  },
+  "& .MuiInputBase-input::placeholder": {
+    color: "#94a3b8",
+    opacity: 1,
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#dbe1ea",
+  },
+  "& .MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#cbd5e1",
+  },
+  "& .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#2563eb",
+    borderWidth: 1,
+  },
+  "& .MuiInputBase-root.Mui-focused": {
+    boxShadow: "0 0 0 3px rgba(37, 99, 235, 0.12)",
+  },
+  "& .MuiInputLabel-root": {
+    fontSize: 12,
+    fontWeight: 600,
+    color: "#64748b",
+  },
+  "& .MuiInputLabel-root.Mui-focused": {
+    color: "#2563eb",
+  },
+};
+
+const selectWrapperSx = {
+  minWidth: 0,
+  "& .MuiFormControl-root": {
+    width: "100%",
+  },
+  "& .MuiInputLabel-root": {
+    display: "none",
+  },
+  "& .MuiInputBase-root": {
+    height: 38,
+    borderRadius: "8px",
+    background: "#ffffff",
+    fontSize: 13,
+    fontWeight: 500,
+    color: "#0f172a",
+  },
+  "& .MuiSelect-select": {
+    height: 38,
+    boxSizing: "border-box",
+    display: "flex",
+    alignItems: "center",
+    px: "12px",
+    py: 0,
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#dbe1ea",
+  },
+  "& .MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#cbd5e1",
+  },
+  "& .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#2563eb",
+    borderWidth: 1,
+  },
+  "& .MuiInputBase-root.Mui-focused": {
+    boxShadow: "0 0 0 3px rgba(37, 99, 235, 0.12)",
+  },
+};
+
+const resetButtonSx = {
+  height: 40,
+  borderRadius: "8px",
+  borderColor: "#dbe1ea",
+  background: "#ffffff",
+  color: "#0f172a",
+  textTransform: "none",
+  fontSize: 13,
+  fontWeight: 700,
+  boxShadow: "none",
+  "&:hover": {
+    background: "#f8fafc",
+    borderColor: "#cbd5e1",
+    boxShadow: "none",
+  },
+};
+
+const applyButtonSx = {
+  height: 40,
+  borderRadius: "8px",
+  borderColor: "#24a342",
+  background: "#2faa49",
+  color: "#ffffff",
+  textTransform: "none",
+  fontSize: 13,
+  fontWeight: 700,
+  boxShadow: "0 6px 14px rgba(47, 170, 73, 0.22)",
+  "&:hover": {
+    background: "#279740",
+    borderColor: "#279740",
+    boxShadow: "0 8px 18px rgba(47, 170, 73, 0.26)",
+  },
 };
 
 const FiltersSidebar = () => {
@@ -96,6 +210,7 @@ const FiltersSidebar = () => {
     params.delete("page");
 
     window.history.pushState({}, "", `${pathname}?${params.toString()}`);
+    window.scrollTo({ top: 0, behavior: "auto" });
   };
 
   const resetFilters = () => {
@@ -128,75 +243,99 @@ const FiltersSidebar = () => {
     ].forEach((key) => params.delete(key));
 
     window.history.pushState({}, "", `${pathname}?${params.toString()}`);
+    window.scrollTo({ top: 0, behavior: "auto" });
   };
 
   return (
     <Paper
       elevation={0}
       sx={{
-        position: { xs: "static", xl: "sticky" },
+        position: { xs: "static", lg: "sticky" },
         top: 16,
-        borderRadius: 3,
-        border: "1px solid",
-        borderColor: "grey.300",
-        background:
-          "linear-gradient(180deg, rgba(248,249,251,1) 0%, rgba(255,255,255,1) 100%)",
+        borderRadius: "14px",
+        border: "1px solid #e6eaf0",
+        background: "#ffffff",
         overflow: "hidden",
-        boxShadow: "0 18px 40px rgba(15, 23, 42, 0.05)",
+        boxShadow: "0 4px 14px rgba(15, 23, 42, 0.04)",
       }}
     >
       <Box
         sx={{
-          px: 2.5,
-          py: 2.25,
-          borderBottom: "1px solid",
-          borderColor: "grey.200",
+          px: "20px",
+          py: "18px",
+          borderBottom: "1px solid #e6eaf0",
           display: "flex",
           alignItems: "flex-start",
           justifyContent: "space-between",
-          gap: 1.5,
+          gap: "12px",
         }}
       >
-        <Box>
-          <Typography variant="h6" fontWeight={700}>
-            Фильтры
-          </Typography>
-        </Box>
-        <Button size="small" variant="outlined" onClick={resetFilters}>
-          Reset
+        <Typography
+          sx={{
+            fontSize: 20,
+            lineHeight: "26px",
+            fontWeight: 700,
+            color: "#0f172a",
+          }}
+        >
+          Фильтры
+        </Typography>
+
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={resetFilters}
+          sx={{
+            height: 34,
+            px: "14px",
+            borderRadius: "8px",
+            borderColor: "#dbe1ea",
+            background: "#ffffff",
+            color: "#2563eb",
+            textTransform: "none",
+            fontSize: 13,
+            fontWeight: 600,
+            "&:hover": {
+              background: "#f8fafc",
+              borderColor: "#cbd5e1",
+            },
+          }}
+        >
+          Сбросить
         </Button>
       </Box>
 
-      <Box sx={{ p: 2.5, display: "grid", gap: 2.25 }}>
-        <Box
-          sx={{
-            p: 1.5,
-            borderRadius: 2.5,
-            backgroundColor: "rgba(17, 24, 39, 0.03)",
-            border: "1px solid",
-            borderColor: "grey.200",
-            display: "grid",
-            gap: 1.25,
-          }}
-        >
+      <Box
+        sx={{
+          p: "20px",
+          display: { xs: "grid", lg: "flex" },
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
+          flexDirection: "column",
+          gap: "20px",
+        }}
+      >
+        <Box sx={{ display: "grid", gap: "8px" }}>
+          <Typography sx={filterLabelSx}>Ad ID</Typography>
           <TextInput
-            label="Ad ID"
             value={adId}
             onChange={(e) => setAdId(e.target.value)}
-            placeholder="225204584"
-          />
-          <TextInput
-            label="Account ID"
-            value={accountId}
-            onChange={(e) => setAccountId(e.target.value)}
-            placeholder="26255863"
+            placeholder="Ad ID"
+            sx={inputSx}
           />
         </Box>
 
-        <Divider />
+        <Box sx={{ display: "grid", gap: "8px" }}>
+          <Typography sx={filterLabelSx}>Account ID</Typography>
+          <TextInput
+            value={accountId}
+            onChange={(e) => setAccountId(e.target.value)}
+            placeholder="Account ID"
+            sx={inputSx}
+          />
+        </Box>
 
-        <Box sx={{ display: "grid", gap: 1.25 }}>
-          <Typography sx={sectionTitleSx}>Publication Date</Typography>
+        <Box sx={{ display: "grid", gap: "8px" }}>
+          <Typography sx={filterLabelSx}>Дата публикации</Typography>
           <Box sx={fieldGridSx}>
             <TextInput
               label="From"
@@ -204,6 +343,7 @@ const FiltersSidebar = () => {
               value={publishedFrom}
               onChange={(e) => setPublishedFrom(e.target.value)}
               InputLabelProps={{ shrink: true }}
+              sx={inputSx}
             />
             <TextInput
               label="To"
@@ -211,105 +351,107 @@ const FiltersSidebar = () => {
               value={publishedTo}
               onChange={(e) => setPublishedTo(e.target.value)}
               InputLabelProps={{ shrink: true }}
+              sx={inputSx}
             />
           </Box>
         </Box>
 
-        <Divider />
-
-        <Box sx={{ display: "grid", gap: 1.25 }}>
-          <Typography sx={sectionTitleSx}>Price</Typography>
+        <Box sx={{ display: "grid", gap: "8px" }}>
+          <Typography sx={filterLabelSx}>Цена</Typography>
           <Box sx={fieldGridSx}>
             <TextInput
-              label="From"
               type="number"
               value={priceFrom}
               onChange={(e) => setPriceFrom(e.target.value)}
-              placeholder="2000000"
+              placeholder="От"
               max={999999999}
+              sx={inputSx}
             />
             <TextInput
-              label="To"
               type="number"
               value={priceTo}
               onChange={(e) => setPriceTo(e.target.value)}
-              placeholder="5000000"
+              placeholder="До"
               max={999999999}
+              sx={inputSx}
             />
           </Box>
         </Box>
 
-        <Divider />
-
-        <Box sx={{ display: "grid", gap: 1.25 }}>
-          <Typography sx={sectionTitleSx}>Mileage</Typography>
+        <Box sx={{ display: "grid", gap: "8px" }}>
+          <Typography sx={filterLabelSx}>Пробег</Typography>
           <Box sx={fieldGridSx}>
             <TextInput
-              label="From"
               type="number"
               value={mileageFrom}
               onChange={(e) => setMileageFrom(e.target.value)}
-              placeholder="0"
+              placeholder="От"
               max={9999999}
+              sx={inputSx}
             />
             <TextInput
-              label="To"
               type="number"
               value={mileageTo}
               onChange={(e) => setMileageTo(e.target.value)}
-              placeholder="300000"
+              placeholder="До"
               max={9999999}
+              sx={inputSx}
             />
           </Box>
         </Box>
 
-        <Divider />
-
-        <Box sx={{ display: "grid", gap: 1.25 }}>
-          <Typography sx={sectionTitleSx}>Production Year</Typography>
+        <Box sx={{ display: "grid", gap: "8px" }}>
+          <Typography sx={filterLabelSx}>Год выпуска</Typography>
           <Box sx={fieldGridSx}>
             <TextInput
-              label="From"
               type="number"
               value={yearFrom}
               onChange={(e) => setYearFrom(e.target.value)}
-              placeholder="2012"
+              placeholder="От"
               max={9999}
+              sx={inputSx}
             />
             <TextInput
-              label="To"
               type="number"
               value={yearTo}
               onChange={(e) => setYearTo(e.target.value)}
-              placeholder="2020"
+              placeholder="До"
               max={9999}
+              sx={inputSx}
             />
           </Box>
         </Box>
 
-        <Divider />
-
-        <Box sx={{ display: "grid", gap: 1.25 }}>
-          <Typography sx={sectionTitleSx}>Region</Typography>
-          <Select
-            value={region}
-            handleChange={(e) => setRegion(e.target.value)}
-            menuItems={REGION_OPTIONS}
-            placeholder="Region"
-          />
+        <Box sx={{ display: "grid", gap: "8px" }}>
+          <Typography sx={filterLabelSx}>Регион</Typography>
+          <Box sx={selectWrapperSx}>
+            <Select
+              value={region}
+              handleChange={(e) => setRegion(e.target.value)}
+              menuItems={REGION_OPTIONS}
+              placeholder="All regions"
+            />
+          </Box>
         </Box>
+      </Box>
 
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "1fr",
-            pt: 0.5,
-          }}
-        >
-          <Button size="small" onClick={applyFilters}>
-            Apply
-          </Button>
-        </Box>
+      <Box
+        sx={{
+          px: "20px",
+          py: "20px",
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr" },
+          gap: "20px",
+          background: "#ffffff",
+        }}
+      >
+        <Button variant="outlined" onClick={resetFilters} sx={resetButtonSx}>
+          Сбросить
+        </Button>
+
+        <Button onClick={applyFilters} sx={applyButtonSx}>
+          Применить
+        </Button>
       </Box>
     </Paper>
   );
