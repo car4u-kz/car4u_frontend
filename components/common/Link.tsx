@@ -6,10 +6,12 @@ type Props = {
   target?: "_blank" | "_parent" | "_self" | "_top";
   children: string | React.ReactElement;
   isActive?: boolean;
+  disablePadding?: boolean;
 };
 
 export default function Link({
   isActive = false,
+  disablePadding = false,
   children,
   href,
   target = "_blank",
@@ -18,7 +20,11 @@ export default function Link({
 
   return (
     <NextLink
-      style={{ ...style, padding: "4px 8px", borderRadius: "8px" }}
+      style={{
+        ...style,
+        padding: disablePadding ? 0 : "4px 8px",
+        borderRadius: disablePadding ? 0 : "8px",
+      }}
       href={href}
       target={target}
     >

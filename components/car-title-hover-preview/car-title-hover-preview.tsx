@@ -54,7 +54,9 @@ export default function ({ children, shortDescription, src, adUrl, isViewed, adI
         sx={{ display: "inline-block" }}
         onClick={handleView}
       >
-        <Link href={adUrl}>{children}</Link>
+        <Link href={adUrl} disablePadding>
+          {children}
+        </Link>
       </Typography>
     </Tooltip>
   );

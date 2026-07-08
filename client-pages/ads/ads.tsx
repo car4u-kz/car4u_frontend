@@ -88,7 +88,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const queryClient = useQueryClient();
 
   const [selectValue, setSelectValue] = useState("");
-  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const searchParams = useSearchParams();
   const pathname = usePathname();
 

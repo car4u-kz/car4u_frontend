@@ -64,7 +64,7 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
             key={`${item.adId}-${idx}`}
             hover
             sx={{
-              backgroundColor: "#ffffff",
+              backgroundColor: idx % 2 === 0 ? "#ffffff" : "rgba(148, 163, 184, 0.06)",
               transition: "background-color 0.15s ease",
               "&:hover": {
                 backgroundColor: "#f8fafc",
