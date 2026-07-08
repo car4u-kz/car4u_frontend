@@ -147,22 +147,13 @@ const TableButtons = ({
       >
         <Box
           display="flex"
-          alignItems={{ xs: "stretch", md: "center" }}
-          justifyContent="space-between"
-          gap={1.5}
-          flexDirection={{ xs: "column", md: "row" }}
+          alignItems="center"
+          gap={1}
+          flexWrap="wrap"
         >
-          <Box>
-            <Typography variant="subtitle1" fontWeight={700}>
-              Объявления
-            </Typography>
-          </Box>
-          <Box sx={{ minWidth: { xs: "100%", md: 280 } }}>
+          <Box sx={{ minWidth: { xs: "100%", md: 280 }, flexShrink: 0 }}>
             <Select {...selectProps} />
           </Box>
-        </Box>
-
-        <Box display="flex" gap={1} flexWrap="wrap" mt={1.5}>
           <Button size="small" sx={sxProps(SQ.all)} onClick={() => onClick(SQ.all)}>
             Все
           </Button>

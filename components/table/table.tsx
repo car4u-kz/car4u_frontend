@@ -42,22 +42,18 @@ const Table = ({
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
-    const container = document.getElementById("scrollableDiv");
-    if (!container) return;
-
     const handleScroll = () => {
-      setShowScrollTop(container.scrollTop > 1600);
+      setShowScrollTop(window.scrollY > 1600);
     };
 
-    container.addEventListener("scroll", handleScroll);
-    return () => container.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const showScrollToTop = visiblePages >= 3 && showScrollTop;
 
   const handleScroll = () => {
-    const scrollContainer = document.getElementById("scrollableDiv");
-    scrollContainer?.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setTimeout(() => {
       setShowScrollTop(false);
     }, 300);
@@ -65,7 +61,6 @@ const Table = ({
 
   return (
     <InfiniteScroll
-      scrollableTarget="scrollableDiv"
       hasMore={hasNextPage}
       next={() => {
         if (typeof onFetchNext === "function") {
@@ -78,15 +73,13 @@ const Table = ({
       style={{ position: "relative" }}
     >
       <TableContainer
-        id="scrollableDiv"
         sx={{
           width: "100%",
           maxWidth: "100%",
-          height: { xs: "auto", xl: "calc(100vh - 220px)" },
-          maxHeight: { xs: "none", xl: "calc(100vh - 220px)" },
-          minHeight: { xs: 520, xl: "calc(100vh - 220px)" },
+          minHeight: 520,
           bgcolor: "grey",
           margin: "0 auto",
+          overflow: "visible",
         }}
       >
         {!!tableButtons && tableButtons}

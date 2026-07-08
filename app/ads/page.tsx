@@ -25,7 +25,7 @@ export default async function Ads(props: Props) {
   }
   const emailAddress = user?.primaryEmailAddress?.emailAddress;
   return (
-    <Box sx={{ width: "100%", py: 5, px: 15 }}>
+    <Box sx={{ width: "100%", py: 5, px: 5 }}>
       <AdsPage emailAddress={emailAddress!} />
     </Box>
   );
