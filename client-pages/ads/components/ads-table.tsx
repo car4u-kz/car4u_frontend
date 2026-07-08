@@ -183,47 +183,75 @@ const AdsTable = ({
           stickyHeader
           sx={{
             width: "100%",
-            minWidth: 980,
+            minWidth: 1080,
             borderCollapse: "collapse",
             tableLayout: "fixed",
             fontSize: 14,
             color: "#0f172a",
             "& .published-col": {
-              width: 126,
+              width: 118,
             },
             "& .car-col": {
-              width: "auto",
+              width: 260,
             },
             "& .year-col": {
-              width: 64,
+              width: 58,
             },
             "& .price-col": {
-              width: 104,
+              width: 100,
             },
             "& .mileage-col": {
-              width: 96,
+              width: 88,
             },
             "& .engine-col": {
-              width: 108,
+              width: 100,
             },
             "& .gearbox-col": {
-              width: 92,
+              width: 82,
             },
             "& .body-col": {
-              width: 98,
+              width: 90,
             },
             "& .region-col": {
-              width: 170,
+              width: 146,
             },
             "& .actions-col": {
-              width: 44,
+              width: 40,
             },
-            "@media (max-width: 1200px)": {
+            "@media (max-width: 1400px)": {
+              minWidth: 960,
+              "& .published-col": {
+                width: 104,
+              },
+              "& .car-col": {
+                width: 240,
+              },
+              "& .year-col": {
+                width: 56,
+              },
+              "& .price-col": {
+                width: 94,
+              },
+              "& .mileage-col": {
+                width: 82,
+              },
+              "& .engine-col": {
+                width: 92,
+              },
+              "& .gearbox-col": {
+                width: 70,
+              },
+              "& .region-col": {
+                width: 130,
+              },
+              "& .actions-col": {
+                width: 36,
+              },
               "& .body-col": {
                 display: "none",
               },
             },
-            "@media (max-width: 1000px)": {
+            "@media (max-width: 1100px)": {
               "& .engine-col, & .gearbox-col": {
                 display: "none",
               },
@@ -238,7 +266,7 @@ const AdsTable = ({
                   className={cell.className}
                   sx={{
                     height: 48,
-                    px: "12px",
+                    px: { xs: "8px", xl: "12px" },
                     py: 0,
                     borderBottom: "1px solid #e6eaf0",
                     fontSize: 13,
