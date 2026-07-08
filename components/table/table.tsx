@@ -82,13 +82,10 @@ const Table = ({
         sx={{
           width: "100%",
           maxWidth: "100%",
+          height: { xs: "auto", xl: "calc(100vh - 220px)" },
           maxHeight: { xs: "none", xl: "calc(100vh - 220px)" },
           minHeight: { xs: 520, xl: "calc(100vh - 220px)" },
-          bgcolor: "grey.100",
-          borderRadius: 3,
-          border: "1px solid",
-          borderColor: "grey.300",
-          boxShadow: "0 18px 40px rgba(15, 23, 42, 0.05)",
+          bgcolor: "grey",
           margin: "0 auto",
         }}
       >

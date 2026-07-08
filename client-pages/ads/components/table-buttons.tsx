@@ -156,9 +156,6 @@ const TableButtons = ({
             <Typography variant="subtitle1" fontWeight={700}>
               Объявления
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Выберите поиск слева, а детальные фильтры используйте в правой панели.
-            </Typography>
           </Box>
           <Box sx={{ minWidth: { xs: "100%", md: 280 } }}>
             <Select {...selectProps} />

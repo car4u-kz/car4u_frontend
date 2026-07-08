@@ -191,9 +191,6 @@ const FiltersSidebar = () => {
           <Typography variant="h6" fontWeight={700}>
             Фильтры
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Поиск по аккаунту и расширенная выборка объявлений
-          </Typography>
         </Box>
         <Chip
           label={`${activeFiltersCount} active`}
