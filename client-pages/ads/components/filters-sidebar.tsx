@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Box, Chip, Divider, Paper, Typography } from "@mui/material";
+import { Box, Divider, Paper, Typography } from "@mui/material";
 
 import { Button } from "@/components";
 import { Select, TextInput } from "@/components/form";
@@ -70,36 +70,6 @@ const FiltersSidebar = () => {
     setYearTo(searchParams.get("yearTo") ?? "");
     setRegion(searchParams.get("region") ?? "");
   }, [searchParams]);
-
-  const activeFiltersCount = useMemo(
-    () =>
-      [
-        adId,
-        accountId,
-        publishedFrom,
-        publishedTo,
-        priceFrom,
-        priceTo,
-        mileageFrom,
-        mileageTo,
-        yearFrom,
-        yearTo,
-        region,
-      ].filter(Boolean).length,
-    [
-      accountId,
-      adId,
-      mileageFrom,
-      mileageTo,
-      priceFrom,
-      priceTo,
-      publishedFrom,
-      publishedTo,
-      region,
-      yearFrom,
-      yearTo,
-    ],
-  );
 
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams);
@@ -192,12 +162,9 @@ const FiltersSidebar = () => {
             Фильтры
           </Typography>
         </Box>
-        <Chip
-          label={`${activeFiltersCount} active`}
-          size="small"
-          color={activeFiltersCount > 0 ? "primary" : "default"}
-          variant={activeFiltersCount > 0 ? "filled" : "outlined"}
-        />
+        <Button size="small" variant="outlined" onClick={resetFilters}>
+          Reset
+        </Button>
       </Box>
 
       <Box sx={{ p: 2.5, display: "grid", gap: 2.25 }}>
@@ -212,7 +179,6 @@ const FiltersSidebar = () => {
             gap: 1.25,
           }}
         >
-          <Typography sx={sectionTitleSx}>Quick Search</Typography>
           <TextInput
             label="Ad ID"
             value={adId}
@@ -336,16 +302,12 @@ const FiltersSidebar = () => {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 1.25,
+            gridTemplateColumns: "1fr",
             pt: 0.5,
           }}
         >
           <Button size="small" onClick={applyFilters}>
             Apply
-          </Button>
-          <Button size="small" onClick={resetFilters}>
-            Reset
           </Button>
         </Box>
       </Box>
