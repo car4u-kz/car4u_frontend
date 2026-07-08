@@ -36,7 +36,7 @@ const getDisplayDate = (item: CarAd, statusId: SQ): string => {
 
 const baseCellSx = {
   height: 64,
-  px: "14px",
+  px: "12px",
   py: "10px",
   borderBottom: "1px solid #edf2f7",
   fontSize: 13,
@@ -115,7 +115,7 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
                 >
                   <Box
                     sx={{
-                      maxWidth: 230,
+                      maxWidth: { xs: 210, xl: 320 },
                       "& .MuiTypography-root": {
                         display: "inline-block",
                         maxWidth: "100%",

@@ -169,7 +169,7 @@ const AdsTable = ({
   return (
     <Box
       sx={{
-        mt: 2,
+        mt: 0,
         background: "#ffffff",
         border: "1px solid #e6eaf0",
         borderRadius: "14px",
@@ -183,37 +183,37 @@ const AdsTable = ({
           stickyHeader
           sx={{
             width: "100%",
-            minWidth: 1100,
+            minWidth: 980,
             borderCollapse: "collapse",
             tableLayout: "fixed",
             fontSize: 14,
             color: "#0f172a",
             "& .published-col": {
-              width: 140,
+              width: 126,
             },
             "& .car-col": {
-              width: 310,
+              width: "auto",
             },
             "& .year-col": {
-              width: 70,
+              width: 64,
             },
             "& .price-col": {
-              width: 110,
+              width: 104,
             },
             "& .mileage-col": {
-              width: 120,
+              width: 96,
             },
             "& .engine-col": {
-              width: 120,
+              width: 108,
             },
             "& .gearbox-col": {
-              width: 100,
+              width: 92,
             },
             "& .body-col": {
-              width: 110,
+              width: 98,
             },
             "& .region-col": {
-              width: "auto",
+              width: 170,
             },
             "& .actions-col": {
               width: 44,
@@ -238,7 +238,7 @@ const AdsTable = ({
                   className={cell.className}
                   sx={{
                     height: 48,
-                    px: "14px",
+                    px: "12px",
                     py: 0,
                     borderBottom: "1px solid #e6eaf0",
                     fontSize: 13,

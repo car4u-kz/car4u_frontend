@@ -182,13 +182,14 @@ const TableButtons = ({
         display: "flex",
         flexDirection: "column",
         gap: "16px",
-        p: { xs: "16px", md: "24px 32px 20px" },
+        p: 0,
+        mb: 2,
         background: "transparent",
       }}
     >
       <Typography
         sx={{
-          fontSize: 32,
+          fontSize: 28,
           lineHeight: 1.1,
           fontWeight: 700,
           color: "#0f172a",
