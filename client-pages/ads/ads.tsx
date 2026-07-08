@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { Box } from "@mui/material";
 import {
   InfiniteData,
   useInfiniteQuery,
@@ -13,6 +14,7 @@ import { Checklist } from "@mui/icons-material";
 import { Table } from "@/components";
 import TableRows from "./components/table-row";
 import TableButtons from "./components/table-buttons";
+import FiltersSidebar from "./components/filters-sidebar";
 
 import { getCars } from "@/services/car-services";
 import { getAdFilterList, getAdStats } from "@/services/ad-services";
@@ -229,50 +231,60 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   }, [mappedMenuItems, searchParams, queryFilterList]);
 
   return (
-    <Table
-      dataLength={items?.length ?? 0}
-      isFetching={isFetching}
-      isFetchingNextPage={isFetchingNextPage}
-      onFetchNext={onFetchNext}
-      hasNextPage={hasNextPage}
-      headerLabels={headerLabels}
-      visiblePages={visiblePages}
-      tableRows={
-        <TableRows
-          statusId={statusId}
-          items={items ?? []}
-          onUpdate={handleUpdateItemPage}
-          onAccountClick={handleAccountClick}
-        />
-      }
-      tableButtons={
-        <TableButtons
-          stats={queryStats.data}
-          isStatsLoading={queryStats.isLoading}
-          initialAdId={adId}
-          initialAccountId={accountId}
-          selectProps={{
-            menuItems: mappedMenuItems,
-            value: selectValue,
-            handleChange: (e) => {
-              const value = e.target.value;
-              setSelectValue(value);
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) 340px" },
+        gap: 2.5,
+        alignItems: "start",
+      }}
+    >
+      <Table
+        dataLength={items?.length ?? 0}
+        isFetching={isFetching}
+        isFetchingNextPage={isFetchingNextPage}
+        onFetchNext={onFetchNext}
+        hasNextPage={hasNextPage}
+        headerLabels={headerLabels}
+        visiblePages={visiblePages}
+        tableRows={
+          <TableRows
+            statusId={statusId}
+            items={items ?? []}
+            onUpdate={handleUpdateItemPage}
+            onAccountClick={handleAccountClick}
+          />
+        }
+        tableButtons={
+          <TableButtons
+            stats={queryStats.data}
+            isStatsLoading={queryStats.isLoading}
+            initialAdId={adId}
+            initialAccountId={accountId}
+            selectProps={{
+              menuItems: mappedMenuItems,
+              value: selectValue,
+              handleChange: (e) => {
+                const value = e.target.value;
+                setSelectValue(value);
 
-              const params = new URLSearchParams(searchParams);
+                const params = new URLSearchParams(searchParams);
 
-              if (value) {
-                params.set("templateId", value);
-              } else {
-                params.delete("templateId");
-              }
+                if (value) {
+                  params.set("templateId", value);
+                } else {
+                  params.delete("templateId");
+                }
 
-              const newUrl = `${pathname}?${params.toString()}`;
-              window.history.pushState({}, "", newUrl);
-            },
-          }}
-        />
-      }
-    />
+                const newUrl = `${pathname}?${params.toString()}`;
+                window.history.pushState({}, "", newUrl);
+              },
+            }}
+          />
+        }
+      />
+      <FiltersSidebar />
+    </Box>
   );
 };
 

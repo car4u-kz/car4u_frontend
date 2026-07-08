@@ -222,36 +222,29 @@ const TableButtons = ({
       <Box
         mt={2}
         display="grid"
-        gridTemplateColumns={{ xs: "1fr", md: "minmax(280px, 1fr) minmax(360px, 1fr)" }}
-        gap={2}
-        alignItems="start"
+        gridTemplateColumns={{ xs: "1fr", md: "minmax(240px, 280px) 1fr 1fr auto auto" }}
+        gap={1.5}
+        alignItems="center"
       >
         <Select {...selectProps} />
-        <Box
-          display="grid"
-          gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr auto auto" }}
-          gap={1.5}
-          alignItems="center"
-        >
-          <TextInput
-            label="Ad ID"
-            value={adId}
-            onChange={(e) => setAdId(e.target.value)}
-            placeholder="Ad ID"
-          />
-          <TextInput
-            label="Account ID"
-            value={accountId}
-            onChange={(e) => setAccountId(e.target.value)}
-            placeholder="Account ID"
-          />
-          <Button size="small" onClick={applySearch}>
-            Search
-          </Button>
-          <Button size="small" onClick={resetSearch}>
-            Reset
-          </Button>
-        </Box>
+        <TextInput
+          label="Ad ID"
+          value={adId}
+          onChange={(e) => setAdId(e.target.value)}
+          placeholder="Ad ID"
+        />
+        <TextInput
+          label="Account ID"
+          value={accountId}
+          onChange={(e) => setAccountId(e.target.value)}
+          placeholder="Account ID"
+        />
+        <Button size="small" onClick={applySearch}>
+          Search
+        </Button>
+        <Button size="small" onClick={resetSearch}>
+          Reset
+        </Button>
       </Box>
     </Box>
   );
