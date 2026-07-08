@@ -77,7 +77,7 @@ const Table = ({
           width: "100%",
           maxWidth: "100%",
           minHeight: 520,
-          bgcolor: "grey",
+          bgcolor: "transparent",
           margin: "0 auto",
           overflow: "visible",
         }}

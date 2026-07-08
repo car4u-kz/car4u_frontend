@@ -40,9 +40,9 @@ const formatDelta = (value: number | undefined) => {
 const statCardSx = {
   display: "flex",
   alignItems: "center",
-  gap: "14px",
-  minHeight: "86px",
-  padding: "18px 20px",
+  gap: "12px",
+  minHeight: "80px",
+  padding: "16px 18px",
   background: "#ffffff",
   border: "1px solid #e6eaf0",
   borderRadius: "14px",
@@ -70,8 +70,8 @@ const statLabelSx = {
 
 const statValueSx = {
   mt: "2px",
-  fontSize: 22,
-  lineHeight: "28px",
+  fontSize: 20,
+  lineHeight: "24px",
   fontWeight: 700,
   color: "#0f172a",
   letterSpacing: "-0.02em",
@@ -186,14 +186,25 @@ const TableButtons = ({
         background: "transparent",
       }}
     >
+      <Typography
+        sx={{
+          fontSize: 32,
+          lineHeight: 1.1,
+          fontWeight: 700,
+          color: "#0f172a",
+          letterSpacing: "-0.03em",
+        }}
+      >
+        Объявления
+      </Typography>
+
       <Box
         sx={{
           display: "grid",
           gridTemplateColumns: {
             xs: "1fr",
             sm: "repeat(2, minmax(0, 1fr))",
-            md: "repeat(3, minmax(0, 1fr))",
-            xl: "repeat(5, minmax(0, 1fr))",
+            lg: "repeat(5, minmax(0, 1fr))",
           },
           gap: "14px",
         }}
