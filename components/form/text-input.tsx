@@ -27,6 +27,7 @@ const TextInput = ({
   return (
     <TextField
       label={label}
+      type={type}
       value={value}
       onKeyDown={(e) => {
         if (
