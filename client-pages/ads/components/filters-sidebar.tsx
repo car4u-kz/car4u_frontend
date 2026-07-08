@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Box, Paper, Typography } from "@mui/material";
+import KeyboardDoubleArrowRightRoundedIcon from "@mui/icons-material/KeyboardDoubleArrowRightRounded";
 
-import { Button } from "@/components";
+import { Button, IconButton } from "@/components";
 import { Select, TextInput } from "@/components/form";
 
 const REGION_OPTIONS = [
@@ -149,7 +150,11 @@ const applyButtonSx = {
   },
 };
 
-const FiltersSidebar = () => {
+type Props = {
+  onCollapse: () => void;
+};
+
+const FiltersSidebar = ({ onCollapse }: Props) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -281,28 +286,26 @@ const FiltersSidebar = () => {
           Фильтры
         </Typography>
 
-        <Button
+        <IconButton
           size="small"
-          variant="outlined"
-          onClick={resetFilters}
+          onClick={onCollapse}
+          aria-label="Свернуть фильтры"
           sx={{
+            width: 34,
             height: 34,
-            px: "14px",
             borderRadius: "8px",
-            borderColor: "#dbe1ea",
+            border: "1px solid #dbe1ea",
             background: "#ffffff",
             color: "#2563eb",
-            textTransform: "none",
-            fontSize: 13,
-            fontWeight: 600,
+            transition: "background-color 160ms ease, transform 160ms ease",
             "&:hover": {
               background: "#f8fafc",
-              borderColor: "#cbd5e1",
+              transform: "translateX(1px)",
             },
           }}
         >
-          Сбросить
-        </Button>
+          <KeyboardDoubleArrowRightRoundedIcon fontSize="small" />
+        </IconButton>
       </Box>
 
       <Box

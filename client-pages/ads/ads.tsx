@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Box } from "@mui/material";
+import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import {
   InfiniteData,
   useInfiniteQuery,
@@ -14,6 +15,7 @@ import AdsTable from "./components/ads-table";
 import TableRows from "./components/table-row";
 import TableButtons from "./components/table-buttons";
 import FiltersSidebar from "./components/filters-sidebar";
+import { IconButton } from "@/components";
 
 import { getCars } from "@/services/car-services";
 import { getAdFilterList, getAdStats } from "@/services/ad-services";
@@ -86,6 +88,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const queryClient = useQueryClient();
 
   const [selectValue, setSelectValue] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(true);
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
@@ -221,10 +224,14 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1fr) 320px" },
-        gap: 2.5,
+        gridTemplateColumns: {
+          xs: "1fr",
+          lg: filtersOpen ? "minmax(0, 1fr) 320px" : "minmax(0, 1fr)",
+        },
+        gap: filtersOpen ? 2.5 : 0,
         alignItems: "start",
         width: "100%",
+        transition: "grid-template-columns 220ms ease, gap 220ms ease",
       }}
     >
       <Box sx={{ minWidth: 0, width: "100%" }}>
@@ -281,15 +288,46 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
         />
       </Box>
 
-      <Box
-        sx={{
-          width: 320,
-          maxWidth: "100%",
-          justifySelf: { xs: "stretch", lg: "end" },
-        }}
-      >
-        <FiltersSidebar />
-      </Box>
+      {filtersOpen ? (
+        <Box
+          sx={{
+            width: 320,
+            maxWidth: "100%",
+            justifySelf: { xs: "stretch", lg: "end" },
+            opacity: 1,
+            transform: "translateX(0)",
+            transition: "opacity 180ms ease, transform 220ms ease",
+          }}
+        >
+          <FiltersSidebar onCollapse={() => setFiltersOpen(false)} />
+        </Box>
+      ) : (
+        <IconButton
+          onClick={() => setFiltersOpen(true)}
+          aria-label="Показать фильтры"
+          sx={{
+            position: "fixed",
+            right: { xs: 16, md: 24 },
+            top: { xs: 88, md: 96 },
+            zIndex: 20,
+            width: 42,
+            height: 42,
+            borderRadius: "12px",
+            border: "1px solid #dbe1ea",
+            background: "#ffffff",
+            color: "#2563eb",
+            boxShadow: "0 8px 20px rgba(15, 23, 42, 0.12)",
+            transition: "transform 160ms ease, box-shadow 160ms ease",
+            "&:hover": {
+              background: "#f8fafc",
+              transform: "translateY(-1px)",
+              boxShadow: "0 12px 24px rgba(15, 23, 42, 0.16)",
+            },
+          }}
+        >
+          <TuneRoundedIcon fontSize="small" />
+        </IconButton>
+      )}
     </Box>
   );
 };
