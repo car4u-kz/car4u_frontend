@@ -217,7 +217,8 @@ const MyAds = ({}: Props) => {
           <Box sx={{ p: 0.5, pl: 1 }}>
             <Button
               disableRipple
-              sx={{ color: "white" }}
+              variant="contained"
+              sx={{ bgcolor: "common.black", color: "white" }}
               size="small"
               onClick={handleOpenAdd}
               startIcon={<AddCircleOutlineIcon fontSize="small" />}

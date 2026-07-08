@@ -201,7 +201,8 @@ const SearchPage = () => {
           <Box sx={{ p: 0.5, pl: 1 }}>
             <Button
               disableRipple
-              sx={{ color: "white" }}
+              variant="contained"
+              sx={{ bgcolor: "common.black", color: "white" }}
               size="small"
               onClick={() => setOpen("add")}
               startIcon={<AddCircleOutlineIcon fontSize="small" />}
