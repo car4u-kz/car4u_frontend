@@ -237,51 +237,56 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
         gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) 340px" },
         gap: 2.5,
         alignItems: "start",
+        width: "100%",
       }}
     >
-      <Table
-        dataLength={items?.length ?? 0}
-        isFetching={isFetching}
-        isFetchingNextPage={isFetchingNextPage}
-        onFetchNext={onFetchNext}
-        hasNextPage={hasNextPage}
-        headerLabels={headerLabels}
-        visiblePages={visiblePages}
-        tableRows={
-          <TableRows
-            statusId={statusId}
-            items={items ?? []}
-            onUpdate={handleUpdateItemPage}
-            onAccountClick={handleAccountClick}
-          />
-        }
-        tableButtons={
-          <TableButtons
-            stats={queryStats.data}
-            isStatsLoading={queryStats.isLoading}
-            selectProps={{
-              menuItems: mappedMenuItems,
-              value: selectValue,
-              handleChange: (e) => {
-                const value = e.target.value;
-                setSelectValue(value);
+      <Box sx={{ minWidth: 0, width: "100%" }}>
+        <Table
+          dataLength={items?.length ?? 0}
+          isFetching={isFetching}
+          isFetchingNextPage={isFetchingNextPage}
+          onFetchNext={onFetchNext}
+          hasNextPage={hasNextPage}
+          headerLabels={headerLabels}
+          visiblePages={visiblePages}
+          tableRows={
+            <TableRows
+              statusId={statusId}
+              items={items ?? []}
+              onUpdate={handleUpdateItemPage}
+              onAccountClick={handleAccountClick}
+            />
+          }
+          tableButtons={
+            <TableButtons
+              stats={queryStats.data}
+              isStatsLoading={queryStats.isLoading}
+              selectProps={{
+                menuItems: mappedMenuItems,
+                value: selectValue,
+                handleChange: (e) => {
+                  const value = e.target.value;
+                  setSelectValue(value);
 
-                const params = new URLSearchParams(searchParams);
+                  const params = new URLSearchParams(searchParams);
 
-                if (value) {
-                  params.set("templateId", value);
-                } else {
-                  params.delete("templateId");
-                }
+                  if (value) {
+                    params.set("templateId", value);
+                  } else {
+                    params.delete("templateId");
+                  }
 
-                const newUrl = `${pathname}?${params.toString()}`;
-                window.history.pushState({}, "", newUrl);
-              },
-            }}
-          />
-        }
-      />
-      <FiltersSidebar />
+                  const newUrl = `${pathname}?${params.toString()}`;
+                  window.history.pushState({}, "", newUrl);
+                },
+              }}
+            />
+          }
+        />
+      </Box>
+      <Box sx={{ width: 340, maxWidth: "100%", justifySelf: { xs: "stretch", xl: "end" } }}>
+        <FiltersSidebar />
+      </Box>
     </Box>
   );
 };
