@@ -104,6 +104,21 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
 
   const sortBy = searchParams.get("sortBy");
   const sortOrder = searchParams.get("sortOrder");
+  const hasActiveFilters = [
+    "adId",
+    "accountId",
+    "publishedFrom",
+    "publishedTo",
+    "priceFrom",
+    "priceTo",
+    "mileageFrom",
+    "mileageTo",
+    "yearFrom",
+    "yearTo",
+    "region",
+    "brandId",
+    "modelId",
+  ].some((key) => !!searchParams.get(key));
 
   const handleDateSortClick = () => {
     const params = new URLSearchParams(searchParams);
@@ -184,6 +199,31 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
 
     const newUrl = `${pathname}?${params.toString()}`;
     window.history.pushState({}, "", newUrl);
+  };
+
+  const handleResetFilters = () => {
+    const params = new URLSearchParams(searchParams);
+
+    [
+      "adId",
+      "accountId",
+      "publishedFrom",
+      "publishedTo",
+      "priceFrom",
+      "priceTo",
+      "mileageFrom",
+      "mileageTo",
+      "yearFrom",
+      "yearTo",
+      "region",
+      "brandId",
+      "modelId",
+      "page",
+    ].forEach((key) => params.delete(key));
+
+    const newUrl = `${pathname}?${params.toString()}`;
+    window.history.pushState({}, "", newUrl);
+    window.scrollTo({ top: 0, behavior: "auto" });
   };
 
   const handleExport = async () => {
@@ -272,6 +312,8 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
         <TableButtons
           stats={queryStats.data}
           isStatsLoading={queryStats.isLoading}
+          hasActiveFilters={hasActiveFilters}
+          onResetFilters={handleResetFilters}
           selectProps={{
             menuItems: mappedMenuItems,
             value: selectValue,

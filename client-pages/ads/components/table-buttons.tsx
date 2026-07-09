@@ -21,6 +21,8 @@ type Props = {
   selectProps: SelectProps;
   stats?: AdStatusStats;
   isStatsLoading?: boolean;
+  hasActiveFilters?: boolean;
+  onResetFilters?: () => void;
 };
 
 const numberFormatter = new Intl.NumberFormat("ru-RU");
@@ -133,6 +135,8 @@ const TableButtons = ({
   selectProps,
   stats,
   isStatsLoading = false,
+  hasActiveFilters = false,
+  onResetFilters,
 }: Props) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -316,11 +320,51 @@ const TableButtons = ({
 
         <Box
           sx={{
-            width: { xs: "100%", md: "280px" },
+            display: "flex",
+            alignItems: "center",
+            justifyContent: { xs: "stretch", md: "flex-end" },
+            gap: "10px",
+            width: { xs: "100%", md: "auto" },
             flexShrink: 0,
           }}
         >
-          <Select {...selectProps} />
+          {hasActiveFilters ? (
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={onResetFilters}
+              sx={{
+                height: 36,
+                minHeight: 36,
+                px: 1.75,
+                borderRadius: "999px",
+                borderColor: "#dbe1ea",
+                background: "#ffffff",
+                color: "#0f172a",
+                textTransform: "none",
+                fontSize: 13,
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+                boxShadow: "none",
+                "&:hover": {
+                  background: "#f8fafc",
+                  borderColor: "#cbd5e1",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              Сбросить фильтры
+            </Button>
+          ) : null}
+
+          <Box
+            sx={{
+              width: { xs: "100%", md: "280px" },
+              minWidth: 0,
+            }}
+          >
+            <Select {...selectProps} />
+          </Box>
         </Box>
       </Box>
     </Box>
