@@ -197,9 +197,11 @@ const FiltersSidebar = ({
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams);
 
-    const setOrDelete = (key: string, value: string) => {
-      if (value.trim()) {
-        params.set(key, value.trim());
+    const setOrDelete = (key: string, value: string | number) => {
+      const normalizedValue = String(value).trim();
+
+      if (normalizedValue) {
+        params.set(key, normalizedValue);
       } else {
         params.delete(key);
       }
@@ -272,7 +274,7 @@ const FiltersSidebar = ({
   const brandOptions = [
     { value: "", label: "All brands" },
     ...brands.map((item) => ({
-      value: item.id,
+      value: String(item.id),
       label: item.name,
     })),
   ];
@@ -284,7 +286,7 @@ const FiltersSidebar = ({
   const modelOptions = [
     { value: "", label: "All models" },
     ...filteredModels.map((item) => ({
-      value: item.id,
+      value: String(item.id),
       label: item.name,
     })),
   ];
@@ -481,7 +483,7 @@ const FiltersSidebar = ({
             <Select
               value={brandId}
               handleChange={(e) => {
-                const nextBrandId = e.target.value;
+                const nextBrandId = String(e.target.value);
                 setBrandId(nextBrandId);
                 setModelId("");
               }}
@@ -496,7 +498,7 @@ const FiltersSidebar = ({
           <Box sx={selectWrapperSx}>
             <Select
               value={modelId}
-              handleChange={(e) => setModelId(e.target.value)}
+              handleChange={(e) => setModelId(String(e.target.value))}
               menuItems={modelOptions}
               placeholder="All models"
             />
