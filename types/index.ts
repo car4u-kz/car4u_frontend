@@ -46,7 +46,20 @@ export type TemplateFilterOption = {
   name: string;
 };
 
+export type AdLookupOption = {
+  id: number;
+  name: string;
+};
+
+export type AdModelLookupOption = {
+  id: number;
+  name: string;
+  brandId: number;
+};
+
 export type AdViewFiltersResponse = {
   templates: TemplateFilterOption[];
   regions: string[];
+  brands: AdLookupOption[];
+  models: AdModelLookupOption[];
 };

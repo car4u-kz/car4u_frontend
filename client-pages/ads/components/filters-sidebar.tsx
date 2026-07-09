@@ -8,6 +8,7 @@ import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 
 import { Button, IconButton } from "@/components";
 import { Select, TextInput } from "@/components/form";
+import { AdLookupOption, AdModelLookupOption } from "@/types";
 
 const filterLabelSx = {
   fontSize: 13,
@@ -140,6 +141,8 @@ const applyButtonSx = {
 type Props = {
   onCollapse: () => void;
   regions: string[];
+  brands: AdLookupOption[];
+  models: AdModelLookupOption[];
   onExport: () => void;
   isExporting?: boolean;
 };
@@ -147,6 +150,8 @@ type Props = {
 const FiltersSidebar = ({
   onCollapse,
   regions,
+  brands,
+  models,
   onExport,
   isExporting = false,
 }: Props) => {
@@ -170,6 +175,8 @@ const FiltersSidebar = ({
   const [yearFrom, setYearFrom] = useState(searchParams.get("yearFrom") ?? "");
   const [yearTo, setYearTo] = useState(searchParams.get("yearTo") ?? "");
   const [region, setRegion] = useState(searchParams.get("region") ?? "");
+  const [brandId, setBrandId] = useState(searchParams.get("brandId") ?? "");
+  const [modelId, setModelId] = useState(searchParams.get("modelId") ?? "");
 
   useEffect(() => {
     setAdId(searchParams.get("adId") ?? "");
@@ -183,6 +190,8 @@ const FiltersSidebar = ({
     setYearFrom(searchParams.get("yearFrom") ?? "");
     setYearTo(searchParams.get("yearTo") ?? "");
     setRegion(searchParams.get("region") ?? "");
+    setBrandId(searchParams.get("brandId") ?? "");
+    setModelId(searchParams.get("modelId") ?? "");
   }, [searchParams]);
 
   const applyFilters = () => {
@@ -207,6 +216,8 @@ const FiltersSidebar = ({
     setOrDelete("yearFrom", yearFrom);
     setOrDelete("yearTo", yearTo);
     setOrDelete("region", region);
+    setOrDelete("brandId", brandId);
+    setOrDelete("modelId", modelId);
     params.delete("page");
 
     window.history.pushState({}, "", `${pathname}?${params.toString()}`);
@@ -225,6 +236,8 @@ const FiltersSidebar = ({
     setYearFrom("");
     setYearTo("");
     setRegion("");
+    setBrandId("");
+    setModelId("");
 
     const params = new URLSearchParams(searchParams);
     [
@@ -239,6 +252,8 @@ const FiltersSidebar = ({
       "yearFrom",
       "yearTo",
       "region",
+      "brandId",
+      "modelId",
       "page",
     ].forEach((key) => params.delete(key));
 
@@ -251,6 +266,26 @@ const FiltersSidebar = ({
     ...regions.map((item) => ({
       value: item,
       label: item,
+    })),
+  ];
+
+  const brandOptions = [
+    { value: "", label: "All brands" },
+    ...brands.map((item) => ({
+      value: item.id,
+      label: item.name,
+    })),
+  ];
+
+  const filteredModels = brandId
+    ? models.filter((item) => item.brandId === Number(brandId))
+    : models;
+
+  const modelOptions = [
+    { value: "", label: "All models" },
+    ...filteredModels.map((item) => ({
+      value: item.id,
+      label: item.name,
     })),
   ];
 
@@ -436,6 +471,34 @@ const FiltersSidebar = ({
               handleChange={(e) => setRegion(e.target.value)}
               menuItems={regionOptions}
               placeholder="All regions"
+            />
+          </Box>
+        </Box>
+
+        <Box sx={{ display: "grid", gap: "8px" }}>
+          <Typography sx={filterLabelSx}>Марка</Typography>
+          <Box sx={selectWrapperSx}>
+            <Select
+              value={brandId}
+              handleChange={(e) => {
+                const nextBrandId = e.target.value;
+                setBrandId(nextBrandId);
+                setModelId("");
+              }}
+              menuItems={brandOptions}
+              placeholder="All brands"
+            />
+          </Box>
+        </Box>
+
+        <Box sx={{ display: "grid", gap: "8px" }}>
+          <Typography sx={filterLabelSx}>Модель</Typography>
+          <Box sx={selectWrapperSx}>
+            <Select
+              value={modelId}
+              handleChange={(e) => setModelId(e.target.value)}
+              menuItems={modelOptions}
+              placeholder="All models"
             />
           </Box>
         </Box>

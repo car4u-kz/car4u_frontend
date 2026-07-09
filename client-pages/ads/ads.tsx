@@ -337,6 +337,8 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
           <FiltersSidebar
             onCollapse={() => setFiltersOpen(false)}
             regions={queryFilterList.data?.regions ?? []}
+            brands={queryFilterList.data?.brands ?? []}
+            models={queryFilterList.data?.models ?? []}
             onExport={handleExport}
             isExporting={isExporting}
           />
