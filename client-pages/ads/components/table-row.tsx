@@ -1,17 +1,35 @@
 "use client";
 
-import { Box, TableCell, TableRow } from "@mui/material";
+import { useMemo, useState } from "react";
+import {
+  Alert,
+  Box,
+  Stack,
+  TableCell,
+  TableRow,
+  TextField,
+  Typography,
+} from "@mui/material";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import { useMutation } from "@tanstack/react-query";
 
-import { CarTitleHoverPreview, DateTimeTypography } from "@/components";
+import {
+  Button,
+  CarTitleHoverPreview,
+  DateTimeTypography,
+  Modal,
+  Tooltip,
+} from "@/components";
+import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
+import { updateSellerProfile } from "@/services/seller-services";
+import { SEARCH_QUERY as SQ } from "@/constants";
+import { CarAd, SellerProfileUpdatePayload } from "@/types";
+import GeneratePDFDropdown from "@/components/generate-pdf/generate-pdf";
 import {
   formatDistance,
   formatPrice,
   getAdIdFromUrl,
 } from "@/utils/formatters";
-
-import { SEARCH_QUERY as SQ } from "@/constants";
-import { CarAd } from "@/types";
-import GeneratePDFDropdown from "@/components/generate-pdf/generate-pdf";
 
 type Props = {
   items: CarAd[];
@@ -53,11 +71,122 @@ const subtleCellSx = {
   color: "#334155",
 };
 
+const tooltipContentSx = {
+  minWidth: 280,
+  maxWidth: 320,
+  p: 0.5,
+};
+
+const accountLabelButtonStyle: React.CSSProperties = {
+  background: "none",
+  border: "none",
+  padding: 0,
+  color: "#2563eb",
+  cursor: "pointer",
+  font: "inherit",
+  textAlign: "left",
+};
+
+const normalizeNullable = (value: string) => {
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
+};
+
 const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
+  const fetchWithAuth = useFetchWithAuth();
+  const [editingSeller, setEditingSeller] =
+    useState<SellerProfileUpdatePayload | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [sellerOverrides, setSellerOverrides] = useState<
+    Record<string, Partial<CarAd>>
+  >({});
+
+  const mergedItems = useMemo(
+    () =>
+      items.map((item) => {
+        if (!item.sellerUserId) {
+          return item;
+        }
+
+        const override = sellerOverrides[item.sellerUserId];
+        return override ? { ...item, ...override } : item;
+      }),
+    [items, sellerOverrides],
+  );
+
+  const sellerMutation = useMutation({
+    mutationFn: (payload: SellerProfileUpdatePayload) =>
+      updateSellerProfile(payload, fetchWithAuth),
+    onSuccess: (seller) => {
+      setSellerOverrides((prev) => ({
+        ...prev,
+        [seller.userId]: {
+          sellerDisplayName: seller.displayName,
+          sellerPhone1: seller.phone1,
+          sellerPhone2: seller.phone2,
+          sellerPhone3: seller.phone3,
+          sellerNotes: seller.notes,
+        },
+      }));
+      setEditError(null);
+      setEditingSeller(null);
+    },
+    onError: (error: Error) => {
+      setEditError(error.message);
+    },
+  });
+
+  const handleOpenSellerEdit = (item: CarAd) => {
+    if (!item.sellerUserId) {
+      return;
+    }
+
+    setEditError(null);
+    setEditingSeller({
+      userId: item.sellerUserId,
+      displayName: item.sellerDisplayName ?? "",
+      phone1: item.sellerPhone1 ?? "",
+      phone2: item.sellerPhone2 ?? "",
+      phone3: item.sellerPhone3 ?? "",
+      notes: item.sellerNotes ?? "",
+    });
+  };
+
+  const handleCloseSellerEdit = () => {
+    if (sellerMutation.isPending) {
+      return;
+    }
+
+    setEditError(null);
+    setEditingSeller(null);
+  };
+
+  const handleSaveSeller = () => {
+    if (!editingSeller) {
+      return;
+    }
+
+    sellerMutation.mutate({
+      userId: editingSeller.userId,
+      displayName: normalizeNullable(editingSeller.displayName ?? ""),
+      phone1: normalizeNullable(editingSeller.phone1 ?? ""),
+      phone2: normalizeNullable(editingSeller.phone2 ?? ""),
+      phone3: normalizeNullable(editingSeller.phone3 ?? ""),
+      notes: normalizeNullable(editingSeller.notes ?? ""),
+    });
+  };
+
   return (
     <>
-      {items?.map((item, idx) => {
+      {mergedItems?.map((item, idx) => {
         const adExternalId = getAdIdFromUrl(item.adUrl);
+        const accountLabel =
+          item.sellerDisplayName?.trim() || item.sellerUserId || "—";
+        const phones = [
+          item.sellerPhone1,
+          item.sellerPhone2,
+          item.sellerPhone3,
+        ].filter(Boolean);
 
         return (
           <TableRow
@@ -175,20 +304,160 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
                     <span>
                       Account:{" "}
                       {item.sellerUserId ? (
-                        <button
-                          type="button"
-                          onClick={() => onAccountClick(item.sellerUserId!)}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            padding: 0,
-                            color: "#2563eb",
-                            cursor: "pointer",
-                            font: "inherit",
-                          }}
+                        <Tooltip
+                          placement="top-start"
+                          title={
+                            <Box
+                              sx={tooltipContentSx}
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <Stack spacing={1}>
+                                <Box>
+                                  <Typography
+                                    sx={{
+                                      fontSize: 14,
+                                      fontWeight: 700,
+                                      color: "#0f172a",
+                                    }}
+                                  >
+                                    {item.sellerDisplayName?.trim() ||
+                                      "Аккаунт без названия"}
+                                  </Typography>
+                                  <Typography
+                                    sx={{
+                                      mt: 0.25,
+                                      fontSize: 12,
+                                      color: "#64748b",
+                                    }}
+                                  >
+                                    ID: {item.sellerUserId}
+                                  </Typography>
+                                </Box>
+
+                                {phones.length ? (
+                                  <Box>
+                                    <Typography
+                                      sx={{
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        color: "#64748b",
+                                        textTransform: "uppercase",
+                                        letterSpacing: "0.04em",
+                                      }}
+                                    >
+                                      Телефоны
+                                    </Typography>
+                                    {phones.map((phone) => (
+                                      <Typography
+                                        key={phone}
+                                        sx={{
+                                          mt: 0.25,
+                                          fontSize: 13,
+                                          color: "#0f172a",
+                                        }}
+                                      >
+                                        {phone}
+                                      </Typography>
+                                    ))}
+                                  </Box>
+                                ) : null}
+
+                                {item.sellerNotes?.trim() ? (
+                                  <Box>
+                                    <Typography
+                                      sx={{
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        color: "#64748b",
+                                        textTransform: "uppercase",
+                                        letterSpacing: "0.04em",
+                                      }}
+                                    >
+                                      Заметки
+                                    </Typography>
+                                    <Typography
+                                      sx={{
+                                        mt: 0.25,
+                                        fontSize: 13,
+                                        lineHeight: "18px",
+                                        color: "#0f172a",
+                                        whiteSpace: "pre-wrap",
+                                      }}
+                                    >
+                                      {item.sellerNotes}
+                                    </Typography>
+                                  </Box>
+                                ) : null}
+
+                                {typeof item.accountAdsCount === "number" &&
+                                item.accountAdsCount > 0 ? (
+                                  <Box>
+                                    <Typography
+                                      sx={{ fontSize: 13, color: "#0f172a" }}
+                                    >
+                                      Объявлений: {item.accountAdsCount}
+                                    </Typography>
+                                    {item.accountAdsCount > 1 &&
+                                    typeof item.accountAvgPrice === "number" ? (
+                                      <Typography
+                                        sx={{
+                                          mt: 0.25,
+                                          fontSize: 13,
+                                          color: "#0f172a",
+                                        }}
+                                      >
+                                        Средняя цена:{" "}
+                                        {formatPrice(item.accountAvgPrice)}
+                                      </Typography>
+                                    ) : null}
+                                  </Box>
+                                ) : null}
+
+                                <Stack direction="row" spacing={1}>
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    onClick={() =>
+                                      onAccountClick(item.sellerUserId!)
+                                    }
+                                    sx={{
+                                      minWidth: 0,
+                                      px: 1.5,
+                                      py: 0.5,
+                                      textTransform: "none",
+                                    }}
+                                  >
+                                    Показать объявления
+                                  </Button>
+                                  <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => handleOpenSellerEdit(item)}
+                                    startIcon={
+                                      <EditOutlinedIcon fontSize="small" />
+                                    }
+                                    sx={{
+                                      minWidth: 0,
+                                      px: 1.5,
+                                      py: 0.5,
+                                      textTransform: "none",
+                                    }}
+                                  >
+                                    Редактировать
+                                  </Button>
+                                </Stack>
+                              </Stack>
+                            </Box>
+                          }
                         >
-                          {item.sellerUserId}
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => onAccountClick(item.sellerUserId!)}
+                            style={accountLabelButtonStyle}
+                          >
+                            {accountLabel}
+                          </button>
+                        </Tooltip>
                       ) : (
                         "—"
                       )}
@@ -253,6 +522,111 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
           </TableRow>
         );
       })}
+
+      <Modal
+        open={!!editingSeller}
+        onClose={handleCloseSellerEdit}
+        onSubmit={handleSaveSeller}
+        title="Редактировать аккаунт"
+        submitLabel="Сохранить"
+        cancelLabel="Отмена"
+        isLoading={sellerMutation.isPending}
+        sx={{ width: 560, maxWidth: "calc(100vw - 32px)" }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {editError ? <Alert severity="error">{editError}</Alert> : null}
+
+          <TextField
+            label="ID аккаунта"
+            value={editingSeller?.userId ?? ""}
+            fullWidth
+            disabled
+            size="small"
+          />
+          <TextField
+            label="Наименование"
+            value={editingSeller?.displayName ?? ""}
+            onChange={(event) =>
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      displayName: event.target.value,
+                    }
+                  : prev,
+              )
+            }
+            fullWidth
+            size="small"
+          />
+          <TextField
+            label="Телефон 1"
+            value={editingSeller?.phone1 ?? ""}
+            onChange={(event) =>
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      phone1: event.target.value,
+                    }
+                  : prev,
+              )
+            }
+            fullWidth
+            size="small"
+          />
+          <TextField
+            label="Телефон 2"
+            value={editingSeller?.phone2 ?? ""}
+            onChange={(event) =>
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      phone2: event.target.value,
+                    }
+                  : prev,
+              )
+            }
+            fullWidth
+            size="small"
+          />
+          <TextField
+            label="Телефон 3"
+            value={editingSeller?.phone3 ?? ""}
+            onChange={(event) =>
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      phone3: event.target.value,
+                    }
+                  : prev,
+              )
+            }
+            fullWidth
+            size="small"
+          />
+          <TextField
+            label="Заметки"
+            value={editingSeller?.notes ?? ""}
+            onChange={(event) =>
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      notes: event.target.value,
+                    }
+                  : prev,
+              )
+            }
+            fullWidth
+            size="small"
+            multiline
+            minRows={4}
+          />
+        </Box>
+      </Modal>
     </>
   );
 };

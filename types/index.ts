@@ -3,6 +3,11 @@ export type CarAd = {
   adId: number;
   adTitle: string;
   sellerUserId?: string;
+  sellerDisplayName?: string;
+  sellerPhone1?: string;
+  sellerPhone2?: string;
+  sellerPhone3?: string;
+  sellerNotes?: string;
   accountAdsCount?: number;
   accountAvgPrice?: number;
   engineVolume: number;
@@ -42,6 +47,17 @@ export type AdStatusStats = {
   pendingArchiveValidationAdsLast24Hours: number;
   notFound404AdsLast24Hours: number;
 };
+
+export type SellerProfile = {
+  userId: string;
+  displayName?: string;
+  phone1?: string;
+  phone2?: string;
+  phone3?: string;
+  notes?: string;
+};
+
+export type SellerProfileUpdatePayload = SellerProfile;
 
 export type TemplateFilterOption = {
   id: number | null;
