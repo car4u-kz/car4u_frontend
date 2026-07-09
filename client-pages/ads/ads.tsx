@@ -18,7 +18,7 @@ import FiltersSidebar from "./components/filters-sidebar";
 import { IconButton } from "@/components";
 
 import { getCars } from "@/services/car-services";
-import { getAdFilterList, getAdStats } from "@/services/ad-services";
+import { exportAdsArchiveWithFilters, getAdFilterList, getAdStats } from "@/services/ad-services";
 
 import { SEARCH_QUERY as SQ } from "@/constants";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
@@ -89,6 +89,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
 
   const [selectValue, setSelectValue] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
@@ -170,6 +171,24 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     window.history.pushState({}, "", newUrl);
   };
 
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+
+      const exportParams = new URLSearchParams(searchParams);
+      exportParams.delete("statusId");
+      exportParams.delete("page");
+      exportParams.delete("sortBy");
+      exportParams.delete("sortOrder");
+
+      await exportAdsArchiveWithFilters(exportParams, fetchWithAuth);
+    } catch (error) {
+      console.error("Ошибка при выгрузке объявлений", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleUpdateItemPage = async (itemGlobalIndex: number) => {
     queryClient.setQueryData<InfiniteData<CarsPage>>(
       ["car-ads", stringParams],
@@ -238,6 +257,8 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
         <TableButtons
           stats={queryStats.data}
           isStatsLoading={queryStats.isLoading}
+          onExport={handleExport}
+          isExporting={isExporting}
           selectProps={{
             menuItems: mappedMenuItems,
             value: selectValue,

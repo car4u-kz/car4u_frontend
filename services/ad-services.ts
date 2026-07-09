@@ -237,3 +237,50 @@ export const generateReport = async (
     console.log(error);
   }
 };
+
+export const exportAdsArchiveWithFilters = async (
+  queryParams: URLSearchParams,
+  fetchWithAuth: (
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ) => Promise<Response>,
+) => {
+  const response = await fetchWithAuth(
+    `/api/adview/export-zip?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        Accept:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "Не удалось выгрузить объявления");
+  }
+
+  const blob = await response.blob();
+  const contentDisposition = response.headers.get("content-disposition");
+  let fileName = "ads-export.xlsx";
+
+  if (contentDisposition) {
+    const match = contentDisposition.match(
+      /filename\*?=(?:UTF-8'')?["']?([^"';\n]+)["']?/i,
+    );
+
+    if (match?.[1]) {
+      fileName = decodeURIComponent(match[1]);
+    }
+  }
+
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
