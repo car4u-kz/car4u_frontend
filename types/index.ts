@@ -3,6 +3,8 @@ export type CarAd = {
   adId: number;
   adTitle: string;
   sellerUserId?: string;
+  accountAdsCount?: number;
+  accountAvgPrice?: number;
   engineVolume: number;
   shortDescription: string;
   adUrl: string;

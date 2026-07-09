@@ -1,8 +1,8 @@
 "use client";
 
-import { Box, TableCell, TableRow, Typography } from "@mui/material";
+import { Box, TableCell, TableRow } from "@mui/material";
 
-import { CarTitleHoverPreview, DateTimeTypography, IconButton } from "@/components";
+import { CarTitleHoverPreview, DateTimeTypography } from "@/components";
 import {
   formatDistance,
   formatPrice,
@@ -64,7 +64,8 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
             key={`${item.adId}-${idx}`}
             hover
             sx={{
-              backgroundColor: idx % 2 === 0 ? "#ffffff" : "rgba(148, 163, 184, 0.06)",
+              backgroundColor:
+                idx % 2 === 0 ? "#ffffff" : "rgba(148, 163, 184, 0.06)",
               transition: "background-color 0.15s ease",
               "&:hover": {
                 backgroundColor: "#f8fafc",
@@ -72,7 +73,10 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
               opacity: item.isViewed ? 0.55 : 1,
             }}
           >
-            <TableCell className="published-col" sx={{ ...subtleCellSx, whiteSpace: "nowrap" }}>
+            <TableCell
+              className="published-col"
+              sx={{ ...subtleCellSx, whiteSpace: "nowrap" }}
+            >
               <DateTimeTypography
                 carSearchParam={statusId}
                 date={getDisplayDate(item, statusId)}
@@ -189,6 +193,15 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
                         "—"
                       )}
                     </span>
+                    {typeof item.accountAdsCount === "number" &&
+                    item.accountAdsCount > 0 ? (
+                      <span>Ads: {item.accountAdsCount}</span>
+                    ) : null}
+                    {typeof item.accountAdsCount === "number" &&
+                    item.accountAdsCount > 1 &&
+                    typeof item.accountAvgPrice === "number" ? (
+                      <span>Avg price: {formatPrice(item.accountAvgPrice)}</span>
+                    ) : null}
                   </Box>
                 </Box>
               </Box>
