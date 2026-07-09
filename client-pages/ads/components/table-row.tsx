@@ -306,6 +306,19 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
                       {item.sellerUserId ? (
                         <Tooltip
                           placement="top-start"
+                          slotProps={{
+                            tooltip: {
+                              sx: {
+                                backgroundColor: "#ffffff",
+                                color: "#0f172a",
+                                border: "1px solid #e2e8f0",
+                                boxShadow: "0 16px 40px rgba(15, 23, 42, 0.14)",
+                                borderRadius: "14px",
+                                p: 1.25,
+                                maxWidth: 360,
+                              },
+                            },
+                          }}
                           title={
                             <Box
                               sx={tooltipContentSx}
@@ -414,21 +427,6 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
                                 ) : null}
 
                                 <Stack direction="row" spacing={1}>
-                                  <Button
-                                    size="small"
-                                    variant="outlined"
-                                    onClick={() =>
-                                      onAccountClick(item.sellerUserId!)
-                                    }
-                                    sx={{
-                                      minWidth: 0,
-                                      px: 1.5,
-                                      py: 0.5,
-                                      textTransform: "none",
-                                    }}
-                                  >
-                                    Показать объявления
-                                  </Button>
                                   <Button
                                     size="small"
                                     variant="contained"
