@@ -18,7 +18,11 @@ import FiltersSidebar from "./components/filters-sidebar";
 import { IconButton } from "@/components";
 
 import { getCars } from "@/services/car-services";
-import { exportAdsArchiveWithFilters, getAdFilterList, getAdStats } from "@/services/ad-services";
+import {
+  exportAdsArchiveWithFilters,
+  getAdFilterList,
+  getAdStats,
+} from "@/services/ad-services";
 
 import { SEARCH_QUERY as SQ } from "@/constants";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
@@ -26,7 +30,7 @@ import {
   CarsPage,
   getPageIndexForItem,
 } from "@/helpers/findPageIndexByItemIndex";
-import { AdStatusStats, AdViewFiltersResponse, PaginatedCarAds } from "@/types";
+import { AdStatusStats, AdViewFiltersResponse } from "@/types";
 
 const changeableHeader: Record<SQ, string> = {
   [SQ.all]: "Опубликовано",
@@ -90,6 +94,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const [selectValue, setSelectValue] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [showExpandFiltersButton, setShowExpandFiltersButton] = useState(true);
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
@@ -150,6 +155,16 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [stringParams]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowExpandFiltersButton(window.scrollY < 220);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const headerCells = generateHeaderCells(
     statusId,
@@ -257,8 +272,6 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
         <TableButtons
           stats={queryStats.data}
           isStatsLoading={queryStats.isLoading}
-          onExport={handleExport}
-          isExporting={isExporting}
           selectProps={{
             menuItems: mappedMenuItems,
             value: selectValue,
@@ -315,6 +328,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
             width: 320,
             maxWidth: "100%",
             justifySelf: { xs: "stretch", lg: "end" },
+            mt: { xs: 0, lg: "60px" },
             opacity: 1,
             transform: "translateX(0)",
             transition: "opacity 180ms ease, transform 220ms ease",
@@ -323,9 +337,11 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
           <FiltersSidebar
             onCollapse={() => setFiltersOpen(false)}
             regions={queryFilterList.data?.regions ?? []}
+            onExport={handleExport}
+            isExporting={isExporting}
           />
         </Box>
-      ) : (
+      ) : showExpandFiltersButton ? (
         <IconButton
           onClick={() => setFiltersOpen(true)}
           aria-label="Показать фильтры"
@@ -351,7 +367,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
         >
           <TuneRoundedIcon fontSize="small" />
         </IconButton>
-      )}
+      ) : null}
     </Box>
   );
 };

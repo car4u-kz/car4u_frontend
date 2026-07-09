@@ -11,7 +11,6 @@ import {
   ReportProblemRounded,
 } from "@mui/icons-material";
 import { Box, Skeleton, SxProps, Typography } from "@mui/material";
-import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 
 import { Button } from "@/components";
 import { Select, SelectProps } from "@/components/form";
@@ -22,8 +21,6 @@ type Props = {
   selectProps: SelectProps;
   stats?: AdStatusStats;
   isStatsLoading?: boolean;
-  onExport?: () => void;
-  isExporting?: boolean;
 };
 
 const numberFormatter = new Intl.NumberFormat("ru-RU");
@@ -136,8 +133,6 @@ const TableButtons = ({
   selectProps,
   stats,
   isStatsLoading = false,
-  onExport,
-  isExporting = false,
 }: Props) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -321,46 +316,11 @@ const TableButtons = ({
 
         <Box
           sx={{
-            display: "flex",
-            justifyContent: { xs: "stretch", md: "flex-end" },
-            alignItems: "center",
-            gap: "10px",
-            width: { xs: "100%", md: "auto" },
+            width: { xs: "100%", md: "280px" },
             flexShrink: 0,
           }}
         >
-          <Box sx={{ width: { xs: "100%", md: "280px" }, flexShrink: 0 }}>
-            <Select {...selectProps} />
-          </Box>
-          <Button
-            onClick={onExport}
-            disabled={isExporting}
-            startIcon={<ArchiveOutlinedIcon fontSize="small" />}
-            sx={{
-              height: 38,
-              minWidth: { xs: "100%", md: 188 },
-              borderRadius: "10px",
-              border: "1px solid #dbe1ea",
-              background: "#ffffff",
-              color: "#0f172a",
-              textTransform: "none",
-              fontSize: 13,
-              fontWeight: 700,
-              boxShadow: "none",
-              "&:hover": {
-                background: "#f8fafc",
-                borderColor: "#cbd5e1",
-                boxShadow: "none",
-              },
-              "&.Mui-disabled": {
-                background: "#f8fafc",
-                color: "#94a3b8",
-                borderColor: "#e2e8f0",
-              },
-            }}
-          >
-            {isExporting ? "Выгрузка..." : "Выгрузить результаты"}
-          </Button>
+          <Select {...selectProps} />
         </Box>
       </Box>
     </Box>

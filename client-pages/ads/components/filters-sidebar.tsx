@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Box, Paper, Typography } from "@mui/material";
 import KeyboardDoubleArrowRightRoundedIcon from "@mui/icons-material/KeyboardDoubleArrowRightRounded";
+import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 
 import { Button, IconButton } from "@/components";
 import { Select, TextInput } from "@/components/form";
@@ -139,9 +140,16 @@ const applyButtonSx = {
 type Props = {
   onCollapse: () => void;
   regions: string[];
+  onExport: () => void;
+  isExporting?: boolean;
 };
 
-const FiltersSidebar = ({ onCollapse, regions }: Props) => {
+const FiltersSidebar = ({
+  onCollapse,
+  regions,
+  onExport,
+  isExporting = false,
+}: Props) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -439,7 +447,7 @@ const FiltersSidebar = ({ onCollapse, regions }: Props) => {
           py: "20px",
           display: "grid",
           gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr" },
-          gap: "20px",
+          gap: "14px",
           background: "#ffffff",
         }}
       >
@@ -449,6 +457,36 @@ const FiltersSidebar = ({ onCollapse, regions }: Props) => {
 
         <Button onClick={applyFilters} sx={applyButtonSx}>
           Применить
+        </Button>
+
+        <Button
+          onClick={onExport}
+          disabled={isExporting}
+          startIcon={<ArchiveOutlinedIcon fontSize="small" />}
+          sx={{
+            height: 40,
+            gridColumn: "1 / -1",
+            borderRadius: "8px",
+            border: "1px solid #dbe1ea",
+            background: "#ffffff",
+            color: "#0f172a",
+            textTransform: "none",
+            fontSize: 13,
+            fontWeight: 700,
+            boxShadow: "none",
+            "&:hover": {
+              background: "#f8fafc",
+              borderColor: "#cbd5e1",
+              boxShadow: "none",
+            },
+            "&.Mui-disabled": {
+              background: "#f8fafc",
+              color: "#94a3b8",
+              borderColor: "#e2e8f0",
+            },
+          }}
+        >
+          {isExporting ? "Выгрузка..." : "Выгрузить результаты"}
         </Button>
       </Box>
     </Paper>
