@@ -107,6 +107,8 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const hasActiveFilters = [
     "adId",
     "accountId",
+    "accountAdsFrom",
+    "accountAdsTo",
     "publishedFrom",
     "publishedTo",
     "priceFrom",
@@ -207,6 +209,8 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     [
       "adId",
       "accountId",
+      "accountAdsFrom",
+      "accountAdsTo",
       "publishedFrom",
       "publishedTo",
       "priceFrom",

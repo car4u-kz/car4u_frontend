@@ -160,6 +160,12 @@ const FiltersSidebar = ({
 
   const [adId, setAdId] = useState(searchParams.get("adId") ?? "");
   const [accountId, setAccountId] = useState(searchParams.get("accountId") ?? "");
+  const [accountAdsFrom, setAccountAdsFrom] = useState(
+    searchParams.get("accountAdsFrom") ?? "",
+  );
+  const [accountAdsTo, setAccountAdsTo] = useState(
+    searchParams.get("accountAdsTo") ?? "",
+  );
   const [publishedFrom, setPublishedFrom] = useState(
     searchParams.get("publishedFrom") ?? "",
   );
@@ -181,6 +187,8 @@ const FiltersSidebar = ({
   useEffect(() => {
     setAdId(searchParams.get("adId") ?? "");
     setAccountId(searchParams.get("accountId") ?? "");
+    setAccountAdsFrom(searchParams.get("accountAdsFrom") ?? "");
+    setAccountAdsTo(searchParams.get("accountAdsTo") ?? "");
     setPublishedFrom(searchParams.get("publishedFrom") ?? "");
     setPublishedTo(searchParams.get("publishedTo") ?? "");
     setPriceFrom(searchParams.get("priceFrom") ?? "");
@@ -209,6 +217,8 @@ const FiltersSidebar = ({
 
     setOrDelete("adId", adId);
     setOrDelete("accountId", accountId);
+    setOrDelete("accountAdsFrom", accountAdsFrom);
+    setOrDelete("accountAdsTo", accountAdsTo);
     setOrDelete("publishedFrom", publishedFrom);
     setOrDelete("publishedTo", publishedTo);
     setOrDelete("priceFrom", priceFrom);
@@ -229,6 +239,8 @@ const FiltersSidebar = ({
   const resetFilters = () => {
     setAdId("");
     setAccountId("");
+    setAccountAdsFrom("");
+    setAccountAdsTo("");
     setPublishedFrom("");
     setPublishedTo("");
     setPriceFrom("");
@@ -245,6 +257,8 @@ const FiltersSidebar = ({
     [
       "adId",
       "accountId",
+      "accountAdsFrom",
+      "accountAdsTo",
       "publishedFrom",
       "publishedTo",
       "priceFrom",
@@ -375,6 +389,28 @@ const FiltersSidebar = ({
             placeholder="Account ID"
             sx={inputSx}
           />
+        </Box>
+
+        <Box sx={{ display: "grid", gap: "8px" }}>
+          <Typography sx={filterLabelSx}>Ads on account</Typography>
+          <Box sx={fieldGridSx}>
+            <TextInput
+              type="number"
+              value={accountAdsFrom}
+              onChange={(e) => setAccountAdsFrom(e.target.value)}
+              placeholder="От"
+              max={999999}
+              sx={inputSx}
+            />
+            <TextInput
+              type="number"
+              value={accountAdsTo}
+              onChange={(e) => setAccountAdsTo(e.target.value)}
+              placeholder="До"
+              max={999999}
+              sx={inputSx}
+            />
+          </Box>
         </Box>
 
         <Box sx={{ display: "grid", gap: "8px" }}>
