@@ -102,12 +102,18 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const stringParams = searchParams.toString();
   const sortBy = searchParams.get("sortBy");
   const sortOrder = searchParams.get("sortOrder");
+  const templateId = searchParams.get("templateId");
   const statsParams = new URLSearchParams(searchParams.toString());
   statsParams.delete("statusId");
   statsParams.delete("page");
   statsParams.delete("sortBy");
   statsParams.delete("sortOrder");
   const statsQueryString = statsParams.toString();
+  const summaryStatsParams = new URLSearchParams();
+  if (templateId) {
+    summaryStatsParams.set("templateId", templateId);
+  }
+  const summaryStatsQueryString = summaryStatsParams.toString();
   const hasActiveFilters = [
     "adId",
     "accountId",
@@ -150,7 +156,13 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     retry: false,
   });
 
-  const queryStats = useQuery<AdStatusStats>({
+  const querySummaryStats = useQuery<AdStatusStats>({
+    queryKey: ["adview-summary-stats", summaryStatsQueryString],
+    queryFn: () => getAdStats(new URLSearchParams(summaryStatsQueryString), fetchWithAuthNoLoading),
+    retry: false,
+  });
+
+  const queryStatusStats = useQuery<AdStatusStats>({
     queryKey: ["adview-stats", statsQueryString],
     queryFn: () => getAdStats(new URLSearchParams(statsQueryString), fetchWithAuthNoLoading),
     retry: false,
@@ -320,8 +332,10 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     >
       <Box sx={{ minWidth: 0, width: "100%" }}>
         <TableButtons
-          stats={queryStats.data}
-          isStatsLoading={queryStats.isLoading}
+          summaryStats={querySummaryStats.data}
+          statusStats={queryStatusStats.data}
+          isSummaryStatsLoading={querySummaryStats.isLoading}
+          isStatusStatsLoading={queryStatusStats.isLoading}
           hasActiveFilters={hasActiveFilters}
           onResetFilters={handleResetFilters}
           selectProps={{

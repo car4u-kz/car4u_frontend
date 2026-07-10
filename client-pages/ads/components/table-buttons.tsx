@@ -19,8 +19,10 @@ import { AdStatusStats } from "@/types";
 
 type Props = {
   selectProps: SelectProps;
-  stats?: AdStatusStats;
-  isStatsLoading?: boolean;
+  summaryStats?: AdStatusStats;
+  statusStats?: AdStatusStats;
+  isSummaryStatsLoading?: boolean;
+  isStatusStatsLoading?: boolean;
   hasActiveFilters?: boolean;
   onResetFilters?: () => void;
 };
@@ -150,8 +152,10 @@ const StatCardSkeleton = () => (
 
 const TableButtons = ({
   selectProps,
-  stats,
-  isStatsLoading = false,
+  summaryStats,
+  statusStats,
+  isSummaryStatsLoading = false,
+  isStatusStatsLoading = false,
   hasActiveFilters = false,
   onResetFilters,
 }: Props) => {
@@ -214,7 +218,8 @@ const TableButtons = ({
     letterSpacing: "-0.01em",
   });
 
-  const showStatsSkeleton = isStatsLoading && !stats;
+  const showStatsSkeleton = isSummaryStatsLoading && !summaryStats;
+  const showStatusCountSkeleton = isStatusStatsLoading && !statusStats;
 
   const StatusButton = ({
     value,
@@ -235,7 +240,7 @@ const TableButtons = ({
       >
         <Box component="span">{label}</Box>
         <Box component="span" sx={statusCountBadgeSx(value)}>
-          {formatNumber(getStatusCount(value, stats))}
+          {showStatusCountSkeleton ? "..." : formatNumber(getStatusCount(value, statusStats))}
         </Box>
       </Box>
     </Button>
@@ -287,39 +292,39 @@ const TableButtons = ({
           <>
             <StatCard
               label="Всего объявлений"
-              value={stats?.totalAds}
+              value={summaryStats?.totalAds}
               icon={<DirectionsCarFilledRounded fontSize="small" />}
               iconBackground="#e8f1ff"
               iconColor="#2563eb"
             />
             <StatCard
               label="Новые"
-              value={stats?.newAds}
-              delta={stats?.newAdsLast24Hours}
+              value={summaryStats?.newAds}
+              delta={summaryStats?.newAdsLast24Hours}
               icon={<AddCircleRounded fontSize="small" />}
               iconBackground="#e9f9ef"
               iconColor="#16a34a"
             />
             <StatCard
               label="Ожидают архивирования"
-              value={stats?.pendingArchiveValidationAds}
-              delta={stats?.pendingArchiveValidationAdsLast24Hours}
+              value={summaryStats?.pendingArchiveValidationAds}
+              delta={summaryStats?.pendingArchiveValidationAdsLast24Hours}
               icon={<AccessTimeFilledRounded fontSize="small" />}
               iconBackground="#fff4e5"
               iconColor="#f97316"
             />
             <StatCard
               label="В архиве"
-              value={stats?.archivedAds}
-              delta={stats?.archivedAdsLast24Hours}
+              value={summaryStats?.archivedAds}
+              delta={summaryStats?.archivedAdsLast24Hours}
               icon={<Inventory2Rounded fontSize="small" />}
               iconBackground="#eef2f7"
               iconColor="#64748b"
             />
             <StatCard
               label="404"
-              value={stats?.notFound404Ads}
-              delta={stats?.notFound404AdsLast24Hours}
+              value={summaryStats?.notFound404Ads}
+              delta={summaryStats?.notFound404AdsLast24Hours}
               icon={<ReportProblemRounded fontSize="small" />}
               iconBackground="#feecec"
               iconColor="#ef4444"
