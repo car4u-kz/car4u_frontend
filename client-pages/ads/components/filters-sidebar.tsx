@@ -143,8 +143,17 @@ type Props = {
   regions: string[];
   brands: AdLookupOption[];
   models: AdModelLookupOption[];
+  bodyTypes: AdLookupOption[];
   onExport: () => void;
   isExporting?: boolean;
+};
+
+const digitsOnly = (value: string) => value.replace(/\D/g, "");
+
+const formatIntegerWithSpaces = (value: string) => {
+  const digits = digitsOnly(value);
+  if (!digits) return "";
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 };
 
 const FiltersSidebar = ({
@@ -152,6 +161,7 @@ const FiltersSidebar = ({
   regions,
   brands,
   models,
+  bodyTypes,
   onExport,
   isExporting = false,
 }: Props) => {
@@ -160,29 +170,24 @@ const FiltersSidebar = ({
 
   const [adId, setAdId] = useState(searchParams.get("adId") ?? "");
   const [accountId, setAccountId] = useState(searchParams.get("accountId") ?? "");
-  const [accountAdsFrom, setAccountAdsFrom] = useState(
-    searchParams.get("accountAdsFrom") ?? "",
+  const [accountAdsFrom, setAccountAdsFrom] = useState(searchParams.get("accountAdsFrom") ?? "");
+  const [accountAdsTo, setAccountAdsTo] = useState(searchParams.get("accountAdsTo") ?? "");
+  const [publishedFrom, setPublishedFrom] = useState(searchParams.get("publishedFrom") ?? "");
+  const [publishedTo, setPublishedTo] = useState(searchParams.get("publishedTo") ?? "");
+  const [priceFrom, setPriceFrom] = useState(
+    formatIntegerWithSpaces(searchParams.get("priceFrom") ?? ""),
   );
-  const [accountAdsTo, setAccountAdsTo] = useState(
-    searchParams.get("accountAdsTo") ?? "",
+  const [priceTo, setPriceTo] = useState(
+    formatIntegerWithSpaces(searchParams.get("priceTo") ?? ""),
   );
-  const [publishedFrom, setPublishedFrom] = useState(
-    searchParams.get("publishedFrom") ?? "",
-  );
-  const [publishedTo, setPublishedTo] = useState(
-    searchParams.get("publishedTo") ?? "",
-  );
-  const [priceFrom, setPriceFrom] = useState(searchParams.get("priceFrom") ?? "");
-  const [priceTo, setPriceTo] = useState(searchParams.get("priceTo") ?? "");
-  const [mileageFrom, setMileageFrom] = useState(
-    searchParams.get("mileageFrom") ?? "",
-  );
+  const [mileageFrom, setMileageFrom] = useState(searchParams.get("mileageFrom") ?? "");
   const [mileageTo, setMileageTo] = useState(searchParams.get("mileageTo") ?? "");
   const [yearFrom, setYearFrom] = useState(searchParams.get("yearFrom") ?? "");
   const [yearTo, setYearTo] = useState(searchParams.get("yearTo") ?? "");
   const [region, setRegion] = useState(searchParams.get("region") ?? "");
   const [brandId, setBrandId] = useState(searchParams.get("brandId") ?? "");
   const [modelId, setModelId] = useState(searchParams.get("modelId") ?? "");
+  const [bodyTypeId, setBodyTypeId] = useState(searchParams.get("bodyTypeId") ?? "");
 
   useEffect(() => {
     setAdId(searchParams.get("adId") ?? "");
@@ -191,8 +196,8 @@ const FiltersSidebar = ({
     setAccountAdsTo(searchParams.get("accountAdsTo") ?? "");
     setPublishedFrom(searchParams.get("publishedFrom") ?? "");
     setPublishedTo(searchParams.get("publishedTo") ?? "");
-    setPriceFrom(searchParams.get("priceFrom") ?? "");
-    setPriceTo(searchParams.get("priceTo") ?? "");
+    setPriceFrom(formatIntegerWithSpaces(searchParams.get("priceFrom") ?? ""));
+    setPriceTo(formatIntegerWithSpaces(searchParams.get("priceTo") ?? ""));
     setMileageFrom(searchParams.get("mileageFrom") ?? "");
     setMileageTo(searchParams.get("mileageTo") ?? "");
     setYearFrom(searchParams.get("yearFrom") ?? "");
@@ -200,6 +205,7 @@ const FiltersSidebar = ({
     setRegion(searchParams.get("region") ?? "");
     setBrandId(searchParams.get("brandId") ?? "");
     setModelId(searchParams.get("modelId") ?? "");
+    setBodyTypeId(searchParams.get("bodyTypeId") ?? "");
   }, [searchParams]);
 
   const applyFilters = () => {
@@ -221,8 +227,8 @@ const FiltersSidebar = ({
     setOrDelete("accountAdsTo", accountAdsTo);
     setOrDelete("publishedFrom", publishedFrom);
     setOrDelete("publishedTo", publishedTo);
-    setOrDelete("priceFrom", priceFrom);
-    setOrDelete("priceTo", priceTo);
+    setOrDelete("priceFrom", digitsOnly(priceFrom));
+    setOrDelete("priceTo", digitsOnly(priceTo));
     setOrDelete("mileageFrom", mileageFrom);
     setOrDelete("mileageTo", mileageTo);
     setOrDelete("yearFrom", yearFrom);
@@ -230,6 +236,7 @@ const FiltersSidebar = ({
     setOrDelete("region", region);
     setOrDelete("brandId", brandId);
     setOrDelete("modelId", modelId);
+    setOrDelete("bodyTypeId", bodyTypeId);
     params.delete("page");
 
     window.history.pushState({}, "", `${pathname}?${params.toString()}`);
@@ -252,6 +259,7 @@ const FiltersSidebar = ({
     setRegion("");
     setBrandId("");
     setModelId("");
+    setBodyTypeId("");
 
     const params = new URLSearchParams(searchParams);
     [
@@ -270,6 +278,7 @@ const FiltersSidebar = ({
       "region",
       "brandId",
       "modelId",
+      "bodyTypeId",
       "page",
     ].forEach((key) => params.delete(key));
 
@@ -300,6 +309,14 @@ const FiltersSidebar = ({
   const modelOptions = [
     { value: "", label: "All models" },
     ...filteredModels.map((item) => ({
+      value: String(item.id),
+      label: item.name,
+    })),
+  ];
+
+  const bodyTypeOptions = [
+    { value: "", label: "All body types" },
+    ...bodyTypes.map((item) => ({
       value: String(item.id),
       label: item.name,
     })),
@@ -439,19 +456,19 @@ const FiltersSidebar = ({
           <Typography sx={filterLabelSx}>Цена</Typography>
           <Box sx={fieldGridSx}>
             <TextInput
-              type="number"
+              type="text"
               value={priceFrom}
-              onChange={(e) => setPriceFrom(e.target.value)}
+              onChange={(e) => setPriceFrom(formatIntegerWithSpaces(e.target.value))}
               placeholder="От"
-              max={999999999}
+              inputMode="numeric"
               sx={inputSx}
             />
             <TextInput
-              type="number"
+              type="text"
               value={priceTo}
-              onChange={(e) => setPriceTo(e.target.value)}
+              onChange={(e) => setPriceTo(formatIntegerWithSpaces(e.target.value))}
               placeholder="До"
-              max={999999999}
+              inputMode="numeric"
               sx={inputSx}
             />
           </Box>
@@ -537,6 +554,18 @@ const FiltersSidebar = ({
               handleChange={(e) => setModelId(String(e.target.value))}
               menuItems={modelOptions}
               placeholder="All models"
+            />
+          </Box>
+        </Box>
+
+        <Box sx={{ display: "grid", gap: "8px" }}>
+          <Typography sx={filterLabelSx}>Кузов</Typography>
+          <Box sx={selectWrapperSx}>
+            <Select
+              value={bodyTypeId}
+              handleChange={(e) => setBodyTypeId(String(e.target.value))}
+              menuItems={bodyTypeOptions}
+              placeholder="All body types"
             />
           </Box>
         </Box>

@@ -124,6 +124,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     "region",
     "brandId",
     "modelId",
+    "bodyTypeId",
   ].some((key) => !!searchParams.get(key));
 
   const handleDateSortClick = () => {
@@ -226,6 +227,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       "region",
       "brandId",
       "modelId",
+      "bodyTypeId",
       "page",
     ].forEach((key) => params.delete(key));
 
@@ -389,6 +391,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
             regions={queryFilterList.data?.regions ?? []}
             brands={queryFilterList.data?.brands ?? []}
             models={queryFilterList.data?.models ?? []}
+            bodyTypes={queryFilterList.data?.bodyTypes ?? []}
             onExport={handleExport}
             isExporting={isExporting}
           />

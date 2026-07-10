@@ -81,4 +81,5 @@ export type AdViewFiltersResponse = {
   regions: string[];
   brands: AdLookupOption[];
   models: AdModelLookupOption[];
+  bodyTypes: AdLookupOption[];
 };
