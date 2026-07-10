@@ -168,9 +168,9 @@ const TableButtons = ({
   };
 
   const statusButtonSx = (btnName: string): SxProps => ({
-    height: 36,
-    minHeight: 36,
-    px: 0.75,
+    height: 38,
+    minHeight: 38,
+    px: 0.85,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -188,28 +188,30 @@ const TableButtons = ({
         ? "0 4px 10px rgba(15, 23, 42, 0.14)"
         : "none",
     transition:
-      "background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease",
+      "background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease",
     "&:hover": {
       background: btnName === statusId ? "#0f172a" : "#f8fafc",
       borderColor: btnName === statusId ? "#0f172a" : "#cbd5e1",
+      transform: "translateY(-1px)",
     },
   });
 
   const statusCountBadgeSx = (btnName: string): SxProps => ({
-    minWidth: 38,
-    height: 32,
-    px: 1.1,
-    borderRadius: "10px",
+    minWidth: 34,
+    height: 28,
+    px: 1.15,
+    borderRadius: "999px",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    background: btnName === statusId ? "#ffffff" : "#f8fafc",
-    color: "#0f172a",
-    border: "1px solid",
-    borderColor: btnName === statusId ? "rgba(15, 23, 42, 0.14)" : "#d7dee8",
-    fontSize: 13,
-    fontWeight: 600,
+    background: btnName === statusId ? "rgba(255, 255, 255, 0.16)" : "#f8fafc",
+    color: btnName === statusId ? "#ffffff" : "#334155",
+    border: btnName === statusId ? "1px solid rgba(255, 255, 255, 0.2)" : "1px solid #dbe1ea",
+    boxShadow: btnName === statusId ? "inset 0 1px 0 rgba(255, 255, 255, 0.08)" : "none",
+    fontSize: 12,
+    fontWeight: 700,
     lineHeight: 1,
+    letterSpacing: "-0.01em",
   });
 
   const showStatsSkeleton = isStatsLoading && !stats;
@@ -226,9 +228,9 @@ const TableButtons = ({
         sx={{
           display: "inline-flex",
           alignItems: "center",
-          gap: "8px",
-          pl: 1.35,
-          pr: 0.35,
+          gap: "9px",
+          pl: 1.45,
+          pr: 0.45,
         }}
       >
         <Box component="span">{label}</Box>
