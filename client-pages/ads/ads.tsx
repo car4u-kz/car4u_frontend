@@ -100,10 +100,14 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
 
   const statusId = (searchParams.get("statusId") as SQ) || SQ.all;
   const stringParams = searchParams.toString();
-  const templateId = searchParams.get("templateId");
-
   const sortBy = searchParams.get("sortBy");
   const sortOrder = searchParams.get("sortOrder");
+  const statsParams = new URLSearchParams(searchParams.toString());
+  statsParams.delete("statusId");
+  statsParams.delete("page");
+  statsParams.delete("sortBy");
+  statsParams.delete("sortOrder");
+  const statsQueryString = statsParams.toString();
   const hasActiveFilters = [
     "adId",
     "accountId",
@@ -146,8 +150,8 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   });
 
   const queryStats = useQuery<AdStatusStats>({
-    queryKey: ["adview-stats", templateId ?? ""],
-    queryFn: () => getAdStats(templateId, fetchWithAuthNoLoading),
+    queryKey: ["adview-stats", statsQueryString],
+    queryFn: () => getAdStats(new URLSearchParams(statsQueryString), fetchWithAuthNoLoading),
     retry: false,
   });
 

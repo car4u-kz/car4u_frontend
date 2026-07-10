@@ -38,6 +38,7 @@ export type PaginatedCarAds = {
 
 export type AdStatusStats = {
   totalAds: number;
+  allTabAds: number;
   newAds: number;
   archivedAds: number;
   pendingArchiveValidationAds: number;

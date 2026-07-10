@@ -45,18 +45,12 @@ export const getAdFilterList = async (
 };
 
 export const getAdStats = async (
-  templateId: string | null,
+  queryParams: URLSearchParams,
   fetchWithAuth: typeof fetch
 ): Promise<AdStatusStats> => {
   const isServer = typeof window === "undefined";
   const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
-  const params = new URLSearchParams();
-
-  if (templateId) {
-    params.set("templateId", templateId);
-  }
-
-  const suffix = params.toString();
+  const suffix = queryParams.toString();
   const url = `${basePath}/api/adview/stats${suffix ? `?${suffix}` : ""}`;
 
   try {

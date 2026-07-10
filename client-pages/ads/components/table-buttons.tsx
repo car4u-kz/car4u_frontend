@@ -39,6 +39,23 @@ const formatDelta = (value: number | undefined) => {
   );
 };
 
+const getStatusCount = (status: SQ, stats?: AdStatusStats) => {
+  switch (status) {
+    case SQ.all:
+      return stats?.allTabAds;
+    case SQ.new:
+      return stats?.newAds;
+    case SQ.archived:
+      return stats?.archivedAds;
+    case SQ.pendingArchiveValidation:
+      return stats?.pendingArchiveValidationAds;
+    case SQ.notFound404:
+      return stats?.notFound404Ads;
+    default:
+      return undefined;
+  }
+};
+
 const statCardSx = {
   display: "flex",
   alignItems: "center",
@@ -140,7 +157,7 @@ const TableButtons = ({
 }: Props) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const statusId = searchParams.get("statusId") as string;
+  const statusId = (searchParams.get("statusId") as string) || SQ.all;
 
   const onClick = (btnType: SQ) => {
     const query = new URLSearchParams(searchParams);
@@ -153,7 +170,7 @@ const TableButtons = ({
   const statusButtonSx = (btnName: string): SxProps => ({
     height: 36,
     minHeight: 36,
-    px: 2,
+    px: 0.75,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -178,7 +195,49 @@ const TableButtons = ({
     },
   });
 
+  const statusCountBadgeSx = (btnName: string): SxProps => ({
+    minWidth: 38,
+    height: 32,
+    px: 1.1,
+    borderRadius: "10px",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: btnName === statusId ? "#ffffff" : "#f8fafc",
+    color: "#0f172a",
+    border: "1px solid",
+    borderColor: btnName === statusId ? "rgba(15, 23, 42, 0.14)" : "#d7dee8",
+    fontSize: 13,
+    fontWeight: 600,
+    lineHeight: 1,
+  });
+
   const showStatsSkeleton = isStatsLoading && !stats;
+
+  const StatusButton = ({
+    value,
+    label,
+  }: {
+    value: SQ;
+    label: string;
+  }) => (
+    <Button size="small" sx={statusButtonSx(value)} onClick={() => onClick(value)}>
+      <Box
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "8px",
+          pl: 1.35,
+          pr: 0.35,
+        }}
+      >
+        <Box component="span">{label}</Box>
+        <Box component="span" sx={statusCountBadgeSx(value)}>
+          {formatNumber(getStatusCount(value, stats))}
+        </Box>
+      </Box>
+    </Button>
+  );
 
   return (
     <Box
@@ -289,33 +348,11 @@ const TableButtons = ({
             flexWrap: "wrap",
           }}
         >
-          <Button size="small" sx={statusButtonSx(SQ.all)} onClick={() => onClick(SQ.all)}>
-            Все
-          </Button>
-          <Button size="small" sx={statusButtonSx(SQ.new)} onClick={() => onClick(SQ.new)}>
-            Новые
-          </Button>
-          <Button
-            size="small"
-            sx={statusButtonSx(SQ.archived)}
-            onClick={() => onClick(SQ.archived)}
-          >
-            Архивные
-          </Button>
-          <Button
-            size="small"
-            sx={statusButtonSx(SQ.pendingArchiveValidation)}
-            onClick={() => onClick(SQ.pendingArchiveValidation)}
-          >
-            Ожид. архивирования
-          </Button>
-          <Button
-            size="small"
-            sx={statusButtonSx(SQ.notFound404)}
-            onClick={() => onClick(SQ.notFound404)}
-          >
-            404
-          </Button>
+          <StatusButton value={SQ.all} label="Все" />
+          <StatusButton value={SQ.new} label="Новые" />
+          <StatusButton value={SQ.archived} label="Архивные" />
+          <StatusButton value={SQ.pendingArchiveValidation} label="Ожид. архивирования" />
+          <StatusButton value={SQ.notFound404} label="404" />
         </Box>
 
         <Box

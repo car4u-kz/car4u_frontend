@@ -56,7 +56,7 @@ const AdsTable = ({
 
   useEffect(() => {
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 1600);
+      setShowScrollTop(window.scrollY > 700);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -87,8 +87,8 @@ const AdsTable = ({
     return () => observer.disconnect();
   }, [hasNextPage, isInitialLoading, isLoadingMore, onFetchNext, dataLength]);
 
-  const showScrollToTop = dataLength >= 30 && showScrollTop;
   const hasItems = dataLength > 0;
+  const showScrollToTop = hasItems && showScrollTop;
 
   const loadedText = useMemo(() => {
     if (typeof totalCount === "number" && totalCount > 0) {
@@ -383,18 +383,22 @@ const AdsTable = ({
           size="small"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           sx={{
-            position: "absolute",
-            right: 24,
-            bottom: 72,
-            width: 38,
-            height: 38,
-            borderRadius: "10px",
-            border: "1px solid #e2e8f0",
+            position: "fixed",
+            right: { xs: 16, md: 24 },
+            bottom: { xs: 20, md: 28 },
+            zIndex: 30,
+            width: 44,
+            height: 44,
+            borderRadius: "12px",
+            border: "1px solid #dbe1ea",
             background: "#ffffff",
-            color: "#334155",
-            boxShadow: "0 8px 18px rgba(15, 23, 42, 0.08)",
+            color: "#2563eb",
+            boxShadow: "0 10px 24px rgba(15, 23, 42, 0.14)",
+            transition: "transform 160ms ease, box-shadow 160ms ease",
             "&:hover": {
               background: "#f8fafc",
+              transform: "translateY(-1px)",
+              boxShadow: "0 14px 28px rgba(15, 23, 42, 0.18)",
             },
           }}
         >
