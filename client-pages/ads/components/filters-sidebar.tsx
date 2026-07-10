@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Box, Paper, Typography } from "@mui/material";
+import { Box, InputAdornment, Paper, Typography } from "@mui/material";
 import KeyboardDoubleArrowRightRoundedIcon from "@mui/icons-material/KeyboardDoubleArrowRightRounded";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 
@@ -104,6 +104,26 @@ const selectWrapperSx = {
   },
 };
 
+const priceInputSx = {
+  ...inputSx,
+  "& .MuiInputBase-root": {
+    ...inputSx["& .MuiInputBase-root"],
+    pr: "4px",
+  },
+  "& .MuiInputBase-input": {
+    ...inputSx["& .MuiInputBase-input"],
+    pr: "2px",
+  },
+  "& .MuiInputAdornment-root": {
+    mr: "10px",
+    color: "#64748b",
+    fontSize: 12,
+    fontWeight: 700,
+    whiteSpace: "nowrap",
+    letterSpacing: "0.02em",
+  },
+};
+
 const resetButtonSx = {
   height: 40,
   borderRadius: "8px",
@@ -156,6 +176,19 @@ const formatIntegerWithSpaces = (value: string) => {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 };
 
+const createPriceChangeHandler =
+  (setter: (value: string) => void) =>
+  (e: React.ChangeEvent<HTMLInputElement>) => {
+    setter(formatIntegerWithSpaces(e.target.value));
+  };
+
+const createPricePasteHandler =
+  (setter: (value: string) => void) =>
+  (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    setter(formatIntegerWithSpaces(e.clipboardData.getData("text")));
+  };
+
 const FiltersSidebar = ({
   onCollapse,
   regions,
@@ -174,12 +207,8 @@ const FiltersSidebar = ({
   const [accountAdsTo, setAccountAdsTo] = useState(searchParams.get("accountAdsTo") ?? "");
   const [publishedFrom, setPublishedFrom] = useState(searchParams.get("publishedFrom") ?? "");
   const [publishedTo, setPublishedTo] = useState(searchParams.get("publishedTo") ?? "");
-  const [priceFrom, setPriceFrom] = useState(
-    formatIntegerWithSpaces(searchParams.get("priceFrom") ?? ""),
-  );
-  const [priceTo, setPriceTo] = useState(
-    formatIntegerWithSpaces(searchParams.get("priceTo") ?? ""),
-  );
+  const [priceFrom, setPriceFrom] = useState(formatIntegerWithSpaces(searchParams.get("priceFrom") ?? ""));
+  const [priceTo, setPriceTo] = useState(formatIntegerWithSpaces(searchParams.get("priceTo") ?? ""));
   const [mileageFrom, setMileageFrom] = useState(searchParams.get("mileageFrom") ?? "");
   const [mileageTo, setMileageTo] = useState(searchParams.get("mileageTo") ?? "");
   const [yearFrom, setYearFrom] = useState(searchParams.get("yearFrom") ?? "");
@@ -213,7 +242,6 @@ const FiltersSidebar = ({
 
     const setOrDelete = (key: string, value: string | number) => {
       const normalizedValue = String(value).trim();
-
       if (normalizedValue) {
         params.set(key, normalizedValue);
       } else {
@@ -288,18 +316,12 @@ const FiltersSidebar = ({
 
   const regionOptions = [
     { value: "", label: "All regions" },
-    ...regions.map((item) => ({
-      value: item,
-      label: item,
-    })),
+    ...regions.map((item) => ({ value: item, label: item })),
   ];
 
   const brandOptions = [
     { value: "", label: "All brands" },
-    ...brands.map((item) => ({
-      value: String(item.id),
-      label: item.name,
-    })),
+    ...brands.map((item) => ({ value: String(item.id), label: item.name })),
   ];
 
   const filteredModels = brandId
@@ -308,18 +330,12 @@ const FiltersSidebar = ({
 
   const modelOptions = [
     { value: "", label: "All models" },
-    ...filteredModels.map((item) => ({
-      value: String(item.id),
-      label: item.name,
-    })),
+    ...filteredModels.map((item) => ({ value: String(item.id), label: item.name })),
   ];
 
   const bodyTypeOptions = [
     { value: "", label: "All body types" },
-    ...bodyTypes.map((item) => ({
-      value: String(item.id),
-      label: item.name,
-    })),
+    ...bodyTypes.map((item) => ({ value: String(item.id), label: item.name })),
   ];
 
   return (
@@ -454,22 +470,30 @@ const FiltersSidebar = ({
 
         <Box sx={{ display: "grid", gap: "8px" }}>
           <Typography sx={filterLabelSx}>Цена</Typography>
-          <Box sx={fieldGridSx}>
+          <Box sx={{ ...fieldGridSx, alignItems: "stretch" }}>
             <TextInput
               type="text"
               value={priceFrom}
-              onChange={(e) => setPriceFrom(formatIntegerWithSpaces(e.target.value))}
+              onChange={createPriceChangeHandler(setPriceFrom)}
+              onPaste={createPricePasteHandler(setPriceFrom)}
               placeholder="От"
               inputMode="numeric"
-              sx={inputSx}
+              sx={priceInputSx}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">₸</InputAdornment>,
+              }}
             />
             <TextInput
               type="text"
               value={priceTo}
-              onChange={(e) => setPriceTo(formatIntegerWithSpaces(e.target.value))}
+              onChange={createPriceChangeHandler(setPriceTo)}
+              onPaste={createPricePasteHandler(setPriceTo)}
               placeholder="До"
               inputMode="numeric"
-              sx={inputSx}
+              sx={priceInputSx}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">₸</InputAdornment>,
+              }}
             />
           </Box>
         </Box>
