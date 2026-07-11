@@ -25,7 +25,7 @@ import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import ArrowUpward from "@mui/icons-material/ArrowUpward";
 import { useQuery } from "@tanstack/react-query";
 
-import { Button, IconButton, Typography } from "@/components";
+import { Button, IconButton, Modal, Typography } from "@/components";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import { getAdFilterList } from "@/services/ad-services";
 import { getCounterparties } from "@/services/seller-services";
@@ -90,6 +90,8 @@ const sortButtonSx: CSSProperties = {
   textAlign: "left",
 };
 
+const visibleSpecializationsLimit = 5;
+
 const CounterpartiesPage = () => {
   const fetchWithAuth = useFetchWithAuth();
   const fetchWithAuthNoLoading = useFetchWithAuth({ trackLoading: false });
@@ -99,6 +101,10 @@ const CounterpartiesPage = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [showExpandFiltersButton, setShowExpandFiltersButton] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [specializationsModalState, setSpecializationsModalState] = useState<{
+    accountLabel: string;
+    items: string[];
+  } | null>(null);
 
   const queryString = searchParams.toString();
 
@@ -622,13 +628,51 @@ const CounterpartiesPage = () => {
                         >
                           <Stack direction="row" flexWrap="wrap" gap={0.75}>
                             {(item.specializations ?? []).length ? (
-                              item.specializations.map((specialization) => (
-                                <Chip
-                                  key={specialization}
-                                  size="small"
-                                  label={specialization}
-                                />
-                              ))
+                              <>
+                                {item.specializations
+                                  .slice(0, visibleSpecializationsLimit)
+                                  .map((specialization) => (
+                                    <Chip
+                                      key={specialization}
+                                      size="small"
+                                      label={specialization}
+                                    />
+                                  ))}
+                                {item.specializations.length >
+                                visibleSpecializationsLimit ? (
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() =>
+                                      setSpecializationsModalState({
+                                        accountLabel: item.accountLabel,
+                                        items: item.specializations,
+                                      })
+                                    }
+                                    sx={{
+                                      minWidth: "auto",
+                                      height: 24,
+                                      px: 1,
+                                      borderRadius: "999px",
+                                      borderColor: "#cbd5e1",
+                                      color: "#2563eb",
+                                      fontSize: 12,
+                                      fontWeight: 700,
+                                      lineHeight: 1,
+                                      whiteSpace: "nowrap",
+                                      textTransform: "none",
+                                      boxShadow: "none",
+                                      "&:hover": {
+                                        borderColor: "#94a3b8",
+                                        background: "#eff6ff",
+                                        boxShadow: "none",
+                                      },
+                                    }}
+                                  >
+                                    +{item.specializations.length - visibleSpecializationsLimit}
+                                  </Button>
+                                ) : null}
+                              </>
                             ) : (
                               <MuiTypography
                                 sx={{ fontSize: 13, color: "#94a3b8" }}
@@ -805,6 +849,60 @@ const CounterpartiesPage = () => {
         >
           <ArrowUpward fontSize="small" />
         </IconButton>
+      ) : null}
+
+      {specializationsModalState ? (
+        <Modal
+          open
+          title={`Специализация: ${specializationsModalState.accountLabel}`}
+          onClose={() => setSpecializationsModalState(null)}
+          onSubmit={() => setSpecializationsModalState(null)}
+          submitLabel="Закрыть"
+          cancelLabel="Отмена"
+          hideFooter
+          sx={{
+            width: 640,
+            maxWidth: "calc(100vw - 32px)",
+            maxHeight: "80vh",
+            overflow: "auto",
+            borderRadius: "16px",
+            p: 3,
+          }}
+        >
+          <Box>
+            <MuiTypography
+              sx={{ mb: 2, fontSize: 14, color: "#64748b", lineHeight: 1.5 }}
+            >
+              Всего специализаций: {specializationsModalState.items.length}
+            </MuiTypography>
+            <Stack direction="row" flexWrap="wrap" gap={1}>
+              {specializationsModalState.items.map((specialization) => (
+                <Chip
+                  key={specialization}
+                  size="small"
+                  label={specialization}
+                  sx={{
+                    maxWidth: "100%",
+                    "& .MuiChip-label": {
+                      display: "block",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    },
+                  }}
+                />
+              ))}
+            </Stack>
+            <Box sx={{ mt: 3, textAlign: "right" }}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => setSpecializationsModalState(null)}
+              >
+                Закрыть
+              </Button>
+            </Box>
+          </Box>
+        </Modal>
       ) : null}
     </Box>
   );
