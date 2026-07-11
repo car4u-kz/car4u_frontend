@@ -299,9 +299,8 @@ const CompactGroupedChipList = ({
     previewNodes.pop();
   }
 
-  const hiddenItemsCount = nodes
-    .slice(previewNodes.length)
-    .filter((node) => node.type === "chip").length;
+  const visibleItemsCount = previewNodes.filter((node) => node.type === "chip").length;
+  const hiddenItemsCount = Math.max(0, totalItems - visibleItemsCount);
 
   return (
     <Stack ref={containerRef} direction="row" flexWrap="wrap" gap={0.75}>
