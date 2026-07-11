@@ -1,45 +1,37 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import type { CSSProperties } from "react";
+import { useEffect, useMemo, useState } from "react";
 import NextLink from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   Alert,
   Box,
   Chip,
-  LinearProgress,
-  MenuItem,
+  CircularProgress,
   Stack,
+  Table,
+  TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
+  Typography as MuiTypography,
 } from "@mui/material";
+import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
 import ArrowDropUpRoundedIcon from "@mui/icons-material/ArrowDropUpRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
+import ArrowUpward from "@mui/icons-material/ArrowUpward";
 import { useQuery } from "@tanstack/react-query";
 
-import { Button, Typography } from "@/components";
-import TableBody from "@/components/table/table-body";
-import { default as CommonTableCell } from "@/components/table/table-cell";
+import { Button, IconButton, Typography } from "@/components";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import { getAdFilterList } from "@/services/ad-services";
 import { getCounterparties } from "@/services/seller-services";
 import type { AdViewFiltersResponse } from "@/types";
 import type { CounterpartyFilters } from "./types";
-
-const headerLabels = [
-  "Account",
-  "Категория",
-  "Объявления",
-  "Оборот",
-  "Средний чек",
-  "Регион",
-  "Специализация",
-];
-
-const pageSize = 50;
+import CounterpartiesFiltersSidebar from "./components/filters-sidebar";
 
 const formatPrice = (value: number | null | undefined) => {
   if (value === null || value === undefined) {
@@ -52,7 +44,7 @@ const formatPrice = (value: number | null | undefined) => {
 const formatCount = (value: number | null | undefined) =>
   new Intl.NumberFormat("ru-RU").format(value ?? 0);
 
-const MetricDelta = ({ value }: { value: number }) => {
+const CountDelta = ({ value }: { value: number }) => {
   if (value > 0) {
     return <ArrowDropUpRoundedIcon sx={{ color: "#16a34a", fontSize: 18 }} />;
   }
@@ -66,474 +58,754 @@ const MetricDelta = ({ value }: { value: number }) => {
   return <RemoveRoundedIcon sx={{ color: "#94a3b8", fontSize: 14 }} />;
 };
 
-const MetricBlock = ({
-  label,
-  value,
-  delta,
-  money = false,
-}: {
-  label: string;
-  value: number;
-  delta: number;
-  money?: boolean;
-}) => (
-  <Stack spacing={0.25} sx={{ minWidth: 0 }}>
-    <Typography sx={{ fontSize: 11, color: "#64748b" }}>{label}</Typography>
-    <Stack direction="row" alignItems="center" spacing={0.5}>
-      <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>
-        {money ? formatPrice(value) : formatCount(value)}
-      </Typography>
-      <MetricDelta value={delta} />
-    </Stack>
-  </Stack>
-);
+const countLineSx = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 1,
+  minWidth: 0,
+};
+
+const smallLabelSx = {
+  fontSize: 11,
+  color: "#64748b",
+  flexShrink: 0,
+};
+
+const valueSx = {
+  fontSize: 13,
+  fontWeight: 700,
+  color: "#0f172a",
+  textAlign: "right",
+};
+
+const sortButtonSx: CSSProperties = {
+  background: "none",
+  border: "none",
+  padding: 0,
+  cursor: "pointer",
+  font: "inherit",
+  fontWeight: 700,
+  color: "inherit",
+  textAlign: "left",
+};
 
 const CounterpartiesPage = () => {
   const fetchWithAuth = useFetchWithAuth();
-  const [filters, setFilters] = useState<CounterpartyFilters>({
-    allAdsFrom: 2,
-    archivedAdsFrom: 2,
-    sortBy: "allAdsCount",
-    sortOrder: "desc",
-    page: 1,
-    pageSize,
-  });
+  const fetchWithAuthNoLoading = useFetchWithAuth({ trackLoading: false });
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [showExpandFiltersButton, setShowExpandFiltersButton] = useState(true);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const queryString = searchParams.toString();
+
+  const filters = useMemo<CounterpartyFilters>(() => {
+    const readNumber = (key: string) => {
+      const value = searchParams.get(key);
+      return value ? Number(value) : undefined;
+    };
+
+    return {
+      allAdsFrom: readNumber("allAdsFrom") ?? 2,
+      allAdsTo: readNumber("allAdsTo"),
+      archivedAdsFrom: readNumber("archivedAdsFrom") ?? 2,
+      archivedAdsTo: readNumber("archivedAdsTo"),
+      category: searchParams.get("category") || undefined,
+      region: searchParams.get("region") || undefined,
+      brandId: readNumber("brandId"),
+      modelId: readNumber("modelId"),
+      sortBy:
+        (searchParams.get("sortBy") as CounterpartyFilters["sortBy"]) ||
+        "allAdsCount",
+      sortOrder:
+        (searchParams.get("sortOrder") as CounterpartyFilters["sortOrder"]) ||
+        "desc",
+      page: readNumber("page") ?? 1,
+      pageSize: 50,
+    };
+  }, [searchParams]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowExpandFiltersButton(window.scrollY < 220);
+      setShowScrollTop(window.scrollY > 700);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const filterOptionsQuery = useQuery<AdViewFiltersResponse>({
     queryKey: ["adview-filters"],
-    queryFn: () => getAdFilterList(fetchWithAuth),
+    queryFn: () => getAdFilterList(fetchWithAuthNoLoading),
     retry: false,
   });
 
   const counterpartiesQuery = useQuery({
-    queryKey: ["counterparties", filters],
+    queryKey: ["counterparties", queryString],
     queryFn: () => getCounterparties(filters, fetchWithAuth),
     retry: false,
   });
 
-  const filteredModels = useMemo(() => {
-    if (!filters.brandId) {
-      return filterOptionsQuery.data?.models ?? [];
-    }
-
-    return (filterOptionsQuery.data?.models ?? []).filter(
-      (item) => item.brandId === filters.brandId,
-    );
-  }, [filterOptionsQuery.data?.models, filters.brandId]);
-
-  const updateFilter = <K extends keyof CounterpartyFilters>(
-    key: K,
-    value: CounterpartyFilters[K],
-  ) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-      page: 1,
-    }));
+  const setQueryParams = (mutate: (params: URLSearchParams) => void) => {
+    const params = new URLSearchParams(searchParams);
+    mutate(params);
+    window.history.pushState({}, "", `${pathname}?${params.toString()}`);
   };
 
-  const resetFilters = () => {
-    setFilters({
-      allAdsFrom: 2,
-      archivedAdsFrom: 2,
-      sortBy: "allAdsCount",
-      sortOrder: "desc",
-      page: 1,
-      pageSize,
+  const handleSortClick = (sortBy: "allAdsCount" | "archivedAdsCount") => {
+    setQueryParams((params) => {
+      const currentSortBy = params.get("sortBy") as CounterpartyFilters["sortBy"];
+      const currentSortOrder =
+        (params.get("sortOrder") as CounterpartyFilters["sortOrder"]) || "desc";
+
+      if (currentSortBy !== sortBy) {
+        params.set("sortBy", sortBy);
+        params.set("sortOrder", "desc");
+      } else {
+        params.set("sortOrder", currentSortOrder === "asc" ? "desc" : "asc");
+      }
+
+      params.delete("page");
     });
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    setQueryParams((params) => {
+      params.set("page", String(nextPage));
+    });
+    window.scrollTo({ top: 0, behavior: "auto" });
   };
 
   const rows = counterpartiesQuery.data?.items ?? [];
   const totalCount = counterpartiesQuery.data?.totalCount ?? 0;
   const currentPage = filters.page ?? 1;
+  const pageSize = filters.pageSize ?? 50;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
+  const allSortArrow =
+    filters.sortBy === "allAdsCount"
+      ? filters.sortOrder === "asc"
+        ? " ↑"
+        : " ↓"
+      : "";
+  const archivedSortArrow =
+    filters.sortBy === "archivedAdsCount"
+      ? filters.sortOrder === "asc"
+        ? " ↑"
+        : " ↓"
+      : "";
+
+  const hasItems = rows.length > 0;
+
   return (
-    <Box sx={{ width: "100%" }}>
-      <Stack spacing={3}>
-        <Stack spacing={1}>
-          <Typography sx={{ fontSize: 30, fontWeight: 800, color: "#0f172a" }}>
-            Контрагенты
-          </Typography>
-          <Typography sx={{ fontSize: 14, color: "#64748b" }}>
-            Аккаунты, их активность, оборот и специализация по текущим данным
-            каталога.
-          </Typography>
-        </Stack>
-
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "1fr",
-              md: "repeat(2, minmax(0, 1fr))",
-              xl: "repeat(4, minmax(0, 1fr))",
-            },
-            gap: 2,
-            p: 2.5,
-            border: "1px solid #e2e8f0",
-            borderRadius: "20px",
-            background: "#ffffff",
-            boxShadow: "0 16px 32px rgba(15, 23, 42, 0.05)",
-          }}
-        >
-          <TextField
-            label="Количество объявлений: от"
-            type="number"
-            size="small"
-            value={filters.allAdsFrom ?? ""}
-            onChange={(event) =>
-              updateFilter(
-                "allAdsFrom",
-                event.target.value ? Number(event.target.value) : undefined,
-              )
-            }
-          />
-          <TextField
-            label="Количество объявлений: до"
-            type="number"
-            size="small"
-            value={filters.allAdsTo ?? ""}
-            onChange={(event) =>
-              updateFilter(
-                "allAdsTo",
-                event.target.value ? Number(event.target.value) : undefined,
-              )
-            }
-          />
-          <TextField
-            label="Архивные: от"
-            type="number"
-            size="small"
-            value={filters.archivedAdsFrom ?? ""}
-            onChange={(event) =>
-              updateFilter(
-                "archivedAdsFrom",
-                event.target.value ? Number(event.target.value) : undefined,
-              )
-            }
-          />
-          <TextField
-            label="Архивные: до"
-            type="number"
-            size="small"
-            value={filters.archivedAdsTo ?? ""}
-            onChange={(event) =>
-              updateFilter(
-                "archivedAdsTo",
-                event.target.value ? Number(event.target.value) : undefined,
-              )
-            }
-          />
-          <TextField
-            label="Регион"
-            select
-            size="small"
-            value={filters.region ?? ""}
-            onChange={(event) =>
-              updateFilter("region", event.target.value || undefined)
-            }
-          >
-            <MenuItem value="">Все регионы</MenuItem>
-            {(filterOptionsQuery.data?.regions ?? []).map((region) => (
-              <MenuItem key={region} value={region}>
-                {region}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Марка"
-            select
-            size="small"
-            value={filters.brandId?.toString() ?? ""}
-            onChange={(event) =>
-              updateFilter(
-                "brandId",
-                event.target.value ? Number(event.target.value) : undefined,
-              )
-            }
-          >
-            <MenuItem value="">Все марки</MenuItem>
-            {(filterOptionsQuery.data?.brands ?? []).map((brand) => (
-              <MenuItem key={brand.id} value={brand.id}>
-                {brand.name}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Модель"
-            select
-            size="small"
-            value={filters.modelId?.toString() ?? ""}
-            onChange={(event) =>
-              updateFilter(
-                "modelId",
-                event.target.value ? Number(event.target.value) : undefined,
-              )
-            }
-          >
-            <MenuItem value="">Все модели</MenuItem>
-            {filteredModels.map((model) => (
-              <MenuItem key={model.id} value={model.id}>
-                {model.name}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Сортировка"
-            select
-            size="small"
-            value={filters.sortBy ?? "allAdsCount"}
-            onChange={(event) =>
-              updateFilter(
-                "sortBy",
-                event.target.value as CounterpartyFilters["sortBy"],
-              )
-            }
-          >
-            <MenuItem value="allAdsCount">Количество: ВСЕ</MenuItem>
-            <MenuItem value="archivedAdsCount">
-              Количество: АРХИВНЫЕ
-            </MenuItem>
-          </TextField>
-          <TextField
-            label="Порядок"
-            select
-            size="small"
-            value={filters.sortOrder ?? "desc"}
-            onChange={(event) =>
-              updateFilter(
-                "sortOrder",
-                event.target.value as CounterpartyFilters["sortOrder"],
-              )
-            }
-          >
-            <MenuItem value="desc">По убыванию</MenuItem>
-            <MenuItem value="asc">По возрастанию</MenuItem>
-          </TextField>
-
-          <Stack
-            direction="row"
-            spacing={1.5}
-            sx={{
-              gridColumn: { xs: "1 / -1", xl: "span 4" },
-              justifyContent: "flex-end",
-            }}
-          >
-            <Button variant="outlined" onClick={resetFilters}>
-              Сбросить
-            </Button>
-          </Stack>
-        </Box>
-
-        {counterpartiesQuery.isLoading ? <LinearProgress /> : null}
-        {counterpartiesQuery.error instanceof Error ? (
-          <Alert severity="error">{counterpartiesQuery.error.message}</Alert>
-        ) : null}
-
-        <TableContainer
-          sx={{
-            borderRadius: "20px",
-            border: "1px solid #e2e8f0",
-            background: "#ffffff",
-            boxShadow: "0 16px 32px rgba(15, 23, 42, 0.05)",
-            overflow: "hidden",
-          }}
-        >
-          <Box
-            sx={{
-              px: 2.5,
-              py: 1.75,
-              borderBottom: "1px solid #e2e8f0",
-              background: "#f8fafc",
-            }}
-          >
-            <Typography
-              sx={{ fontSize: 14, color: "#475569", fontWeight: 600 }}
-            >
-              Найдено контрагентов: {formatCount(totalCount)}
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "1fr",
+          lg: filtersOpen ? "minmax(0, 1fr) 320px" : "minmax(0, 1fr)",
+        },
+        gap: filtersOpen ? 2.5 : 0,
+        alignItems: "start",
+        width: "100%",
+        transition: "grid-template-columns 220ms ease, gap 220ms ease",
+      }}
+    >
+      <Box sx={{ minWidth: 0, width: "100%" }}>
+        <Stack spacing={2}>
+          <Stack spacing={0.75}>
+            <Typography sx={{ fontSize: 32, fontWeight: 800, color: "#0f172a" }}>
+              Контрагенты
             </Typography>
-          </Box>
+            <Typography sx={{ fontSize: 14, color: "#64748b" }}>
+              Аккаунты, их активность, оборот и специализация по текущим данным
+              каталога.
+            </Typography>
+          </Stack>
+
+          {counterpartiesQuery.error instanceof Error ? (
+            <Alert severity="error">{counterpartiesQuery.error.message}</Alert>
+          ) : null}
 
           <Box
-            component="table"
-            sx={{ width: "100%", borderCollapse: "collapse" }}
+            sx={{
+              background: "#ffffff",
+              border: "1px solid #e6eaf0",
+              borderRadius: "14px",
+              boxShadow: "0 4px 14px rgba(15, 23, 42, 0.04)",
+              overflow: "hidden",
+              position: "relative",
+            }}
           >
-            <TableHead>
-              <TableRow>
-                {headerLabels.map((label) => (
-                  <CommonTableCell key={label}>
-                    <Typography>{label}</Typography>
-                  </CommonTableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody
-              initialFetch={counterpartiesQuery.isLoading}
-              colSpan={headerLabels.length}
-            >
-              <>
-                {rows.map((item, index) => (
-                  <TableRow
-                    key={item.userId}
-                    sx={{
-                      backgroundColor:
-                        index % 2 === 0 ? "#ffffff" : "rgba(148, 163, 184, 0.05)",
-                      "&:hover": {
-                        backgroundColor: "#f8fafc",
-                      },
-                    }}
-                  >
-                    <TableCell sx={{ py: 2, px: 2, verticalAlign: "top" }}>
-                      <Stack spacing={0.5}>
-                        <NextLink
-                          href={`/ads?statusId=0&accountId=${encodeURIComponent(item.userId)}`}
-                          style={{
-                            color: "#2563eb",
-                            fontWeight: 700,
-                            textDecoration: "none",
-                          }}
+            <TableContainer sx={{ overflowX: "auto" }}>
+              <Table
+                stickyHeader
+                sx={{
+                  width: "100%",
+                  minWidth: 1240,
+                  borderCollapse: "collapse",
+                  tableLayout: "fixed",
+                  fontSize: 14,
+                  color: "#0f172a",
+                  "& .account-col": { width: 220 },
+                  "& .category-col": { width: 130 },
+                  "& .counts-col": { width: 200 },
+                  "& .turnover-col": { width: 220 },
+                  "& .avg-col": { width: 120 },
+                  "& .region-col": { width: 180 },
+                  "& .spec-col": { width: 260 },
+                }}
+              >
+                <TableHead sx={{ background: "#ffffff" }}>
+                  <TableRow>
+                    <TableCell
+                      className="account-col"
+                      sx={{
+                        height: 48,
+                        px: { xs: "8px", xl: "12px" },
+                        py: 0,
+                        borderBottom: "1px solid #e6eaf0",
+                        fontSize: 13,
+                        lineHeight: "18px",
+                        fontWeight: 700,
+                        color: "#334155",
+                        textAlign: "left",
+                        whiteSpace: "nowrap",
+                        background: "#ffffff",
+                      }}
+                    >
+                      Account
+                    </TableCell>
+                    <TableCell
+                      className="category-col"
+                      sx={{
+                        height: 48,
+                        px: { xs: "8px", xl: "12px" },
+                        py: 0,
+                        borderBottom: "1px solid #e6eaf0",
+                        fontSize: 13,
+                        lineHeight: "18px",
+                        fontWeight: 700,
+                        color: "#334155",
+                        textAlign: "left",
+                        whiteSpace: "nowrap",
+                        background: "#ffffff",
+                      }}
+                    >
+                      Категория
+                    </TableCell>
+                    <TableCell
+                      className="counts-col"
+                      sx={{
+                        height: 48,
+                        px: { xs: "8px", xl: "12px" },
+                        py: 0,
+                        borderBottom: "1px solid #e6eaf0",
+                        fontSize: 13,
+                        lineHeight: "18px",
+                        fontWeight: 700,
+                        color: "#334155",
+                        textAlign: "left",
+                        background: "#ffffff",
+                      }}
+                    >
+                      <Stack spacing={0.25}>
+                        <button
+                          type="button"
+                          onClick={() => handleSortClick("allAdsCount")}
+                          style={sortButtonSx}
                         >
-                          {item.accountLabel}
-                        </NextLink>
-                        <Typography sx={{ fontSize: 12, color: "#64748b" }}>
-                          Account ID: {item.userId}
-                        </Typography>
+                          Объявления{allSortArrow}
+                        </button>
+                        <MuiTypography sx={{ fontSize: 11, color: "#94a3b8" }}>
+                          Клик по заголовку сортирует по количеству ВСЕ
+                        </MuiTypography>
                       </Stack>
                     </TableCell>
-                    <TableCell sx={{ py: 2, px: 2, verticalAlign: "top" }}>
-                      <Typography sx={{ fontSize: 13, color: "#0f172a" }}>
-                        {item.category || "—"}
-                      </Typography>
+                    <TableCell
+                      className="turnover-col"
+                      sx={{
+                        height: 48,
+                        px: { xs: "8px", xl: "12px" },
+                        py: 0,
+                        borderBottom: "1px solid #e6eaf0",
+                        fontSize: 13,
+                        lineHeight: "18px",
+                        fontWeight: 700,
+                        color: "#334155",
+                        textAlign: "left",
+                        background: "#ffffff",
+                      }}
+                    >
+                      Оборот
                     </TableCell>
-                    <TableCell sx={{ py: 2, px: 2, verticalAlign: "top" }}>
-                      <Stack spacing={1}>
-                        <MetricBlock
-                          label="Все"
-                          value={item.allAdsCount}
-                          delta={item.allAdsDelta}
-                        />
-                        <MetricBlock
-                          label="Новые"
-                          value={item.newAdsCount}
-                          delta={item.newAdsDelta}
-                        />
-                        <MetricBlock
-                          label="Архивные"
-                          value={item.archivedAdsCount}
-                          delta={item.archivedAdsDelta}
-                        />
-                        <MetricBlock
-                          label="404"
-                          value={item.notFound404AdsCount}
-                          delta={item.notFound404AdsDelta}
-                        />
-                      </Stack>
+                    <TableCell
+                      className="avg-col"
+                      sx={{
+                        height: 48,
+                        px: { xs: "8px", xl: "12px" },
+                        py: 0,
+                        borderBottom: "1px solid #e6eaf0",
+                        fontSize: 13,
+                        lineHeight: "18px",
+                        fontWeight: 700,
+                        color: "#334155",
+                        textAlign: "left",
+                        background: "#ffffff",
+                      }}
+                    >
+                      Средний чек
                     </TableCell>
-                    <TableCell sx={{ py: 2, px: 2, verticalAlign: "top" }}>
-                      <Stack spacing={1}>
-                        <MetricBlock
-                          label="Все"
-                          value={item.allTurnover}
-                          delta={item.allTurnoverDelta}
-                          money
-                        />
-                        <MetricBlock
-                          label="Новые"
-                          value={item.newTurnover}
-                          delta={item.newTurnoverDelta}
-                          money
-                        />
-                        <MetricBlock
-                          label="Архивные"
-                          value={item.archivedTurnover}
-                          delta={item.archivedTurnoverDelta}
-                          money
-                        />
-                        <MetricBlock
-                          label="404"
-                          value={item.notFound404Turnover}
-                          delta={item.notFound404TurnoverDelta}
-                          money
-                        />
-                      </Stack>
+                    <TableCell
+                      className="region-col"
+                      sx={{
+                        height: 48,
+                        px: { xs: "8px", xl: "12px" },
+                        py: 0,
+                        borderBottom: "1px solid #e6eaf0",
+                        fontSize: 13,
+                        lineHeight: "18px",
+                        fontWeight: 700,
+                        color: "#334155",
+                        textAlign: "left",
+                        background: "#ffffff",
+                      }}
+                    >
+                      Регион
                     </TableCell>
-                    <TableCell sx={{ py: 2, px: 2, verticalAlign: "top" }}>
-                      <Typography
-                        sx={{ fontSize: 13, color: "#0f172a", fontWeight: 700 }}
-                      >
-                        {item.averageCheck ? formatPrice(item.averageCheck) : "—"}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 2, px: 2, verticalAlign: "top" }}>
-                      <Stack direction="row" flexWrap="wrap" gap={0.75}>
-                        {(item.regions ?? []).length ? (
-                          item.regions.map((region) => (
-                            <Chip key={region} size="small" label={region} />
-                          ))
-                        ) : (
-                          <Typography sx={{ fontSize: 13, color: "#94a3b8" }}>
-                            —
-                          </Typography>
-                        )}
-                      </Stack>
-                    </TableCell>
-                    <TableCell sx={{ py: 2, px: 2, verticalAlign: "top" }}>
-                      <Stack direction="row" flexWrap="wrap" gap={0.75}>
-                        {(item.specializations ?? []).length ? (
-                          item.specializations.map((specialization) => (
-                            <Chip
-                              key={specialization}
-                              size="small"
-                              label={specialization}
-                            />
-                          ))
-                        ) : (
-                          <Typography sx={{ fontSize: 13, color: "#94a3b8" }}>
-                            —
-                          </Typography>
-                        )}
+                    <TableCell
+                      className="spec-col"
+                      sx={{
+                        height: 48,
+                        px: { xs: "8px", xl: "12px" },
+                        py: 0,
+                        borderBottom: "1px solid #e6eaf0",
+                        fontSize: 13,
+                        lineHeight: "18px",
+                        fontWeight: 700,
+                        color: "#334155",
+                        textAlign: "left",
+                        background: "#ffffff",
+                      }}
+                    >
+                      <Stack spacing={0.25}>
+                        <button
+                          type="button"
+                          onClick={() => handleSortClick("archivedAdsCount")}
+                          style={sortButtonSx}
+                        >
+                          Специализация / Архивные{archivedSortArrow}
+                        </button>
+                        <MuiTypography sx={{ fontSize: 11, color: "#94a3b8" }}>
+                          Клик по заголовку сортирует по количеству АРХИВНЫЕ
+                        </MuiTypography>
                       </Stack>
                     </TableCell>
                   </TableRow>
-                ))}
-              </>
-            </TableBody>
-          </Box>
-        </TableContainer>
+                </TableHead>
 
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography sx={{ fontSize: 13, color: "#64748b" }}>
-            Страница {currentPage} из {totalPages}
-          </Typography>
-          <Stack direction="row" spacing={1}>
-            <Button
-              variant="outlined"
-              disabled={currentPage <= 1}
-              onClick={() =>
-                setFilters((prev) => ({
-                  ...prev,
-                  page: Math.max(1, (prev.page ?? 1) - 1),
-                }))
-              }
+                <TableBody>
+                  {counterpartiesQuery.isLoading ? (
+                    Array.from({ length: 8 }).map((_, index) => (
+                      <TableRow key={`counterparty-skeleton-${index}`}>
+                        <TableCell
+                          colSpan={7}
+                          sx={{
+                            height: 64,
+                            px: "14px",
+                            py: "10px",
+                            borderBottom: "1px solid #edf2f7",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              height: 36,
+                              borderRadius: "8px",
+                              background:
+                                "linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%)",
+                              backgroundSize: "200% 100%",
+                              animation:
+                                "counterpartiesSkeletonLoading 1.2s ease-in-out infinite",
+                              "@keyframes counterpartiesSkeletonLoading": {
+                                from: { backgroundPosition: "200% 0" },
+                                to: { backgroundPosition: "-200% 0" },
+                              },
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : hasItems ? (
+                    rows.map((item, index) => (
+                      <TableRow
+                        key={item.userId}
+                        sx={{
+                          backgroundColor:
+                            index % 2 === 0
+                              ? "#ffffff"
+                              : "rgba(148, 163, 184, 0.05)",
+                          "&:hover": {
+                            backgroundColor: "#f8fafc",
+                          },
+                        }}
+                      >
+                        <TableCell
+                          sx={{
+                            py: 2,
+                            px: { xs: "8px", xl: "12px" },
+                            verticalAlign: "top",
+                            borderBottom: "1px solid #edf2f7",
+                          }}
+                        >
+                          <Stack spacing={0.5}>
+                            <NextLink
+                              href={`/ads?statusId=0&accountId=${encodeURIComponent(item.userId)}`}
+                              style={{
+                                color: "#2563eb",
+                                fontWeight: 700,
+                                textDecoration: "none",
+                              }}
+                            >
+                              {item.accountLabel}
+                            </NextLink>
+                            <MuiTypography
+                              sx={{ fontSize: 12, color: "#64748b" }}
+                            >
+                              Account ID: {item.userId}
+                            </MuiTypography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            py: 2,
+                            px: { xs: "8px", xl: "12px" },
+                            verticalAlign: "top",
+                            borderBottom: "1px solid #edf2f7",
+                          }}
+                        >
+                          <MuiTypography
+                            sx={{ fontSize: 13, color: "#0f172a" }}
+                          >
+                            {item.category || "—"}
+                          </MuiTypography>
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            py: 2,
+                            px: { xs: "8px", xl: "12px" },
+                            verticalAlign: "top",
+                            borderBottom: "1px solid #edf2f7",
+                          }}
+                        >
+                          <Stack spacing={0.6}>
+                            <Box sx={countLineSx}>
+                              <MuiTypography sx={smallLabelSx}>Все</MuiTypography>
+                              <Stack direction="row" alignItems="center" spacing={0.25}>
+                                <MuiTypography sx={valueSx}>
+                                  {formatCount(item.allAdsCount)}
+                                </MuiTypography>
+                                <CountDelta value={item.allAdsDelta} />
+                              </Stack>
+                            </Box>
+                            <Box sx={countLineSx}>
+                              <MuiTypography sx={smallLabelSx}>Новые</MuiTypography>
+                              <Stack direction="row" alignItems="center" spacing={0.25}>
+                                <MuiTypography sx={valueSx}>
+                                  {formatCount(item.newAdsCount)}
+                                </MuiTypography>
+                                <CountDelta value={item.newAdsDelta} />
+                              </Stack>
+                            </Box>
+                            <Box sx={countLineSx}>
+                              <MuiTypography sx={smallLabelSx}>Архив</MuiTypography>
+                              <Stack direction="row" alignItems="center" spacing={0.25}>
+                                <MuiTypography sx={valueSx}>
+                                  {formatCount(item.archivedAdsCount)}
+                                </MuiTypography>
+                                <CountDelta value={item.archivedAdsDelta} />
+                              </Stack>
+                            </Box>
+                            <Box sx={countLineSx}>
+                              <MuiTypography sx={smallLabelSx}>404</MuiTypography>
+                              <Stack direction="row" alignItems="center" spacing={0.25}>
+                                <MuiTypography sx={valueSx}>
+                                  {formatCount(item.notFound404AdsCount)}
+                                </MuiTypography>
+                                <CountDelta value={item.notFound404AdsDelta} />
+                              </Stack>
+                            </Box>
+                          </Stack>
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            py: 2,
+                            px: { xs: "8px", xl: "12px" },
+                            verticalAlign: "top",
+                            borderBottom: "1px solid #edf2f7",
+                          }}
+                        >
+                          <Stack spacing={0.6}>
+                            <Box sx={countLineSx}>
+                              <MuiTypography sx={smallLabelSx}>Все</MuiTypography>
+                              <MuiTypography sx={valueSx}>
+                                {formatPrice(item.allTurnover)}
+                              </MuiTypography>
+                            </Box>
+                            <Box sx={countLineSx}>
+                              <MuiTypography sx={smallLabelSx}>Новые</MuiTypography>
+                              <MuiTypography sx={valueSx}>
+                                {formatPrice(item.newTurnover)}
+                              </MuiTypography>
+                            </Box>
+                            <Box sx={countLineSx}>
+                              <MuiTypography sx={smallLabelSx}>Архив</MuiTypography>
+                              <MuiTypography sx={valueSx}>
+                                {formatPrice(item.archivedTurnover)}
+                              </MuiTypography>
+                            </Box>
+                            <Box sx={countLineSx}>
+                              <MuiTypography sx={smallLabelSx}>404</MuiTypography>
+                              <MuiTypography sx={valueSx}>
+                                {formatPrice(item.notFound404Turnover)}
+                              </MuiTypography>
+                            </Box>
+                          </Stack>
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            py: 2,
+                            px: { xs: "8px", xl: "12px" },
+                            verticalAlign: "top",
+                            borderBottom: "1px solid #edf2f7",
+                          }}
+                        >
+                          <MuiTypography
+                            sx={{ fontSize: 13, color: "#0f172a", fontWeight: 700 }}
+                          >
+                            {item.averageCheck ? formatPrice(item.averageCheck) : "—"}
+                          </MuiTypography>
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            py: 2,
+                            px: { xs: "8px", xl: "12px" },
+                            verticalAlign: "top",
+                            borderBottom: "1px solid #edf2f7",
+                          }}
+                        >
+                          <Stack direction="row" flexWrap="wrap" gap={0.75}>
+                            {(item.regions ?? []).length ? (
+                              item.regions.map((region) => (
+                                <Chip key={region} size="small" label={region} />
+                              ))
+                            ) : (
+                              <MuiTypography
+                                sx={{ fontSize: 13, color: "#94a3b8" }}
+                              >
+                                —
+                              </MuiTypography>
+                            )}
+                          </Stack>
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            py: 2,
+                            px: { xs: "8px", xl: "12px" },
+                            verticalAlign: "top",
+                            borderBottom: "1px solid #edf2f7",
+                          }}
+                        >
+                          <Stack direction="row" flexWrap="wrap" gap={0.75}>
+                            {(item.specializations ?? []).length ? (
+                              item.specializations.map((specialization) => (
+                                <Chip
+                                  key={specialization}
+                                  size="small"
+                                  label={specialization}
+                                />
+                              ))
+                            ) : (
+                              <MuiTypography
+                                sx={{ fontSize: 13, color: "#94a3b8" }}
+                              >
+                                —
+                              </MuiTypography>
+                            )}
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={7}
+                        sx={{ px: "24px", py: "48px", borderBottom: "none" }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: "6px",
+                            textAlign: "center",
+                          }}
+                        >
+                          <MuiTypography
+                            sx={{
+                              fontSize: 15,
+                              fontWeight: 700,
+                              color: "#0f172a",
+                            }}
+                          >
+                            Контрагенты не найдены
+                          </MuiTypography>
+                          <MuiTypography
+                            sx={{
+                              fontSize: 13,
+                              fontWeight: 500,
+                              color: "#64748b",
+                            }}
+                          >
+                            Попробуйте изменить фильтры.
+                          </MuiTypography>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Box
+              sx={{
+                minHeight: 56,
+                px: "14px",
+                py: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "16px",
+                borderTop: "1px solid #e6eaf0",
+                background: "#ffffff",
+              }}
             >
-              Назад
-            </Button>
-            <Button
-              variant="outlined"
-              disabled={currentPage >= totalPages}
-              onClick={() =>
-                setFilters((prev) => ({
-                  ...prev,
-                  page: (prev.page ?? 1) + 1,
-                }))
-              }
-            >
-              Далее
-            </Button>
-          </Stack>
+              <Box sx={{ fontSize: 13, fontWeight: 500, color: "#475569" }}>
+                Найдено {formatCount(totalCount)}
+              </Box>
+              <Stack direction="row" spacing={1} alignItems="center">
+                {counterpartiesQuery.isFetching ? (
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    alignItems="center"
+                    sx={{ color: "#64748b", fontSize: 13, fontWeight: 500 }}
+                  >
+                    <CircularProgress size={18} thickness={5} />
+                    <span>Загружаем...</span>
+                  </Stack>
+                ) : null}
+                <MuiTypography sx={{ fontSize: 13, color: "#64748b" }}>
+                  Страница {currentPage} из {totalPages}
+                </MuiTypography>
+                <Button
+                  variant="outlined"
+                  disabled={currentPage <= 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                >
+                  Назад
+                </Button>
+                <Button
+                  variant="outlined"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                >
+                  Далее
+                </Button>
+              </Stack>
+            </Box>
+          </Box>
         </Stack>
-      </Stack>
+      </Box>
+
+      {filtersOpen ? (
+        <Box
+          sx={{
+            width: 320,
+            maxWidth: "100%",
+            justifySelf: { xs: "stretch", lg: "end" },
+            mt: { xs: 0, lg: "60px" },
+            opacity: 1,
+            transform: "translateX(0)",
+            transition: "opacity 180ms ease, transform 220ms ease",
+          }}
+        >
+          <CounterpartiesFiltersSidebar
+            onCollapse={() => setFiltersOpen(false)}
+            regions={filterOptionsQuery.data?.regions ?? []}
+            brands={filterOptionsQuery.data?.brands ?? []}
+            models={filterOptionsQuery.data?.models ?? []}
+          />
+        </Box>
+      ) : showExpandFiltersButton ? (
+        <IconButton
+          onClick={() => setFiltersOpen(true)}
+          aria-label="Показать фильтры"
+          sx={{
+            position: "fixed",
+            right: { xs: 16, md: 24 },
+            top: { xs: 88, md: 96 },
+            zIndex: 20,
+            width: 42,
+            height: 42,
+            borderRadius: "12px",
+            border: "1px solid #dbe1ea",
+            background: "#ffffff",
+            color: "#2563eb",
+            boxShadow: "0 8px 20px rgba(15, 23, 42, 0.12)",
+            transition: "transform 160ms ease, box-shadow 160ms ease",
+            "&:hover": {
+              background: "#f8fafc",
+              transform: "translateY(-1px)",
+              boxShadow: "0 12px 24px rgba(15, 23, 42, 0.16)",
+            },
+          }}
+        >
+          <TuneRoundedIcon fontSize="small" />
+        </IconButton>
+      ) : null}
+
+      {hasItems && showScrollTop ? (
+        <IconButton
+          size="small"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          sx={{
+            position: "fixed",
+            right: { xs: 16, md: 24 },
+            bottom: { xs: 20, md: 28 },
+            zIndex: 30,
+            width: 44,
+            height: 44,
+            borderRadius: "12px",
+            border: "1px solid #dbe1ea",
+            background: "#ffffff",
+            color: "#2563eb",
+            boxShadow: "0 10px 24px rgba(15, 23, 42, 0.14)",
+            transition: "transform 160ms ease, box-shadow 160ms ease",
+            "&:hover": {
+              background: "#f8fafc",
+              transform: "translateY(-1px)",
+              boxShadow: "0 14px 28px rgba(15, 23, 42, 0.18)",
+            },
+          }}
+        >
+          <ArrowUpward fontSize="small" />
+        </IconButton>
+      ) : null}
     </Box>
   );
 };

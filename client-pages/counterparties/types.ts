@@ -37,6 +37,7 @@ export type CounterpartyFilters = {
   allAdsTo?: number;
   archivedAdsFrom?: number;
   archivedAdsTo?: number;
+  category?: string;
   region?: string;
   brandId?: number;
   modelId?: number;
