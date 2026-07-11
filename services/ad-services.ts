@@ -239,6 +239,8 @@ export const exportAdsArchiveWithFilters = async (
     init?: RequestInit,
   ) => Promise<Response>,
 ) => {
+  queryParams.set("exportSource", "ads");
+
   const response = await fetchWithAuth(
     `/api/adview/export-zip?${queryParams.toString()}`,
     {
