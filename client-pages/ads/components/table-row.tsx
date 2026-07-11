@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import {
   Alert,
   Box,
+  MenuItem,
   Stack,
   TableCell,
   TableRow,
@@ -23,7 +24,11 @@ import {
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import { updateSellerProfile } from "@/services/seller-services";
 import { SEARCH_QUERY as SQ } from "@/constants";
-import { CarAd, SellerProfileUpdatePayload } from "@/types";
+import {
+  AdLookupOption,
+  CarAd,
+  SellerProfileUpdatePayload,
+} from "@/types";
 import GeneratePDFDropdown from "@/components/generate-pdf/generate-pdf";
 import {
   formatDistance,
@@ -36,7 +41,16 @@ type Props = {
   statusId: SQ;
   onUpdate: (itemGlobalIndex: number) => Promise<void>;
   onAccountClick: (accountId: string) => void;
+  sellerRegions: AdLookupOption[];
 };
+
+const ACCOUNT_TYPE_OPTIONS = [
+  "ОД Автосалон",
+  "Перекуп",
+  "Автоплощадка",
+  "Частное лицо",
+  "Новый игрок",
+] as const;
 
 const getDisplayDate = (item: CarAd, statusId: SQ): string => {
   switch (statusId) {
@@ -92,7 +106,18 @@ const normalizeNullable = (value: string) => {
   return trimmed ? trimmed : undefined;
 };
 
-const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
+const getRegionNameById = (regions: AdLookupOption[], regionId?: number) =>
+  typeof regionId === "number"
+    ? regions.find((region) => region.id === regionId)?.name
+    : undefined;
+
+const TableRows = ({
+  statusId,
+  items,
+  onUpdate,
+  onAccountClick,
+  sellerRegions,
+}: Props) => {
   const fetchWithAuth = useFetchWithAuth();
   const [editingSeller, setEditingSeller] =
     useState<SellerProfileUpdatePayload | null>(null);
@@ -126,6 +151,9 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
           sellerPhone2: seller.phone2,
           sellerPhone3: seller.phone3,
           sellerNotes: seller.notes,
+          sellerAccountType: seller.accountType,
+          sellerAccountRegionId: seller.accountRegionId,
+          sellerAccountRegionName: seller.accountRegionName,
         },
       }));
       setEditError(null);
@@ -149,6 +177,9 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
       phone2: item.sellerPhone2 ?? "",
       phone3: item.sellerPhone3 ?? "",
       notes: item.sellerNotes ?? "",
+      accountType: item.sellerAccountType ?? "",
+      accountRegionId: item.sellerAccountRegionId,
+      accountRegionName: item.sellerAccountRegionName ?? "",
     });
   };
 
@@ -173,6 +204,8 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
       phone2: normalizeNullable(editingSeller.phone2 ?? ""),
       phone3: normalizeNullable(editingSeller.phone3 ?? ""),
       notes: normalizeNullable(editingSeller.notes ?? ""),
+      accountType: normalizeNullable(editingSeller.accountType ?? ""),
+      accountRegionId: editingSeller.accountRegionId,
     });
   };
 
@@ -346,6 +379,56 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
                                     ID: {item.sellerUserId}
                                   </Typography>
                                 </Box>
+
+                                {item.sellerAccountType?.trim() ? (
+                                  <Box>
+                                    <Typography
+                                      sx={{
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        color: "#64748b",
+                                        textTransform: "uppercase",
+                                        letterSpacing: "0.04em",
+                                      }}
+                                    >
+                                      Тип аккаунта
+                                    </Typography>
+                                    <Typography
+                                      sx={{
+                                        mt: 0.25,
+                                        fontSize: 13,
+                                        color: "#0f172a",
+                                      }}
+                                    >
+                                      {item.sellerAccountType}
+                                    </Typography>
+                                  </Box>
+                                ) : null}
+
+                                {item.sellerAccountRegionName?.trim() ? (
+                                  <Box>
+                                    <Typography
+                                      sx={{
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        color: "#64748b",
+                                        textTransform: "uppercase",
+                                        letterSpacing: "0.04em",
+                                      }}
+                                    >
+                                      Регион
+                                    </Typography>
+                                    <Typography
+                                      sx={{
+                                        mt: 0.25,
+                                        fontSize: 13,
+                                        color: "#0f172a",
+                                      }}
+                                    >
+                                      {item.sellerAccountRegionName}
+                                    </Typography>
+                                  </Box>
+                                ) : null}
 
                                 {phones.length ? (
                                   <Box>
@@ -557,6 +640,63 @@ const TableRows = ({ statusId, items, onUpdate, onAccountClick }: Props) => {
             fullWidth
             size="small"
           />
+          <TextField
+            label="Тип аккаунта"
+            value={editingSeller?.accountType ?? ""}
+            onChange={(event) =>
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      accountType: event.target.value,
+                    }
+                  : prev,
+              )
+            }
+            fullWidth
+            size="small"
+            select
+          >
+            <MenuItem value="">Не выбрано</MenuItem>
+            {ACCOUNT_TYPE_OPTIONS.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            label="Регион"
+            value={editingSeller?.accountRegionId?.toString() ?? ""}
+            onChange={(event) =>
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      accountRegionId: event.target.value
+                        ? Number(event.target.value)
+                        : undefined,
+                      accountRegionName:
+                        getRegionNameById(
+                          sellerRegions,
+                          event.target.value
+                            ? Number(event.target.value)
+                            : undefined,
+                        ) ?? "",
+                    }
+                  : prev,
+              )
+            }
+            fullWidth
+            size="small"
+            select
+          >
+            <MenuItem value="">Не выбрано</MenuItem>
+            {sellerRegions.map((region) => (
+              <MenuItem key={region.id} value={region.id.toString()}>
+                {region.name}
+              </MenuItem>
+            ))}
+          </TextField>
           <TextField
             label="Телефон 1"
             value={editingSeller?.phone1 ?? ""}

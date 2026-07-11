@@ -8,6 +8,9 @@ export type CarAd = {
   sellerPhone2?: string;
   sellerPhone3?: string;
   sellerNotes?: string;
+  sellerAccountType?: string;
+  sellerAccountRegionId?: number;
+  sellerAccountRegionName?: string;
   accountAdsCount?: number;
   accountAvgPrice?: number;
   engineVolume: number;
@@ -56,6 +59,9 @@ export type SellerProfile = {
   phone2?: string;
   phone3?: string;
   notes?: string;
+  accountType?: string;
+  accountRegionId?: number;
+  accountRegionName?: string;
 };
 
 export type SellerProfileUpdatePayload = SellerProfile;
@@ -82,4 +88,5 @@ export type AdViewFiltersResponse = {
   brands: AdLookupOption[];
   models: AdModelLookupOption[];
   bodyTypes: AdLookupOption[];
+  sellerRegions: AdLookupOption[];
 };
