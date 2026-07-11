@@ -21,7 +21,8 @@ export type CounterpartyItem = {
   notFound404TurnoverDelta: number;
   averageCheck?: number | null;
   regions: string[];
-  specializations: string[];
+  allSpecializations: string[];
+  archivedSpecializations: string[];
 };
 
 export type CounterpartiesResponse = {

@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import NextLink from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -90,7 +90,263 @@ const sortButtonSx: CSSProperties = {
   textAlign: "left",
 };
 
-const visibleSpecializationsLimit = 5;
+const compactButtonSx = {
+  minWidth: "auto",
+  height: 24,
+  px: 1,
+  borderRadius: "999px",
+  borderColor: "#cbd5e1",
+  color: "#2563eb",
+  fontSize: 12,
+  fontWeight: 700,
+  lineHeight: 1,
+  whiteSpace: "nowrap",
+  textTransform: "none",
+  boxShadow: "none",
+  "&:hover": {
+    borderColor: "#94a3b8",
+    background: "#eff6ff",
+    boxShadow: "none",
+  },
+};
+
+const maxVisibleRows = 3;
+
+type GroupedChipSection = {
+  label: string;
+  items: string[];
+  tone?: "default" | "success";
+};
+
+const CompactChipList = ({
+  items,
+  onShowAll,
+}: {
+  items: string[];
+  onShowAll: () => void;
+}) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [visibleCount, setVisibleCount] = useState(items.length);
+
+  useEffect(() => {
+    setVisibleCount(items.length);
+  }, [items]);
+
+  useLayoutEffect(() => {
+    if (!items.length) {
+      return;
+    }
+
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const chipItems = Array.from(
+      container.querySelectorAll<HTMLElement>('[data-chip-item="true"]'),
+    );
+
+    if (!chipItems.length) {
+      return;
+    }
+
+    const rowTops: number[] = [];
+    let allowedCount = chipItems.length;
+
+    for (let index = 0; index < chipItems.length; index += 1) {
+      const top = chipItems[index].offsetTop;
+      if (!rowTops.includes(top)) {
+        rowTops.push(top);
+      }
+
+      if (rowTops.length > maxVisibleRows) {
+        allowedCount = index;
+        break;
+      }
+    }
+
+    let nextVisibleCount = allowedCount;
+    if (allowedCount < items.length) {
+      nextVisibleCount = Math.max(1, allowedCount - 1);
+    }
+
+    if (nextVisibleCount !== visibleCount) {
+      setVisibleCount(nextVisibleCount);
+    }
+  }, [items, visibleCount]);
+
+  if (!items.length) {
+    return <MuiTypography sx={{ fontSize: 13, color: "#94a3b8" }}>—</MuiTypography>;
+  }
+
+  const hasHiddenItems = visibleCount < items.length;
+  const visibleItems = items.slice(0, hasHiddenItems ? visibleCount : items.length);
+
+  return (
+    <Stack ref={containerRef} direction="row" flexWrap="wrap" gap={0.75}>
+      {visibleItems.map((item) => (
+        <Box key={item} data-chip-item="true">
+          <Chip size="small" label={item} />
+        </Box>
+      ))}
+      {hasHiddenItems ? (
+        <Button variant="outlined" size="small" onClick={onShowAll} sx={compactButtonSx}>
+          +{items.length - visibleCount}
+        </Button>
+      ) : null}
+    </Stack>
+  );
+};
+
+const successChipSx = {
+  background: "#dcfce7",
+  color: "#166534",
+  border: "1px solid #86efac",
+  "& .MuiChip-label": {
+    color: "#166534",
+    fontWeight: 600,
+  },
+};
+
+const CompactGroupedChipList = ({
+  sections,
+  onShowAll,
+}: {
+  sections: GroupedChipSection[];
+  onShowAll: () => void;
+}) => {
+  const normalizedSections = sections.filter((section) => section.items.length > 0);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const nodes = useMemo(
+    () =>
+      normalizedSections.flatMap((section, sectionIndex) => [
+        {
+          type: "label" as const,
+          key: `label-${section.label}-${sectionIndex}`,
+          label: section.label,
+          tone: section.tone ?? "default",
+        },
+        ...section.items.map((item, itemIndex) => ({
+          type: "chip" as const,
+          key: `chip-${section.label}-${item}-${itemIndex}`,
+          label: item,
+          tone: section.tone ?? "default",
+        })),
+      ]),
+    [normalizedSections],
+  );
+  const totalItems = normalizedSections.reduce(
+    (sum, section) => sum + section.items.length,
+    0,
+  );
+  const [visibleNodeCount, setVisibleNodeCount] = useState(nodes.length);
+
+  useEffect(() => {
+    setVisibleNodeCount(nodes.length);
+  }, [nodes]);
+
+  useLayoutEffect(() => {
+    if (!nodes.length) {
+      return;
+    }
+
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const renderedNodes = Array.from(
+      container.querySelectorAll<HTMLElement>('[data-group-node="true"]'),
+    );
+
+    if (!renderedNodes.length) {
+      return;
+    }
+
+    const rowTops: number[] = [];
+    let allowedCount = renderedNodes.length;
+
+    for (let index = 0; index < renderedNodes.length; index += 1) {
+      const top = renderedNodes[index].offsetTop;
+      if (!rowTops.includes(top)) {
+        rowTops.push(top);
+      }
+
+      if (rowTops.length > maxVisibleRows) {
+        allowedCount = index;
+        break;
+      }
+    }
+
+    let nextVisibleNodeCount = allowedCount;
+    if (allowedCount < nodes.length) {
+      nextVisibleNodeCount = Math.max(1, allowedCount - 1);
+    }
+
+    if (nextVisibleNodeCount !== visibleNodeCount) {
+      setVisibleNodeCount(nextVisibleNodeCount);
+    }
+  }, [nodes, visibleNodeCount]);
+
+  if (!totalItems) {
+    return <MuiTypography sx={{ fontSize: 13, color: "#94a3b8" }}>вЂ”</MuiTypography>;
+  }
+
+  const hasHiddenNodes = visibleNodeCount < nodes.length;
+  const previewNodes = nodes.slice(0, hasHiddenNodes ? visibleNodeCount : nodes.length);
+
+  while (previewNodes.length > 0 && previewNodes[previewNodes.length - 1]?.type === "label") {
+    previewNodes.pop();
+  }
+
+  const hiddenItemsCount = nodes
+    .slice(previewNodes.length)
+    .filter((node) => node.type === "chip").length;
+
+  return (
+    <Stack ref={containerRef} direction="row" flexWrap="wrap" gap={0.75}>
+      {previewNodes.map((node) =>
+        node.type === "label" ? (
+          <Box
+            key={node.key}
+            data-group-node="true"
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              minHeight: 24,
+              px: 0.25,
+            }}
+          >
+            <MuiTypography
+              sx={{
+                fontSize: 11,
+                fontWeight: 800,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                color: node.tone === "success" ? "#15803d" : "#64748b",
+              }}
+            >
+              {node.label}
+            </MuiTypography>
+          </Box>
+        ) : (
+          <Box key={node.key} data-group-node="true">
+            <Chip
+              size="small"
+              label={node.label}
+              sx={node.tone === "success" ? successChipSx : undefined}
+            />
+          </Box>
+        ),
+      )}
+      {hiddenItemsCount > 0 ? (
+        <Button variant="outlined" size="small" onClick={onShowAll} sx={compactButtonSx}>
+          +{hiddenItemsCount}
+        </Button>
+      ) : null}
+    </Stack>
+  );
+};
 
 const CounterpartiesPage = () => {
   const fetchWithAuth = useFetchWithAuth();
@@ -101,9 +357,11 @@ const CounterpartiesPage = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [showExpandFiltersButton, setShowExpandFiltersButton] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [specializationsModalState, setSpecializationsModalState] = useState<{
+  const [listModalState, setListModalState] = useState<{
+    title: string;
     accountLabel: string;
     items: string[];
+    groupedSections?: GroupedChipSection[];
   } | null>(null);
 
   const queryString = searchParams.toString();
@@ -479,9 +737,7 @@ const CounterpartiesPage = () => {
                             >
                               {item.accountLabel}
                             </NextLink>
-                            <MuiTypography
-                              sx={{ fontSize: 12, color: "#64748b" }}
-                            >
+                            <MuiTypography sx={{ fontSize: 12, color: "#64748b" }}>
                               Account ID: {item.userId}
                             </MuiTypography>
                           </Stack>
@@ -494,9 +750,7 @@ const CounterpartiesPage = () => {
                             borderBottom: "1px solid #edf2f7",
                           }}
                         >
-                          <MuiTypography
-                            sx={{ fontSize: 13, color: "#0f172a" }}
-                          >
+                          <MuiTypography sx={{ fontSize: 13, color: "#0f172a" }}>
                             {item.category || "—"}
                           </MuiTypography>
                         </TableCell>
@@ -604,19 +858,16 @@ const CounterpartiesPage = () => {
                             borderBottom: "1px solid #edf2f7",
                           }}
                         >
-                          <Stack direction="row" flexWrap="wrap" gap={0.75}>
-                            {(item.regions ?? []).length ? (
-                              item.regions.map((region) => (
-                                <Chip key={region} size="small" label={region} />
-                              ))
-                            ) : (
-                              <MuiTypography
-                                sx={{ fontSize: 13, color: "#94a3b8" }}
-                              >
-                                —
-                              </MuiTypography>
-                            )}
-                          </Stack>
+                          <CompactChipList
+                            items={item.regions ?? []}
+                            onShowAll={() =>
+                              setListModalState({
+                                title: "Регионы",
+                                accountLabel: item.accountLabel,
+                                items: item.regions ?? [],
+                              })
+                            }
+                          />
                         </TableCell>
                         <TableCell
                           sx={{
@@ -626,61 +877,40 @@ const CounterpartiesPage = () => {
                             borderBottom: "1px solid #edf2f7",
                           }}
                         >
-                          <Stack direction="row" flexWrap="wrap" gap={0.75}>
-                            {(item.specializations ?? []).length ? (
-                              <>
-                                {item.specializations
-                                  .slice(0, visibleSpecializationsLimit)
-                                  .map((specialization) => (
-                                    <Chip
-                                      key={specialization}
-                                      size="small"
-                                      label={specialization}
-                                    />
-                                  ))}
-                                {item.specializations.length >
-                                visibleSpecializationsLimit ? (
-                                  <Button
-                                    variant="outlined"
-                                    size="small"
-                                    onClick={() =>
-                                      setSpecializationsModalState({
-                                        accountLabel: item.accountLabel,
-                                        items: item.specializations,
-                                      })
-                                    }
-                                    sx={{
-                                      minWidth: "auto",
-                                      height: 24,
-                                      px: 1,
-                                      borderRadius: "999px",
-                                      borderColor: "#cbd5e1",
-                                      color: "#2563eb",
-                                      fontSize: 12,
-                                      fontWeight: 700,
-                                      lineHeight: 1,
-                                      whiteSpace: "nowrap",
-                                      textTransform: "none",
-                                      boxShadow: "none",
-                                      "&:hover": {
-                                        borderColor: "#94a3b8",
-                                        background: "#eff6ff",
-                                        boxShadow: "none",
-                                      },
-                                    }}
-                                  >
-                                    +{item.specializations.length - visibleSpecializationsLimit}
-                                  </Button>
-                                ) : null}
-                              </>
-                            ) : (
-                              <MuiTypography
-                                sx={{ fontSize: 13, color: "#94a3b8" }}
-                              >
-                                —
-                              </MuiTypography>
-                            )}
-                          </Stack>
+                          <CompactGroupedChipList
+                            sections={[
+                              {
+                                label: "ВСЕ",
+                                items: item.allSpecializations ?? [],
+                                tone: "success",
+                              },
+                              {
+                                label: "Архивные",
+                                items: item.archivedSpecializations ?? [],
+                              },
+                            ]}
+                            onShowAll={() =>
+                              setListModalState({
+                                title: "Специализация",
+                                accountLabel: item.accountLabel,
+                                items: [
+                                  ...(item.allSpecializations ?? []),
+                                  ...(item.archivedSpecializations ?? []),
+                                ],
+                                groupedSections: [
+                                  {
+                                    label: "ВСЕ",
+                                    items: item.allSpecializations ?? [],
+                                    tone: "success",
+                                  },
+                                  {
+                                    label: "Архивные",
+                                    items: item.archivedSpecializations ?? [],
+                                  },
+                                ],
+                              })
+                            }
+                          />
                         </TableCell>
                       </TableRow>
                     ))
@@ -851,12 +1081,12 @@ const CounterpartiesPage = () => {
         </IconButton>
       ) : null}
 
-      {specializationsModalState ? (
+      {listModalState ? (
         <Modal
           open
-          title={`Специализация: ${specializationsModalState.accountLabel}`}
-          onClose={() => setSpecializationsModalState(null)}
-          onSubmit={() => setSpecializationsModalState(null)}
+          title={`${listModalState.title}: ${listModalState.accountLabel}`}
+          onClose={() => setListModalState(null)}
+          onSubmit={() => setListModalState(null)}
           submitLabel="Закрыть"
           cancelLabel="Отмена"
           hideFooter
@@ -873,14 +1103,55 @@ const CounterpartiesPage = () => {
             <MuiTypography
               sx={{ mb: 2, fontSize: 14, color: "#64748b", lineHeight: 1.5 }}
             >
-              Всего специализаций: {specializationsModalState.items.length}
+              Всего элементов: {listModalState.items.length}
             </MuiTypography>
-            <Stack direction="row" flexWrap="wrap" gap={1}>
-              {specializationsModalState.items.map((specialization) => (
+            {listModalState.groupedSections ? (
+              <Stack spacing={2} sx={{ mb: 2 }}>
+                {listModalState.groupedSections
+                  .filter((section) => section.items.length > 0)
+                  .map((section) => (
+                    <Box key={section.label}>
+                      <MuiTypography
+                        sx={{
+                          mb: 1,
+                          fontSize: 12,
+                          fontWeight: 800,
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                          color: section.tone === "success" ? "#15803d" : "#64748b",
+                        }}
+                      >
+                        {section.label}
+                      </MuiTypography>
+                      <Stack direction="row" flexWrap="wrap" gap={1}>
+                        {section.items.map((item) => (
+                          <Chip
+                            key={`${section.label}-${item}`}
+                            size="small"
+                            label={item}
+                            sx={{
+                              ...(section.tone === "success" ? successChipSx : {}),
+                              maxWidth: "100%",
+                              "& .MuiChip-label": {
+                                display: "block",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              },
+                            }}
+                          />
+                        ))}
+                      </Stack>
+                    </Box>
+                  ))}
+              </Stack>
+            ) : null}
+            {!listModalState.groupedSections ? (
+              <Stack direction="row" flexWrap="wrap" gap={1}>
+                {(listModalState.items ?? []).map((item) => (
                 <Chip
-                  key={specialization}
+                  key={item}
                   size="small"
-                  label={specialization}
+                  label={item}
                   sx={{
                     maxWidth: "100%",
                     "& .MuiChip-label": {
@@ -890,13 +1161,14 @@ const CounterpartiesPage = () => {
                     },
                   }}
                 />
-              ))}
-            </Stack>
+                ))}
+              </Stack>
+            ) : null}
             <Box sx={{ mt: 3, textAlign: "right" }}>
               <Button
                 variant="contained"
                 size="small"
-                onClick={() => setSpecializationsModalState(null)}
+                onClick={() => setListModalState(null)}
               >
                 Закрыть
               </Button>
