@@ -111,6 +111,7 @@ const compactButtonSx = {
 };
 
 const maxVisibleRows = 3;
+const maxChipsContainerHeight = 92;
 
 type GroupedChipSection = {
   label: string;
@@ -142,36 +143,8 @@ const CompactChipList = ({
       return;
     }
 
-    const chipItems = Array.from(
-      container.querySelectorAll<HTMLElement>('[data-chip-item="true"]'),
-    );
-
-    if (!chipItems.length) {
-      return;
-    }
-
-    const rowTops: number[] = [];
-    let allowedCount = chipItems.length;
-
-    for (let index = 0; index < chipItems.length; index += 1) {
-      const top = chipItems[index].offsetTop;
-      if (!rowTops.includes(top)) {
-        rowTops.push(top);
-      }
-
-      if (rowTops.length > maxVisibleRows) {
-        allowedCount = index;
-        break;
-      }
-    }
-
-    let nextVisibleCount = allowedCount;
-    if (allowedCount < items.length) {
-      nextVisibleCount = Math.max(1, allowedCount - 1);
-    }
-
-    if (nextVisibleCount !== visibleCount) {
-      setVisibleCount(nextVisibleCount);
+    if (container.scrollHeight > maxChipsContainerHeight && visibleCount > 1) {
+      setVisibleCount((current) => Math.max(1, current - 1));
     }
   }, [items, visibleCount]);
 
@@ -183,7 +156,13 @@ const CompactChipList = ({
   const visibleItems = items.slice(0, hasHiddenItems ? visibleCount : items.length);
 
   return (
-    <Stack ref={containerRef} direction="row" flexWrap="wrap" gap={0.75}>
+    <Stack
+      ref={containerRef}
+      direction="row"
+      flexWrap="wrap"
+      gap={0.75}
+      sx={{ maxHeight: `${maxChipsContainerHeight}px`, overflow: "hidden" }}
+    >
       {visibleItems.map((item) => (
         <Box key={item} data-chip-item="true">
           <Chip size="small" label={item} />
@@ -255,36 +234,8 @@ const CompactGroupedChipList = ({
       return;
     }
 
-    const renderedNodes = Array.from(
-      container.querySelectorAll<HTMLElement>('[data-group-node="true"]'),
-    );
-
-    if (!renderedNodes.length) {
-      return;
-    }
-
-    const rowTops: number[] = [];
-    let allowedCount = renderedNodes.length;
-
-    for (let index = 0; index < renderedNodes.length; index += 1) {
-      const top = renderedNodes[index].offsetTop;
-      if (!rowTops.includes(top)) {
-        rowTops.push(top);
-      }
-
-      if (rowTops.length > maxVisibleRows) {
-        allowedCount = index;
-        break;
-      }
-    }
-
-    let nextVisibleNodeCount = allowedCount;
-    if (allowedCount < nodes.length) {
-      nextVisibleNodeCount = Math.max(1, allowedCount - 1);
-    }
-
-    if (nextVisibleNodeCount !== visibleNodeCount) {
-      setVisibleNodeCount(nextVisibleNodeCount);
+    if (container.scrollHeight > maxChipsContainerHeight && visibleNodeCount > 1) {
+      setVisibleNodeCount((current) => Math.max(1, current - 1));
     }
   }, [nodes, visibleNodeCount]);
 
@@ -303,7 +254,13 @@ const CompactGroupedChipList = ({
   const hiddenItemsCount = Math.max(0, totalItems - visibleItemsCount);
 
   return (
-    <Stack ref={containerRef} direction="row" flexWrap="wrap" gap={0.75}>
+    <Stack
+      ref={containerRef}
+      direction="row"
+      flexWrap="wrap"
+      gap={0.75}
+      sx={{ maxHeight: `${maxChipsContainerHeight}px`, overflow: "hidden" }}
+    >
       {previewNodes.map((node) =>
         node.type === "label" ? (
           <Box
