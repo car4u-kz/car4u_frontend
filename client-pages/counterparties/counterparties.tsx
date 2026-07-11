@@ -110,13 +110,89 @@ const compactButtonSx = {
   },
 };
 
-const maxVisibleRows = 3;
+const maxPreviewCharacters = 95;
 const maxChipsContainerHeight = 92;
 
 type GroupedChipSection = {
   label: string;
   items: string[];
   tone?: "default" | "success";
+};
+
+const getVisibleItemsByCharacterLimit = (
+  items: string[],
+  maxCharacters = maxPreviewCharacters,
+) => {
+  const visibleItems: string[] = [];
+  let usedCharacters = 0;
+
+  for (const item of items) {
+    const nextLength = visibleItems.length === 0 ? item.length : item.length + 2;
+    if (visibleItems.length > 0 && usedCharacters + nextLength > maxCharacters) {
+      break;
+    }
+
+    visibleItems.push(item);
+    usedCharacters += nextLength;
+  }
+
+  return visibleItems;
+};
+
+const getVisibleGroupedSectionsByCharacterLimit = (
+  sections: GroupedChipSection[],
+  maxCharacters = maxPreviewCharacters,
+) => {
+  const visibleSections: GroupedChipSection[] = [];
+  let usedCharacters = 0;
+  let visibleItemsCount = 0;
+
+  for (const section of sections) {
+    if (!section.items.length) {
+      continue;
+    }
+
+    const nextItems: string[] = [];
+    const labelLength = section.label.length + (visibleSections.length > 0 ? 3 : 0);
+    let itemsCharacters = 0;
+
+    for (const item of section.items) {
+      const itemLength = nextItems.length === 0 ? item.length : item.length + 2;
+      const projectedLength =
+        usedCharacters +
+        (nextItems.length === 0 ? labelLength : 0) +
+        itemsCharacters +
+        itemLength;
+
+      if (nextItems.length > 0 && projectedLength > maxCharacters) {
+        break;
+      }
+
+      if (nextItems.length === 0 && projectedLength > maxCharacters && visibleItemsCount > 0) {
+        break;
+      }
+
+      nextItems.push(item);
+      itemsCharacters += itemLength;
+    }
+
+    if (!nextItems.length) {
+      break;
+    }
+
+    visibleSections.push({
+      ...section,
+      items: nextItems,
+    });
+
+    usedCharacters += labelLength + itemsCharacters;
+    visibleItemsCount += nextItems.length;
+  }
+
+  return {
+    visibleSections,
+    visibleItemsCount,
+  };
 };
 
 const CompactChipList = ({
@@ -298,6 +374,105 @@ const CompactGroupedChipList = ({
             </Box>
           ),
         )}
+      </Stack>
+      {hiddenItemsCount > 0 ? (
+        <Button variant="outlined" size="small" onClick={onShowAll} sx={compactButtonSx}>
+          +{hiddenItemsCount}
+        </Button>
+      ) : null}
+    </Stack>
+  );
+};
+
+const CharacterLimitedChipList = ({
+  items,
+  onShowAll,
+}: {
+  items: string[];
+  onShowAll: () => void;
+}) => {
+  if (!items.length) {
+    return <MuiTypography sx={{ fontSize: 13, color: "#94a3b8" }}>вЂ”</MuiTypography>;
+  }
+
+  const visibleItems = getVisibleItemsByCharacterLimit(items);
+  const hiddenItemsCount = Math.max(0, items.length - visibleItems.length);
+
+  return (
+    <Stack alignItems="flex-start" gap={0.75}>
+      <Stack direction="row" flexWrap="wrap" gap={0.75}>
+        {visibleItems.map((item) => (
+          <Box key={item}>
+            <Chip size="small" label={item} />
+          </Box>
+        ))}
+      </Stack>
+      {hiddenItemsCount > 0 ? (
+        <Button variant="outlined" size="small" onClick={onShowAll} sx={compactButtonSx}>
+          +{hiddenItemsCount}
+        </Button>
+      ) : null}
+    </Stack>
+  );
+};
+
+const CharacterLimitedGroupedChipList = ({
+  sections,
+  onShowAll,
+}: {
+  sections: GroupedChipSection[];
+  onShowAll: () => void;
+}) => {
+  const normalizedSections = sections.filter((section) => section.items.length > 0);
+  const totalItems = normalizedSections.reduce(
+    (sum, section) => sum + section.items.length,
+    0,
+  );
+
+  if (!totalItems) {
+    return <MuiTypography sx={{ fontSize: 13, color: "#94a3b8" }}>РІР‚вЂќ</MuiTypography>;
+  }
+
+  const { visibleSections, visibleItemsCount } =
+    getVisibleGroupedSectionsByCharacterLimit(normalizedSections);
+  const hiddenItemsCount = Math.max(0, totalItems - visibleItemsCount);
+
+  return (
+    <Stack alignItems="flex-start" gap={0.75}>
+      <Stack gap={0.75}>
+        {visibleSections.map((section) => (
+          <Stack key={section.label} direction="row" flexWrap="wrap" gap={0.75}>
+            <Box
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: 24,
+                px: 0.25,
+              }}
+            >
+              <MuiTypography
+                sx={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                  color: section.tone === "success" ? "#15803d" : "#64748b",
+                }}
+              >
+                {section.label}
+              </MuiTypography>
+            </Box>
+            {section.items.map((item) => (
+              <Box key={`${section.label}-${item}`}>
+                <Chip
+                  size="small"
+                  label={item}
+                  sx={section.tone === "success" ? successChipSx : undefined}
+                />
+              </Box>
+            ))}
+          </Stack>
+        ))}
       </Stack>
       {hiddenItemsCount > 0 ? (
         <Button variant="outlined" size="small" onClick={onShowAll} sx={compactButtonSx}>
@@ -818,7 +993,7 @@ const CounterpartiesPage = () => {
                             borderBottom: "1px solid #edf2f7",
                           }}
                         >
-                          <CompactChipList
+                          <CharacterLimitedChipList
                             items={item.regions ?? []}
                             onShowAll={() =>
                               setListModalState({
@@ -837,7 +1012,7 @@ const CounterpartiesPage = () => {
                             borderBottom: "1px solid #edf2f7",
                           }}
                         >
-                          <CompactGroupedChipList
+                          <CharacterLimitedGroupedChipList
                             sections={[
                               {
                                 label: "ВСЕ",
