@@ -156,18 +156,20 @@ const CompactChipList = ({
   const visibleItems = items.slice(0, hasHiddenItems ? visibleCount : items.length);
 
   return (
-    <Stack
-      ref={containerRef}
-      direction="row"
-      flexWrap="wrap"
-      gap={0.75}
-      sx={{ maxHeight: `${maxChipsContainerHeight}px`, overflow: "hidden" }}
-    >
-      {visibleItems.map((item) => (
-        <Box key={item} data-chip-item="true">
-          <Chip size="small" label={item} />
-        </Box>
-      ))}
+    <Stack alignItems="flex-start" gap={0.75}>
+      <Stack
+        ref={containerRef}
+        direction="row"
+        flexWrap="wrap"
+        gap={0.75}
+        sx={{ maxHeight: `${maxChipsContainerHeight}px`, overflow: "hidden" }}
+      >
+        {visibleItems.map((item) => (
+          <Box key={item} data-chip-item="true">
+            <Chip size="small" label={item} />
+          </Box>
+        ))}
+      </Stack>
       {hasHiddenItems ? (
         <Button variant="outlined" size="small" onClick={onShowAll} sx={compactButtonSx}>
           +{items.length - visibleCount}
@@ -254,47 +256,49 @@ const CompactGroupedChipList = ({
   const hiddenItemsCount = Math.max(0, totalItems - visibleItemsCount);
 
   return (
-    <Stack
-      ref={containerRef}
-      direction="row"
-      flexWrap="wrap"
-      gap={0.75}
-      sx={{ maxHeight: `${maxChipsContainerHeight}px`, overflow: "hidden" }}
-    >
-      {previewNodes.map((node) =>
-        node.type === "label" ? (
-          <Box
-            key={node.key}
-            data-group-node="true"
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              minHeight: 24,
-              px: 0.25,
-            }}
-          >
-            <MuiTypography
+    <Stack alignItems="flex-start" gap={0.75}>
+      <Stack
+        ref={containerRef}
+        direction="row"
+        flexWrap="wrap"
+        gap={0.75}
+        sx={{ maxHeight: `${maxChipsContainerHeight}px`, overflow: "hidden" }}
+      >
+        {previewNodes.map((node) =>
+          node.type === "label" ? (
+            <Box
+              key={node.key}
+              data-group-node="true"
               sx={{
-                fontSize: 11,
-                fontWeight: 800,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
-                color: node.tone === "success" ? "#15803d" : "#64748b",
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: 24,
+                px: 0.25,
               }}
             >
-              {node.label}
-            </MuiTypography>
-          </Box>
-        ) : (
-          <Box key={node.key} data-group-node="true">
-            <Chip
-              size="small"
-              label={node.label}
-              sx={node.tone === "success" ? successChipSx : undefined}
-            />
-          </Box>
-        ),
-      )}
+              <MuiTypography
+                sx={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                  color: node.tone === "success" ? "#15803d" : "#64748b",
+                }}
+              >
+                {node.label}
+              </MuiTypography>
+            </Box>
+          ) : (
+            <Box key={node.key} data-group-node="true">
+              <Chip
+                size="small"
+                label={node.label}
+                sx={node.tone === "success" ? successChipSx : undefined}
+              />
+            </Box>
+          ),
+        )}
+      </Stack>
       {hiddenItemsCount > 0 ? (
         <Button variant="outlined" size="small" onClick={onShowAll} sx={compactButtonSx}>
           +{hiddenItemsCount}
