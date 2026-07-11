@@ -383,7 +383,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
               items={items}
               onUpdate={handleUpdateItemPage}
               onAccountClick={handleAccountClick}
-              sellerRegions={queryFilterList.data?.sellerRegions ?? []}
+              sellerRegions={queryFilterList.data?.regions ?? []}
             />
           }
         />

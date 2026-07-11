@@ -25,7 +25,6 @@ import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import { updateSellerProfile } from "@/services/seller-services";
 import { SEARCH_QUERY as SQ } from "@/constants";
 import {
-  AdLookupOption,
   CarAd,
   SellerProfileUpdatePayload,
 } from "@/types";
@@ -41,7 +40,7 @@ type Props = {
   statusId: SQ;
   onUpdate: (itemGlobalIndex: number) => Promise<void>;
   onAccountClick: (accountId: string) => void;
-  sellerRegions: AdLookupOption[];
+  sellerRegions: string[];
 };
 
 const ACCOUNT_TYPE_OPTIONS = [
@@ -105,11 +104,6 @@ const normalizeNullable = (value: string) => {
   const trimmed = value.trim();
   return trimmed ? trimmed : undefined;
 };
-
-const getRegionNameById = (regions: AdLookupOption[], regionId?: number) =>
-  typeof regionId === "number"
-    ? regions.find((region) => region.id === regionId)?.name
-    : undefined;
 
 const TableRows = ({
   statusId,
@@ -178,8 +172,8 @@ const TableRows = ({
       phone3: item.sellerPhone3 ?? "",
       notes: item.sellerNotes ?? "",
       accountType: item.sellerAccountType ?? "",
-      accountRegionId: item.sellerAccountRegionId,
       accountRegionName: item.sellerAccountRegionName ?? "",
+      accountRegionId: item.sellerAccountRegionId,
     });
   };
 
@@ -205,7 +199,8 @@ const TableRows = ({
       phone3: normalizeNullable(editingSeller.phone3 ?? ""),
       notes: normalizeNullable(editingSeller.notes ?? ""),
       accountType: normalizeNullable(editingSeller.accountType ?? ""),
-      accountRegionId: editingSeller.accountRegionId,
+      accountRegionId: undefined,
+      accountRegionName: normalizeNullable(editingSeller.accountRegionName ?? ""),
     });
   };
 
@@ -666,22 +661,14 @@ const TableRows = ({
           </TextField>
           <TextField
             label="Регион"
-            value={editingSeller?.accountRegionId?.toString() ?? ""}
+            value={editingSeller?.accountRegionName ?? ""}
             onChange={(event) =>
               setEditingSeller((prev) =>
                 prev
                   ? {
                       ...prev,
-                      accountRegionId: event.target.value
-                        ? Number(event.target.value)
-                        : undefined,
-                      accountRegionName:
-                        getRegionNameById(
-                          sellerRegions,
-                          event.target.value
-                            ? Number(event.target.value)
-                            : undefined,
-                        ) ?? "",
+                      accountRegionName: event.target.value,
+                      accountRegionId: undefined,
                     }
                   : prev,
               )
@@ -692,8 +679,8 @@ const TableRows = ({
           >
             <MenuItem value="">Не выбрано</MenuItem>
             {sellerRegions.map((region) => (
-              <MenuItem key={region.id} value={region.id.toString()}>
-                {region.name}
+              <MenuItem key={region} value={region}>
+                {region}
               </MenuItem>
             ))}
           </TextField>
