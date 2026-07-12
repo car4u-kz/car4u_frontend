@@ -722,7 +722,7 @@ const CounterpartiesPage = () => {
                           Объявления{allSortArrow}
                         </button>
                         <MuiTypography sx={{ fontSize: 11, color: "#94a3b8" }}>
-                          Клик по заголовку сортирует по количеству ВСЕ
+                          Сортирует по количеству ВСЕ
                         </MuiTypography>
                       </Stack>
                     </TableCell>
@@ -801,7 +801,7 @@ const CounterpartiesPage = () => {
                           Специализация / Архивные{archivedSortArrow}
                         </button>
                         <MuiTypography sx={{ fontSize: 11, color: "#94a3b8" }}>
-                          Клик по заголовку сортирует по количеству АРХИВНЫЕ
+                          Сортирует по количеству АРХИВНЫЕ
                         </MuiTypography>
                       </Stack>
                     </TableCell>

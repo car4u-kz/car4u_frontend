@@ -25,6 +25,7 @@ import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import { updateSellerProfile } from "@/services/seller-services";
 import { SEARCH_QUERY as SQ } from "@/constants";
 import {
+  AdLookupOption,
   CarAd,
   SellerProfileUpdatePayload,
 } from "@/types";
@@ -40,7 +41,7 @@ type Props = {
   statusId: SQ;
   onUpdate: (itemGlobalIndex: number) => Promise<void>;
   onAccountClick: (accountId: string) => void;
-  sellerRegions: string[];
+  sellerRegions: AdLookupOption[];
 };
 
 const ACCOUNT_TYPE_OPTIONS = [
@@ -199,7 +200,7 @@ const TableRows = ({
       phone3: normalizeNullable(editingSeller.phone3 ?? ""),
       notes: normalizeNullable(editingSeller.notes ?? ""),
       accountType: normalizeNullable(editingSeller.accountType ?? ""),
-      accountRegionId: undefined,
+      accountRegionId: editingSeller.accountRegionId,
       accountRegionName: normalizeNullable(editingSeller.accountRegionName ?? ""),
     });
   };
@@ -661,26 +662,31 @@ const TableRows = ({
           </TextField>
           <TextField
             label="Регион"
-            value={editingSeller?.accountRegionName ?? ""}
-            onChange={(event) =>
+            value={editingSeller?.accountRegionId ?? ""}
+            onChange={(event) => {
+              const selectedId = Number(event.target.value);
+              const selectedRegion = sellerRegions.find(
+                (region) => region.id === selectedId,
+              );
+
               setEditingSeller((prev) =>
                 prev
                   ? {
                       ...prev,
-                      accountRegionName: event.target.value,
-                      accountRegionId: undefined,
+                      accountRegionId: selectedRegion?.id,
+                      accountRegionName: selectedRegion?.name,
                     }
                   : prev,
-              )
-            }
+              );
+            }}
             fullWidth
             size="small"
             select
           >
             <MenuItem value="">Не выбрано</MenuItem>
             {sellerRegions.map((region) => (
-              <MenuItem key={region} value={region}>
-                {region}
+              <MenuItem key={region.id} value={region.id}>
+                {region.name}
               </MenuItem>
             ))}
           </TextField>
