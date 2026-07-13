@@ -529,7 +529,13 @@ const TableRows = ({
                         >
                           <button
                             type="button"
-                            onClick={() => onAccountClick(item.sellerUserId!)}
+                            onClick={() =>
+                              window.open(
+                                `/ads?statusId=0&accountId=${encodeURIComponent(item.sellerUserId!)}`,
+                                "_blank",
+                                "noopener,noreferrer",
+                              )
+                            }
                             style={accountLabelButtonStyle}
                           >
                             {accountLabel}
