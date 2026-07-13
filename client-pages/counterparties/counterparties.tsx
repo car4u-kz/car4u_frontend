@@ -25,7 +25,7 @@ import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import ArrowUpward from "@mui/icons-material/ArrowUpward";
 import { useQuery } from "@tanstack/react-query";
 
-import { Button, IconButton, Modal, Typography } from "@/components";
+import { Button, IconButton, Modal, Tooltip, Typography } from "@/components";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import { getAdFilterList } from "@/services/ad-services";
 import { getCounterparties } from "@/services/seller-services";
@@ -108,6 +108,12 @@ const compactButtonSx = {
     background: "#eff6ff",
     boxShadow: "none",
   },
+};
+
+const tooltipContentSx = {
+  minWidth: 280,
+  maxWidth: 320,
+  p: 0.5,
 };
 
 const maxPreviewCharacters = 95;
@@ -861,21 +867,199 @@ const CounterpartiesPage = () => {
                             borderBottom: "1px solid #edf2f7",
                           }}
                         >
+                          {(() => {
+                            const phones = [
+                              item.phone1,
+                              item.phone2,
+                              item.phone3,
+                            ].filter(Boolean);
+
+                            return (
                           <Stack spacing={0.5}>
-                            <NextLink
-                              href={`/ads?statusId=0&accountId=${encodeURIComponent(item.userId)}`}
-                              style={{
-                                color: "#2563eb",
-                                fontWeight: 700,
-                                textDecoration: "none",
+                            <Tooltip
+                              placement="top-start"
+                              slotProps={{
+                                tooltip: {
+                                  sx: {
+                                    backgroundColor: "#ffffff",
+                                    color: "#0f172a",
+                                    border: "1px solid #e2e8f0",
+                                    boxShadow: "0 16px 40px rgba(15, 23, 42, 0.14)",
+                                    borderRadius: "14px",
+                                    p: 1.25,
+                                    maxWidth: 360,
+                                  },
+                                },
                               }}
+                              title={
+                                <Box sx={tooltipContentSx}>
+                                  <Stack spacing={1}>
+                                    <Box>
+                                      <MuiTypography
+                                        sx={{
+                                          fontSize: 14,
+                                          fontWeight: 700,
+                                          color: "#0f172a",
+                                        }}
+                                      >
+                                        {item.displayName?.trim() ||
+                                          "Аккаунт без наименования"}
+                                      </MuiTypography>
+                                      <MuiTypography
+                                        sx={{
+                                          mt: 0.25,
+                                          fontSize: 12,
+                                          color: "#64748b",
+                                        }}
+                                      >
+                                        ID: {item.userId}
+                                      </MuiTypography>
+                                    </Box>
+
+                                    {item.category?.trim() ? (
+                                      <Box>
+                                        <MuiTypography
+                                          sx={{
+                                            fontSize: 11,
+                                            fontWeight: 700,
+                                            color: "#64748b",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.04em",
+                                          }}
+                                        >
+                                          Тип аккаунта
+                                        </MuiTypography>
+                                        <MuiTypography
+                                          sx={{
+                                            mt: 0.25,
+                                            fontSize: 13,
+                                            color: "#0f172a",
+                                          }}
+                                        >
+                                          {item.category}
+                                        </MuiTypography>
+                                      </Box>
+                                    ) : null}
+
+                                    {item.accountRegionName?.trim() ? (
+                                      <Box>
+                                        <MuiTypography
+                                          sx={{
+                                            fontSize: 11,
+                                            fontWeight: 700,
+                                            color: "#64748b",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.04em",
+                                          }}
+                                        >
+                                          Регион
+                                        </MuiTypography>
+                                        <MuiTypography
+                                          sx={{
+                                            mt: 0.25,
+                                            fontSize: 13,
+                                            color: "#0f172a",
+                                          }}
+                                        >
+                                          {item.accountRegionName}
+                                        </MuiTypography>
+                                      </Box>
+                                    ) : null}
+
+                                    {phones.length ? (
+                                      <Box>
+                                        <MuiTypography
+                                          sx={{
+                                            fontSize: 11,
+                                            fontWeight: 700,
+                                            color: "#64748b",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.04em",
+                                          }}
+                                        >
+                                          Телефоны
+                                        </MuiTypography>
+                                        {phones.map((phone) => (
+                                          <MuiTypography
+                                            key={phone}
+                                            sx={{
+                                              mt: 0.25,
+                                              fontSize: 13,
+                                              color: "#0f172a",
+                                            }}
+                                          >
+                                            {phone}
+                                          </MuiTypography>
+                                        ))}
+                                      </Box>
+                                    ) : null}
+
+                                    {item.notes?.trim() ? (
+                                      <Box>
+                                        <MuiTypography
+                                          sx={{
+                                            fontSize: 11,
+                                            fontWeight: 700,
+                                            color: "#64748b",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.04em",
+                                          }}
+                                        >
+                                          Заметки
+                                        </MuiTypography>
+                                        <MuiTypography
+                                          sx={{
+                                            mt: 0.25,
+                                            fontSize: 13,
+                                            lineHeight: "18px",
+                                            color: "#0f172a",
+                                            whiteSpace: "pre-wrap",
+                                          }}
+                                        >
+                                          {item.notes}
+                                        </MuiTypography>
+                                      </Box>
+                                    ) : null}
+
+                                    <Box>
+                                      <MuiTypography sx={{ fontSize: 13, color: "#0f172a" }}>
+                                        Объявлений: {formatCount(item.allAdsCount)}
+                                      </MuiTypography>
+                                      {item.allAdsCount > 1 && item.averageCheck ? (
+                                        <MuiTypography
+                                          sx={{
+                                            mt: 0.25,
+                                            fontSize: 13,
+                                            color: "#0f172a",
+                                          }}
+                                        >
+                                          Средний чек: {formatPrice(item.averageCheck)}
+                                        </MuiTypography>
+                                      ) : null}
+                                    </Box>
+                                  </Stack>
+                                </Box>
+                              }
                             >
-                              {item.accountLabel}
-                            </NextLink>
+                              <NextLink
+                                href={`/ads?statusId=0&accountId=${encodeURIComponent(item.userId)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  color: "#2563eb",
+                                  fontWeight: 700,
+                                  textDecoration: "none",
+                                }}
+                              >
+                                {item.accountLabel}
+                              </NextLink>
+                            </Tooltip>
                             <MuiTypography sx={{ fontSize: 12, color: "#64748b" }}>
                               Account ID: {item.userId}
                             </MuiTypography>
                           </Stack>
+                            );
+                          })()}
                         </TableCell>
                         <TableCell
                           sx={{

@@ -3,6 +3,11 @@ export type CounterpartyItem = {
   accountLabel: string;
   displayName?: string;
   category?: string;
+  phone1?: string;
+  phone2?: string;
+  phone3?: string;
+  notes?: string;
+  accountRegionName?: string;
   allAdsCount: number;
   newAdsCount: number;
   archivedAdsCount: number;
