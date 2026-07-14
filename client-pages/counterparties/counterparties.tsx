@@ -131,6 +131,14 @@ const ACCOUNT_TYPE_OPTIONS = [
   "РќРѕРІС‹Р№ РёРіСЂРѕРє",
 ] as const;
 
+const ACCOUNT_TYPE_OPTIONS_FIXED = [
+  "ОД Автосалон",
+  "Перекуп",
+  "Автоплощадка",
+  "Частное лицо",
+  "Новый игрок",
+] as const;
+
 const normalizeNullable = (value: string) => {
   const trimmed = value.trim();
   return trimmed ? trimmed : undefined;
@@ -665,13 +673,20 @@ const CounterpartiesPage = () => {
 
   const hasItems = rows.length > 0;
 
-  const sellerRegions = filterOptionsQuery.data?.sellerRegions ?? [];
+  const sellerRegionNames = useMemo(() => {
+    const currentValue = editingSeller?.accountRegionName?.trim();
+    const values = [
+      ...(filterOptionsQuery.data?.regions ?? []),
+      ...(currentValue ? [currentValue] : []),
+    ]
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    return Array.from(new Set(values));
+  }, [filterOptionsQuery.data?.regions, editingSeller?.accountRegionName]);
 
   const handleOpenSellerEdit = (item: CounterpartyItem) => {
     setEditError(null);
-    const selectedRegion = sellerRegions.find(
-      (region) => region.name === item.accountRegionName,
-    );
 
     setEditingSeller({
       userId: item.userId,
@@ -682,7 +697,7 @@ const CounterpartiesPage = () => {
       notes: item.notes ?? "",
       accountType: item.category ?? "",
       accountRegionName: item.accountRegionName ?? "",
-      accountRegionId: selectedRegion?.id,
+      accountRegionId: undefined,
     });
   };
 
@@ -708,7 +723,7 @@ const CounterpartiesPage = () => {
       phone3: normalizeNullable(editingSeller.phone3 ?? ""),
       notes: normalizeNullable(editingSeller.notes ?? ""),
       accountType: normalizeNullable(editingSeller.accountType ?? ""),
-      accountRegionId: editingSeller.accountRegionId,
+      accountRegionId: undefined,
       accountRegionName: normalizeNullable(editingSeller.accountRegionName ?? ""),
     });
   };
@@ -1677,7 +1692,7 @@ const CounterpartiesPage = () => {
             select
           >
             <MenuItem value="">Не выбрано</MenuItem>
-            {ACCOUNT_TYPE_OPTIONS.map((option) => (
+            {ACCOUNT_TYPE_OPTIONS_FIXED.map((option) => (
               <MenuItem key={option} value={option}>
                 {option}
               </MenuItem>
@@ -1685,19 +1700,16 @@ const CounterpartiesPage = () => {
           </TextField>
           <TextField
             label="Регион"
-            value={editingSeller?.accountRegionId ?? ""}
+            value={editingSeller?.accountRegionName ?? ""}
             onChange={(event) => {
-              const selectedId = Number(event.target.value);
-              const selectedRegion = sellerRegions.find(
-                (region: AdLookupOption) => region.id === selectedId,
-              );
+              const selectedRegionName = event.target.value;
 
               setEditingSeller((prev) =>
                 prev
                   ? {
                       ...prev,
-                      accountRegionId: selectedRegion?.id,
-                      accountRegionName: selectedRegion?.name,
+                      accountRegionId: undefined,
+                      accountRegionName: selectedRegionName,
                     }
                   : prev,
               );
@@ -1707,9 +1719,9 @@ const CounterpartiesPage = () => {
             select
           >
             <MenuItem value="">Не выбрано</MenuItem>
-            {sellerRegions.map((region) => (
-              <MenuItem key={region.id} value={region.id}>
-                {region.name}
+            {sellerRegionNames.map((regionName) => (
+              <MenuItem key={regionName} value={regionName}>
+                {regionName}
               </MenuItem>
             ))}
           </TextField>
