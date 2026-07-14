@@ -9,6 +9,7 @@ import {
   Box,
   Chip,
   CircularProgress,
+  MenuItem,
   Stack,
   Table,
   TableBody,
@@ -16,21 +17,27 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
   Typography as MuiTypography,
 } from "@mui/material";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
 import ArrowDropUpRoundedIcon from "@mui/icons-material/ArrowDropUpRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import ArrowUpward from "@mui/icons-material/ArrowUpward";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { Button, IconButton, Modal, Tooltip, Typography } from "@/components";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import { getAdFilterList } from "@/services/ad-services";
-import { getCounterparties } from "@/services/seller-services";
-import type { AdViewFiltersResponse } from "@/types";
-import type { CounterpartyFilters } from "./types";
+import { getCounterparties, updateSellerProfile } from "@/services/seller-services";
+import type {
+  AdLookupOption,
+  AdViewFiltersResponse,
+  SellerProfileUpdatePayload,
+} from "@/types";
+import type { CounterpartyFilters, CounterpartyItem } from "./types";
 import CounterpartiesFiltersSidebar from "./components/filters-sidebar";
 
 const formatPrice = (value: number | null | undefined) => {
@@ -114,6 +121,19 @@ const tooltipContentSx = {
   minWidth: 280,
   maxWidth: 320,
   p: 0.5,
+};
+
+const ACCOUNT_TYPE_OPTIONS = [
+  "РћР” РђРІС‚РѕСЃР°Р»РѕРЅ",
+  "РџРµСЂРµРєСѓРї",
+  "РђРІС‚РѕРїР»РѕС‰Р°РґРєР°",
+  "Р§Р°СЃС‚РЅРѕРµ Р»РёС†Рѕ",
+  "РќРѕРІС‹Р№ РёРіСЂРѕРє",
+] as const;
+
+const normalizeNullable = (value: string) => {
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
 };
 
 const maxPreviewCharacters = 95;
@@ -498,6 +518,12 @@ const CounterpartiesPage = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [showExpandFiltersButton, setShowExpandFiltersButton] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [editingSeller, setEditingSeller] =
+    useState<SellerProfileUpdatePayload | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [sellerOverrides, setSellerOverrides] = useState<
+    Record<string, Partial<CounterpartyItem>>
+  >({});
   const [listModalState, setListModalState] = useState<{
     title: string;
     accountLabel: string;
@@ -556,6 +582,31 @@ const CounterpartiesPage = () => {
     retry: false,
   });
 
+  const sellerMutation = useMutation({
+    mutationFn: (payload: SellerProfileUpdatePayload) =>
+      updateSellerProfile(payload, fetchWithAuth),
+    onSuccess: (seller) => {
+      setSellerOverrides((prev) => ({
+        ...prev,
+        [seller.userId]: {
+          accountLabel: seller.displayName?.trim() || seller.userId,
+          displayName: seller.displayName,
+          phone1: seller.phone1,
+          phone2: seller.phone2,
+          phone3: seller.phone3,
+          notes: seller.notes,
+          category: seller.accountType,
+          accountRegionName: seller.accountRegionName,
+        },
+      }));
+      setEditError(null);
+      setEditingSeller(null);
+    },
+    onError: (error: Error) => {
+      setEditError(error.message);
+    },
+  });
+
   const setQueryParams = (mutate: (params: URLSearchParams) => void) => {
     const params = new URLSearchParams(searchParams);
     mutate(params);
@@ -586,7 +637,14 @@ const CounterpartiesPage = () => {
     window.scrollTo({ top: 0, behavior: "auto" });
   };
 
-  const rows = counterpartiesQuery.data?.items ?? [];
+  const rows = useMemo(
+    () =>
+      (counterpartiesQuery.data?.items ?? []).map((item) => {
+        const override = sellerOverrides[item.userId];
+        return override ? { ...item, ...override } : item;
+      }),
+    [counterpartiesQuery.data?.items, sellerOverrides],
+  );
   const totalCount = counterpartiesQuery.data?.totalCount ?? 0;
   const currentPage = filters.page ?? 1;
   const pageSize = filters.pageSize ?? 50;
@@ -606,6 +664,54 @@ const CounterpartiesPage = () => {
       : "";
 
   const hasItems = rows.length > 0;
+
+  const sellerRegions = filterOptionsQuery.data?.sellerRegions ?? [];
+
+  const handleOpenSellerEdit = (item: CounterpartyItem) => {
+    setEditError(null);
+    const selectedRegion = sellerRegions.find(
+      (region) => region.name === item.accountRegionName,
+    );
+
+    setEditingSeller({
+      userId: item.userId,
+      displayName: item.displayName ?? "",
+      phone1: item.phone1 ?? "",
+      phone2: item.phone2 ?? "",
+      phone3: item.phone3 ?? "",
+      notes: item.notes ?? "",
+      accountType: item.category ?? "",
+      accountRegionName: item.accountRegionName ?? "",
+      accountRegionId: selectedRegion?.id,
+    });
+  };
+
+  const handleCloseSellerEdit = () => {
+    if (sellerMutation.isPending) {
+      return;
+    }
+
+    setEditError(null);
+    setEditingSeller(null);
+  };
+
+  const handleSaveSeller = () => {
+    if (!editingSeller) {
+      return;
+    }
+
+    sellerMutation.mutate({
+      userId: editingSeller.userId,
+      displayName: normalizeNullable(editingSeller.displayName ?? ""),
+      phone1: normalizeNullable(editingSeller.phone1 ?? ""),
+      phone2: normalizeNullable(editingSeller.phone2 ?? ""),
+      phone3: normalizeNullable(editingSeller.phone3 ?? ""),
+      notes: normalizeNullable(editingSeller.notes ?? ""),
+      accountType: normalizeNullable(editingSeller.accountType ?? ""),
+      accountRegionId: editingSeller.accountRegionId,
+      accountRegionName: normalizeNullable(editingSeller.accountRegionName ?? ""),
+    });
+  };
 
   return (
     <Box
@@ -1037,6 +1143,27 @@ const CounterpartiesPage = () => {
                                         </MuiTypography>
                                       ) : null}
                                     </Box>
+
+                                    <Stack direction="row" spacing={1}>
+                                      <Button
+                                        size="small"
+                                        variant="contained"
+                                        onClick={(event) => {
+                                          event.preventDefault();
+                                          event.stopPropagation();
+                                          handleOpenSellerEdit(item);
+                                        }}
+                                        startIcon={<EditOutlinedIcon fontSize="small" />}
+                                        sx={{
+                                          minWidth: 0,
+                                          px: 1.5,
+                                          py: 0.5,
+                                          textTransform: "none",
+                                        }}
+                                      >
+                                        Редактировать
+                                      </Button>
+                                    </Stack>
                                   </Stack>
                                 </Box>
                               }
@@ -1495,6 +1622,165 @@ const CounterpartiesPage = () => {
           </Box>
         </Modal>
       ) : null}
+
+      <Modal
+        open={!!editingSeller}
+        onClose={handleCloseSellerEdit}
+        onSubmit={handleSaveSeller}
+        title="Редактировать аккаунт"
+        submitLabel="Сохранить"
+        cancelLabel="Отмена"
+        isLoading={sellerMutation.isPending}
+        sx={{ width: 560, maxWidth: "calc(100vw - 32px)" }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {editError ? <Alert severity="error">{editError}</Alert> : null}
+
+          <TextField
+            label="ID аккаунта"
+            value={editingSeller?.userId ?? ""}
+            fullWidth
+            disabled
+            size="small"
+          />
+          <TextField
+            label="Наименование"
+            value={editingSeller?.displayName ?? ""}
+            onChange={(event) =>
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      displayName: event.target.value,
+                    }
+                  : prev,
+              )
+            }
+            fullWidth
+            size="small"
+          />
+          <TextField
+            label="Тип аккаунта"
+            value={editingSeller?.accountType ?? ""}
+            onChange={(event) =>
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      accountType: event.target.value,
+                    }
+                  : prev,
+              )
+            }
+            fullWidth
+            size="small"
+            select
+          >
+            <MenuItem value="">Не выбрано</MenuItem>
+            {ACCOUNT_TYPE_OPTIONS.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            label="Регион"
+            value={editingSeller?.accountRegionId ?? ""}
+            onChange={(event) => {
+              const selectedId = Number(event.target.value);
+              const selectedRegion = sellerRegions.find(
+                (region: AdLookupOption) => region.id === selectedId,
+              );
+
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      accountRegionId: selectedRegion?.id,
+                      accountRegionName: selectedRegion?.name,
+                    }
+                  : prev,
+              );
+            }}
+            fullWidth
+            size="small"
+            select
+          >
+            <MenuItem value="">Не выбрано</MenuItem>
+            {sellerRegions.map((region) => (
+              <MenuItem key={region.id} value={region.id}>
+                {region.name}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            label="Телефон 1"
+            value={editingSeller?.phone1 ?? ""}
+            onChange={(event) =>
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      phone1: event.target.value,
+                    }
+                  : prev,
+              )
+            }
+            fullWidth
+            size="small"
+          />
+          <TextField
+            label="Телефон 2"
+            value={editingSeller?.phone2 ?? ""}
+            onChange={(event) =>
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      phone2: event.target.value,
+                    }
+                  : prev,
+              )
+            }
+            fullWidth
+            size="small"
+          />
+          <TextField
+            label="Телефон 3"
+            value={editingSeller?.phone3 ?? ""}
+            onChange={(event) =>
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      phone3: event.target.value,
+                    }
+                  : prev,
+              )
+            }
+            fullWidth
+            size="small"
+          />
+          <TextField
+            label="Заметки"
+            value={editingSeller?.notes ?? ""}
+            onChange={(event) =>
+              setEditingSeller((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      notes: event.target.value,
+                    }
+                  : prev,
+              )
+            }
+            fullWidth
+            size="small"
+            multiline
+            minRows={4}
+          />
+        </Box>
+      </Modal>
     </Box>
   );
 };
