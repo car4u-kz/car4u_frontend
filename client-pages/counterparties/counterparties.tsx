@@ -673,20 +673,13 @@ const CounterpartiesPage = () => {
 
   const hasItems = rows.length > 0;
 
-  const sellerRegionNames = useMemo(() => {
-    const currentValue = editingSeller?.accountRegionName?.trim();
-    const values = [
-      ...(filterOptionsQuery.data?.regions ?? []),
-      ...(currentValue ? [currentValue] : []),
-    ]
-      .map((value) => value.trim())
-      .filter(Boolean);
-
-    return Array.from(new Set(values));
-  }, [filterOptionsQuery.data?.regions, editingSeller?.accountRegionName]);
+  const sellerRegions = filterOptionsQuery.data?.sellerRegions ?? [];
 
   const handleOpenSellerEdit = (item: CounterpartyItem) => {
     setEditError(null);
+    const selectedRegion = sellerRegions.find(
+      (region) => region.name === item.accountRegionName,
+    );
 
     setEditingSeller({
       userId: item.userId,
@@ -697,7 +690,7 @@ const CounterpartiesPage = () => {
       notes: item.notes ?? "",
       accountType: item.category ?? "",
       accountRegionName: item.accountRegionName ?? "",
-      accountRegionId: undefined,
+      accountRegionId: selectedRegion?.id,
     });
   };
 
@@ -723,7 +716,7 @@ const CounterpartiesPage = () => {
       phone3: normalizeNullable(editingSeller.phone3 ?? ""),
       notes: normalizeNullable(editingSeller.notes ?? ""),
       accountType: normalizeNullable(editingSeller.accountType ?? ""),
-      accountRegionId: undefined,
+      accountRegionId: editingSeller.accountRegionId,
       accountRegionName: normalizeNullable(editingSeller.accountRegionName ?? ""),
     });
   };
@@ -1700,16 +1693,19 @@ const CounterpartiesPage = () => {
           </TextField>
           <TextField
             label="Регион"
-            value={editingSeller?.accountRegionName ?? ""}
+            value={editingSeller?.accountRegionId ?? ""}
             onChange={(event) => {
-              const selectedRegionName = event.target.value;
+              const selectedId = Number(event.target.value);
+              const selectedRegion = sellerRegions.find(
+                (region) => region.id === selectedId,
+              );
 
               setEditingSeller((prev) =>
                 prev
                   ? {
                       ...prev,
-                      accountRegionId: undefined,
-                      accountRegionName: selectedRegionName,
+                      accountRegionId: selectedRegion?.id,
+                      accountRegionName: selectedRegion?.name,
                     }
                   : prev,
               );
@@ -1719,9 +1715,9 @@ const CounterpartiesPage = () => {
             select
           >
             <MenuItem value="">Не выбрано</MenuItem>
-            {sellerRegionNames.map((regionName) => (
-              <MenuItem key={regionName} value={regionName}>
-                {regionName}
+            {sellerRegions.map((region) => (
+              <MenuItem key={region.id} value={region.id}>
+                {region.name}
               </MenuItem>
             ))}
           </TextField>
