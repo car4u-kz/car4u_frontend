@@ -3,12 +3,11 @@
 import { TableRow } from "@mui/material";
 
 import TableCell from "@/components/table/table-cell";
-
-import { ActionPayloadType, MenuItemConfig } from "../types";
-
-import { Status, statusLabels, MenuItemAction } from "@/constants";
 import { SplitButton } from "@/components";
 import GeneratePDFDropdown from "@/components/generate-pdf/generate-pdf";
+import { Status, statusLabels, MenuItemAction } from "@/constants";
+
+import { ActionPayloadType, MenuItemConfig, OurAdItem } from "../types";
 
 const menuItems: Record<string, MenuItemConfig> = {
   start: {
@@ -19,6 +18,10 @@ const menuItems: Record<string, MenuItemConfig> = {
     label: "Завершить",
     value: MenuItemAction.stop,
   },
+  edit: {
+    label: "Редактировать",
+    value: MenuItemAction.edit,
+  },
   delete: {
     label: "Удалить",
     value: MenuItemAction.delete,
@@ -26,17 +29,22 @@ const menuItems: Record<string, MenuItemConfig> = {
 };
 
 const statusActionsMap: Partial<Record<Status, MenuItemConfig[]>> = {
-  [Status.started]: [menuItems.stop],
-  [Status.stopped]: [menuItems.start, menuItems.delete],
-  [Status.monitoringCompleted]: [menuItems.start, menuItems.delete],
+  [Status.started]: [menuItems.stop, menuItems.edit],
+  [Status.stopped]: [menuItems.start, menuItems.edit, menuItems.delete],
+  [Status.monitoringCompleted]: [
+    menuItems.start,
+    menuItems.edit,
+    menuItems.delete,
+  ],
 };
 
 type Props = {
   onClick: (action: ActionPayloadType) => void;
-  items: any[];
+  onEdit: (ad: OurAdItem) => void;
+  items: OurAdItem[];
 };
 
-const TableRows = ({ items, onClick }: Props) => {
+const TableRows = ({ items, onClick, onEdit }: Props) => {
   return (
     <>
       {items?.map((item, id) => {
@@ -50,7 +58,14 @@ const TableRows = ({ items, onClick }: Props) => {
             <TableCell>
               <SplitButton
                 menuItems={menuItems}
-                onClick={(action) => onClick({ ...action, id: item.id })}
+                onClick={(action) => {
+                  if (action.method === MenuItemAction.edit) {
+                    onEdit(item);
+                    return;
+                  }
+
+                  onClick({ ...action, id: item.id });
+                }}
               />
             </TableCell>
             <GeneratePDFDropdown index={id} itemId={item.id} isOurAd />
@@ -60,4 +75,5 @@ const TableRows = ({ items, onClick }: Props) => {
     </>
   );
 };
+
 export default TableRows;

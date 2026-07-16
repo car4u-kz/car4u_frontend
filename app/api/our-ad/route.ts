@@ -16,3 +16,15 @@ export async function POST(request: NextRequest) {
     body: JSON.stringify(body),
   });
 }
+
+export async function PUT(request: NextRequest) {
+  const body = await request.json();
+
+  return proxyToBackend(request, "/api/our-ad", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}

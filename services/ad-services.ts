@@ -97,6 +97,42 @@ export const postAd = async (
   }
 };
 
+export const putAd = async (
+  id: number,
+  formData: AdFormData,
+  fetchWithAuth: typeof fetch
+) => {
+  const isServer = typeof window === "undefined";
+  const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
+  const url = `${basePath}/api/our-ad`;
+
+  try {
+    const response = await fetchWithAuth(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id,
+        mainImagePath: formData.mainImagePath,
+        notDetectedCount: formData.notDetectedCount,
+        depthOfMonitoring: formData.depthOfMonitoring,
+        monitoringDurationDays: formData.monitoringDurationDays,
+        intervalSeconds: formData.intervalSeconds,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return Promise.reject(new Error(result?.error || result?.message || "Something went wrong"));
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error during updating an Ad:", error);
+    throw error instanceof Error ? error : new Error("Something went wrong");
+  }
+};
+
 export const deleteAd = async (adId: number, fetchWithAuth: typeof fetch) => {
   const isServer = typeof window === "undefined";
   const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";

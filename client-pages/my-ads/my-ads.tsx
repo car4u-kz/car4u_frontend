@@ -7,10 +7,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Modal, Table } from "@/components";
 import TableRows from "./components/table-rows";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import Form from "./components/form";
 
 import {
   postAd,
+  putAd,
   getAds,
   deleteAd,
   changeAdState,
@@ -23,10 +23,11 @@ import {
 } from "@/services/our-ads-sessions-services";
 import { getAccounts } from "@/services/account-services";
 
-import type { AdFormData, ActionPayloadType } from "./types";
+import type { AdFormData, ActionPayloadType, OurAdItem } from "./types";
 import { MenuItemAction } from "@/constants";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import AdWizard from "./components/ad-wizard";
+import EditForm from "./components/edit-form";
 
 type Props = {};
 
@@ -45,6 +46,19 @@ const initialData: AdFormData = {
   accountId: "",
 };
 
+const mapAdToFormData = (ad: OurAdItem): AdFormData => ({
+  name: ad.name,
+  parsingTemplateId: ad.parsingTemplateId,
+  url: ad.url,
+  mainImagePath: ad.mainImagePath,
+  notDetectedCount: ad.notDetectedCount,
+  depthOfMonitoring: ad.depthOfMonitoring,
+  intervalSeconds: ad.intervalSeconds,
+  monitoringDurationDays: ad.monitoringDurationDays,
+  sessionId: "",
+  accountId: "",
+});
+
 const Confirmation = () => {
   return (
     <Box>
@@ -54,10 +68,13 @@ const Confirmation = () => {
 };
 
 const MyAds = ({}: Props) => {
-  const [open, setOpen] = useState<"add" | "confirmation" | false>(false);
+  const [open, setOpen] = useState<"add" | "edit" | "confirmation" | false>(
+    false,
+  );
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<AdFormData>(initialData);
   const [action, setAction] = useState<ActionPayloadType | null>(null);
+  const [editingAdId, setEditingAdId] = useState<number | null>(null);
   const [accounts, setAccounts] = useState<{ value: string; label: string }[]>(
     []
   );
@@ -121,12 +138,21 @@ const MyAds = ({}: Props) => {
   });
 
   const mutation = useMutation({
-    mutationFn: async (formData: AdFormData) => {
-      await postAd(formData, fetchWithAuth);
+    mutationFn: async (
+      payload:
+        | { type: "create"; formData: AdFormData }
+        | { type: "edit"; id: number; formData: AdFormData },
+    ) => {
+      if (payload.type === "edit") {
+        return putAd(payload.id, payload.formData, fetchWithAuth);
+      }
+
+      return postAd(payload.formData, fetchWithAuth);
     },
     onSuccess: () => {
       setOpen(false);
       setFormData(initialData);
+      setEditingAdId(null);
       query.refetch();
     },
     onError: (error: Error) => {
@@ -143,7 +169,11 @@ const MyAds = ({}: Props) => {
 
   const onSubmit = async () => {
     if (open === "add") {
-      return mutation.mutate(formData);
+      return mutation.mutate({ type: "create", formData });
+    }
+
+    if (open === "edit" && editingAdId != null) {
+      return mutation.mutate({ type: "edit", id: editingAdId, formData });
     }
 
     if (open === "confirmation") {
@@ -169,10 +199,20 @@ const MyAds = ({}: Props) => {
     }
   };
 
+  const onEditClick = (ad: OurAdItem) => {
+    setError(null);
+    setAction(null);
+    setEditingAdId(ad.id);
+    setFormData(mapAdToFormData(ad));
+    setOpen("edit");
+  };
+
   const handleModalClose = () => {
     setOpen(false);
     setFormData(initialData);
     setError(null);
+    setAction(null);
+    setEditingAdId(null);
   };
 
   const parsingTemplateDataOptions = (parsingTemplateQuery?.data ?? []).map(
@@ -183,6 +223,7 @@ const MyAds = ({}: Props) => {
   );
 
   const isAdd = open === "add";
+  const isEdit = open === "edit";
   const modalComponent = isAdd ? (
     <AdWizard
       fetchWithAuth={fetchWithAuth}
@@ -193,7 +234,7 @@ const MyAds = ({}: Props) => {
       parsingTemplateDataOptions={parsingTemplateDataOptions}
       onSubmitAd={async (data) => {
         try {
-          await mutation.mutateAsync(data);
+          await mutation.mutateAsync({ type: "create", formData: data });
           return { ok: true as const };
         } catch (e: any) {
           return {
@@ -204,6 +245,13 @@ const MyAds = ({}: Props) => {
       }}
       // закрытие модалки
       onClose={handleModalClose}
+    />
+  ) : isEdit ? (
+    <EditForm
+      error={error}
+      handleChange={handleChange}
+      handleSelect={handleSelect}
+      formData={formData}
     />
   ) : (
     <Confirmation />
@@ -227,7 +275,13 @@ const MyAds = ({}: Props) => {
             </Button>
           </Box>
         }
-        tableRows={<TableRows items={query?.data} onClick={onButtonClick} />}
+        tableRows={
+          <TableRows
+            items={query?.data ?? []}
+            onClick={onButtonClick}
+            onEdit={onEditClick}
+          />
+        }
         headerLabels={headerLabels}
       />
       <Modal
@@ -235,7 +289,14 @@ const MyAds = ({}: Props) => {
         sx={{ width: 550 }}
         onClose={handleModalClose}
         open={!!open}
-        title={isAdd  ? "Создать новое Объявления" : ""}
+        title={
+          isAdd
+            ? "Создать новое Объявления"
+            : isEdit
+              ? "Редактировать объявление"
+              : ""
+        }
+        submitLabel={isEdit ? "Сохранить" : undefined}
         onSubmit={onSubmit}
         hideFooter={isAdd}
       >
