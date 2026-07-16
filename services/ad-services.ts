@@ -117,6 +117,8 @@ export const putAd = async (
         depthOfMonitoring: formData.depthOfMonitoring,
         monitoringDurationDays: formData.monitoringDurationDays,
         intervalSeconds: formData.intervalSeconds,
+        price: formData.hasDetails ? formData.price : null,
+        isNewAuto: formData.hasDetails ? formData.isNewAuto : null,
       }),
     });
 

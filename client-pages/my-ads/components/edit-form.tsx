@@ -1,6 +1,12 @@
 "use client";
 
-import { Alert, SelectChangeEvent, Stack } from "@mui/material";
+import {
+  Alert,
+  Checkbox,
+  FormControlLabel,
+  SelectChangeEvent,
+  Stack,
+} from "@mui/material";
 
 import { Select, TextInput } from "@/components/form";
 import { Typography } from "@/components";
@@ -13,11 +19,18 @@ type Props = {
     key: keyof AdFormData,
   ) => void;
   handleSelect: (e: SelectChangeEvent, key: keyof AdFormData) => void;
+  handleBooleanChange: (value: boolean, key: keyof AdFormData) => void;
   formData: AdFormData;
   error?: string | null;
 };
 
-const EditForm = ({ handleChange, handleSelect, formData, error }: Props) => {
+const EditForm = ({
+  handleChange,
+  handleSelect,
+  handleBooleanChange,
+  formData,
+  error,
+}: Props) => {
   return (
     <Stack direction="column" gap={2}>
       {error && <Alert severity="error">{error}</Alert>}
@@ -58,6 +71,32 @@ const EditForm = ({ handleChange, handleSelect, formData, error }: Props) => {
         label="Длительность мониторинга (дней)"
         value={formData.monitoringDurationDays}
         onChange={(e) => handleChange(e, "monitoringDurationDays")}
+      />
+      <Typography>Данные объявления</Typography>
+      <TextInput
+        type="number"
+        max={999999999}
+        label="Цена"
+        value={formData.price}
+        disabled={!formData.hasDetails}
+        helperText={
+          formData.hasDetails
+            ? undefined
+            : "Данные объявления еще не получены обработчиком"
+        }
+        onChange={(e) => handleChange(e, "price")}
+      />
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={formData.isNewAuto}
+            disabled={!formData.hasDetails}
+            onChange={(e) =>
+              handleBooleanChange(e.target.checked, "isNewAuto")
+            }
+          />
+        }
+        label="Новое авто"
       />
     </Stack>
   );

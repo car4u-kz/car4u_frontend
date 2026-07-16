@@ -42,6 +42,9 @@ const initialData: AdFormData = {
   depthOfMonitoring: "",
   intervalSeconds: "",
   monitoringDurationDays: "",
+  price: "",
+  isNewAuto: false,
+  hasDetails: false,
   sessionId: "",
   accountId: "",
 };
@@ -55,6 +58,9 @@ const mapAdToFormData = (ad: OurAdItem): AdFormData => ({
   depthOfMonitoring: ad.depthOfMonitoring,
   intervalSeconds: ad.intervalSeconds,
   monitoringDurationDays: ad.monitoringDurationDays,
+  price: ad.price ?? "",
+  isNewAuto: ad.isNewAuto ?? false,
+  hasDetails: ad.hasDetails,
   sessionId: "",
   accountId: "",
 });
@@ -167,6 +173,9 @@ const MyAds = ({}: Props) => {
   const handleSelect = (e: SelectChangeEvent, key: keyof AdFormData) =>
     setFormData((prev) => ({ ...prev, [key]: e.target.value }));
 
+  const handleBooleanChange = (value: boolean, key: keyof AdFormData) =>
+    setFormData((prev) => ({ ...prev, [key]: value }));
+
   const onSubmit = async () => {
     if (open === "add") {
       return mutation.mutate({ type: "create", formData });
@@ -251,6 +260,7 @@ const MyAds = ({}: Props) => {
       error={error}
       handleChange={handleChange}
       handleSelect={handleSelect}
+      handleBooleanChange={handleBooleanChange}
       formData={formData}
     />
   ) : (

@@ -20,6 +20,9 @@ export type AdFormData = {
   depthOfMonitoring: string;
   intervalSeconds: string;
   monitoringDurationDays: string;
+  price: string;
+  isNewAuto: boolean;
+  hasDetails: boolean;
   sessionId: string;
   accountId: string;
 };
