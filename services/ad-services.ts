@@ -119,6 +119,7 @@ export const putAd = async (
         intervalSeconds: formData.intervalSeconds,
         price: formData.hasDetails ? formData.price : null,
         isNewAuto: formData.hasDetails ? formData.isNewAuto : null,
+        description: formData.hasDetails ? formData.description : null,
       }),
     });
 

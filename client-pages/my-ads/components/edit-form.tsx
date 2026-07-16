@@ -98,6 +98,19 @@ const EditForm = ({
         }
         label="Новое авто"
       />
+      <TextInput
+        label="Описание"
+        value={formData.description}
+        disabled={!formData.hasDetails}
+        multiline
+        minRows={4}
+        helperText={
+          formData.hasDetails
+            ? undefined
+            : "Данные объявления еще не получены обработчиком"
+        }
+        onChange={(e) => handleChange(e, "description")}
+      />
     </Stack>
   );
 };

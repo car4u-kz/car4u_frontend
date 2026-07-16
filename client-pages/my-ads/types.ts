@@ -22,6 +22,7 @@ export type AdFormData = {
   monitoringDurationDays: string;
   price: string;
   isNewAuto: boolean;
+  description: string;
   hasDetails: boolean;
   sessionId: string;
   accountId: string;
