@@ -61,7 +61,7 @@ const mapAdToFormData = (ad: OurAdItem): AdFormData => ({
   monitoringDurationDays: ad.monitoringDurationDays,
   price: ad.price ?? "",
   isNewAuto: ad.isNewAuto ?? false,
-  description: ad.description ?? "",
+  description: ad.description ?? ad.desctiption ?? ad.Description ?? "",
   hasDetails: ad.hasDetails,
   sessionId: "",
   accountId: "",

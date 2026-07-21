@@ -104,6 +104,12 @@ const EditForm = ({
         disabled={!formData.hasDetails}
         multiline
         minRows={4}
+        maxRows={8}
+        sx={{
+          "& textarea": {
+            overflowY: "auto",
+          },
+        }}
         helperText={
           formData.hasDetails
             ? undefined
