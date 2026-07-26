@@ -215,6 +215,9 @@ const AdsTable = ({
             "& .region-col": {
               width: 146,
             },
+            "& .searches-col": {
+              width: 86,
+            },
             "& .actions-col": {
               width: 40,
             },
@@ -243,6 +246,9 @@ const AdsTable = ({
               },
               "& .region-col": {
                 width: 130,
+              },
+              "& .searches-col": {
+                width: 78,
               },
               "& .actions-col": {
                 width: 36,

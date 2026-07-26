@@ -41,6 +41,7 @@ type Props = {
   statusId: SQ;
   onUpdate: (itemGlobalIndex: number) => Promise<void>;
   onAccountClick: (accountId: string) => void;
+  onMonitoringsClick: (item: CarAd, externalAdId: string) => void;
   sellerRegions: AdLookupOption[];
 };
 
@@ -111,6 +112,7 @@ const TableRows = ({
   items,
   onUpdate,
   onAccountClick,
+  onMonitoringsClick,
   sellerRegions,
 }: Props) => {
   const fetchWithAuth = useFetchWithAuth();
@@ -599,6 +601,29 @@ const TableRows = ({
               }}
             >
               {item.region}
+            </TableCell>
+
+            <TableCell className="searches-col" sx={subtleCellSx}>
+              {item.otherMonitoringsCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => onMonitoringsClick(item, adExternalId)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    color: "#2563eb",
+                    cursor: "pointer",
+                    font: "inherit",
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  +{item.otherMonitoringsCount} других
+                </button>
+              ) : (
+                "1"
+              )}
             </TableCell>
 
             <GeneratePDFDropdown index={idx} itemId={item.adId} variant="ads" />

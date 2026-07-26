@@ -6,5 +6,6 @@ export { default as Tooltip } from "./tooltip";
 export { default as Image } from "./image";
 export { default as Link } from "./Link";
 export { default as Modal } from "./modal";
+export { default as Drawer } from "./drawer";
 
 export type { SplitButtonProps } from "./split-button";

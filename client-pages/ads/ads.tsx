@@ -15,6 +15,7 @@ import AdsTable from "./components/ads-table";
 import TableRows from "./components/table-row";
 import TableButtons from "./components/table-buttons";
 import FiltersSidebar from "./components/filters-sidebar";
+import CatalogAdMonitoringsDrawer from "./components/monitorings-drawer";
 import { IconButton } from "@/components";
 
 import { getCars } from "@/services/car-services";
@@ -30,7 +31,7 @@ import {
   CarsPage,
   getPageIndexForItem,
 } from "@/helpers/findPageIndexByItemIndex";
-import { AdStatusStats, AdViewFiltersResponse } from "@/types";
+import { AdStatusStats, AdViewFiltersResponse, CarAd } from "@/types";
 
 const changeableHeader: Record<SQ, string> = {
   [SQ.all]: "Опубликовано",
@@ -82,6 +83,7 @@ const generateHeaderCells = (
     { key: "gearbox", className: "gearbox-col", label: "КПП" },
     { key: "body", className: "body-col", label: "Кузов" },
     { key: "region", className: "region-col", label: "Регион" },
+    { key: "searches", className: "searches-col", label: "Поиски" },
     { key: "actions", className: "actions-col", label: "" },
   ];
 };
@@ -95,6 +97,10 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [showExpandFiltersButton, setShowExpandFiltersButton] = useState(true);
+  const [monitoringsDrawerAd, setMonitoringsDrawerAd] = useState<{
+    adId: number;
+    externalAdId: string;
+  } | null>(null);
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
@@ -218,6 +224,13 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
 
     const newUrl = `${pathname}?${params.toString()}`;
     window.history.pushState({}, "", newUrl);
+  };
+
+  const handleMonitoringsClick = (item: CarAd, externalAdId: string) => {
+    setMonitoringsDrawerAd({
+      adId: item.adId,
+      externalAdId,
+    });
   };
 
   const handleResetFilters = () => {
@@ -383,9 +396,17 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
               items={items}
               onUpdate={handleUpdateItemPage}
               onAccountClick={handleAccountClick}
+              onMonitoringsClick={handleMonitoringsClick}
               sellerRegions={queryFilterList.data?.sellerRegions ?? []}
             />
           }
+        />
+
+        <CatalogAdMonitoringsDrawer
+          open={!!monitoringsDrawerAd}
+          adId={monitoringsDrawerAd?.adId ?? null}
+          externalAdId={monitoringsDrawerAd?.externalAdId}
+          onClose={() => setMonitoringsDrawerAd(null)}
         />
       </Box>
 

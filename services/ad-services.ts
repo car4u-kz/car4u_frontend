@@ -1,6 +1,6 @@
 import { MenuItemAction } from "@/constants";
 import { AdFormData } from "@/client-pages/my-ads/types";
-import { AdStatusStats, AdViewFiltersResponse } from "@/types";
+import { AdStatusStats, AdViewFiltersResponse, CatalogAdMonitoring } from "@/types";
 
 export const getAds = async (fetchWithAuth: typeof fetch) => {
   const isServer = typeof window === "undefined";
@@ -67,6 +67,25 @@ export const getAdStats = async (
     console.log(error);
     throw error;
   }
+};
+
+export const getCatalogAdMonitorings = async (
+  adId: number,
+  fetchWithAuth: typeof fetch
+): Promise<CatalogAdMonitoring[]> => {
+  const isServer = typeof window === "undefined";
+  const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
+  const url = `${basePath}/api/adview/${adId}/monitorings`;
+
+  const response = await fetchWithAuth(url, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch ad monitorings");
+  }
+
+  return await response.json();
 };
 
 export const postAd = async (

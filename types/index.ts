@@ -29,6 +29,7 @@ export type CarAd = {
   fuelType: string;
   firstPhotoLink: string;
   isViewed: boolean,
+  otherMonitoringsCount: number;
 };
 
 export type PaginatedCarAds = {
@@ -89,4 +90,19 @@ export type AdViewFiltersResponse = {
   models: AdModelLookupOption[];
   bodyTypes: AdLookupOption[];
   sellerRegions: AdLookupOption[];
+};
+
+export type CatalogAdMonitoring = {
+  catalogAdTemplateId: number;
+  templateId: number;
+  templateName: string;
+  templateUrl: string;
+  statusId: number;
+  statusName: string;
+  firstSeenAt: string;
+  lastSeenAt?: string | null;
+  lastCheckDate?: string | null;
+  lastMissingAt?: string | null;
+  position?: number | null;
+  previousPosition?: number | null;
 };
