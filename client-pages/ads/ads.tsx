@@ -16,6 +16,7 @@ import TableRows from "./components/table-row";
 import TableButtons from "./components/table-buttons";
 import FiltersSidebar from "./components/filters-sidebar";
 import CatalogAdMonitoringsDrawer from "./components/monitorings-drawer";
+import CatalogAdDuplicateHistoryDrawer from "./components/duplicate-history-drawer";
 import { IconButton } from "@/components";
 
 import { getCars } from "@/services/car-services";
@@ -101,6 +102,11 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     adId: number;
     externalAdId: string;
   } | null>(null);
+  const [duplicateHistoryDrawerAd, setDuplicateHistoryDrawerAd] = useState<{
+    adId: number;
+    externalAdId: string;
+    templateId?: number;
+  } | null>(null);
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
@@ -108,7 +114,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const stringParams = searchParams.toString();
   const sortBy = searchParams.get("sortBy");
   const sortOrder = searchParams.get("sortOrder");
-  const templateId = searchParams.get("templateId");
+  const hideDuplicatesParam = searchParams.get("hideDuplicates");
   const statsParams = new URLSearchParams(searchParams.toString());
   statsParams.delete("statusId");
   statsParams.delete("page");
@@ -116,8 +122,8 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   statsParams.delete("sortOrder");
   const statsQueryString = statsParams.toString();
   const summaryStatsParams = new URLSearchParams();
-  if (templateId) {
-    summaryStatsParams.set("templateId", templateId);
+  if (hideDuplicatesParam === "false") {
+    summaryStatsParams.set("hideDuplicates", "false");
   }
   const summaryStatsQueryString = summaryStatsParams.toString();
   const hasActiveFilters = [
@@ -137,6 +143,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     "brandId",
     "modelId",
     "bodyTypeId",
+    "hideDuplicates",
   ].some((key) => !!searchParams.get(key));
 
   const handleDateSortClick = () => {
@@ -233,6 +240,14 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     });
   };
 
+  const handleDuplicateHistoryClick = (item: CarAd, externalAdId: string) => {
+    setDuplicateHistoryDrawerAd({
+      adId: item.adId,
+      externalAdId,
+      templateId: item.parsingTemplateId,
+    });
+  };
+
   const handleResetFilters = () => {
     const params = new URLSearchParams(searchParams);
 
@@ -253,6 +268,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       "brandId",
       "modelId",
       "bodyTypeId",
+      "hideDuplicates",
       "page",
     ].forEach((key) => params.delete(key));
 
@@ -397,6 +413,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
               onUpdate={handleUpdateItemPage}
               onAccountClick={handleAccountClick}
               onMonitoringsClick={handleMonitoringsClick}
+              onDuplicateHistoryClick={handleDuplicateHistoryClick}
               sellerRegions={queryFilterList.data?.sellerRegions ?? []}
             />
           }
@@ -407,6 +424,14 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
           adId={monitoringsDrawerAd?.adId ?? null}
           externalAdId={monitoringsDrawerAd?.externalAdId}
           onClose={() => setMonitoringsDrawerAd(null)}
+        />
+
+        <CatalogAdDuplicateHistoryDrawer
+          open={!!duplicateHistoryDrawerAd}
+          adId={duplicateHistoryDrawerAd?.adId ?? null}
+          externalAdId={duplicateHistoryDrawerAd?.externalAdId}
+          templateId={duplicateHistoryDrawerAd?.templateId}
+          onClose={() => setDuplicateHistoryDrawerAd(null)}
         />
       </Box>
 

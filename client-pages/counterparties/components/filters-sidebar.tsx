@@ -165,9 +165,9 @@ const CounterpartiesFiltersSidebar = ({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [allAdsFrom, setAllAdsFrom] = useState(searchParams.get("allAdsFrom") ?? "2");
+  const [allAdsFrom, setAllAdsFrom] = useState(searchParams.get("allAdsFrom") ?? "");
   const [allAdsTo, setAllAdsTo] = useState(searchParams.get("allAdsTo") ?? "");
-  const [archivedAdsFrom, setArchivedAdsFrom] = useState(searchParams.get("archivedAdsFrom") ?? "2");
+  const [archivedAdsFrom, setArchivedAdsFrom] = useState(searchParams.get("archivedAdsFrom") ?? "");
   const [archivedAdsTo, setArchivedAdsTo] = useState(searchParams.get("archivedAdsTo") ?? "");
   const [category, setCategory] = useState(searchParams.get("category") ?? "");
   const [region, setRegion] = useState(searchParams.get("region") ?? "");
@@ -175,9 +175,9 @@ const CounterpartiesFiltersSidebar = ({
   const [modelId, setModelId] = useState(searchParams.get("modelId") ?? "");
 
   useEffect(() => {
-    setAllAdsFrom(searchParams.get("allAdsFrom") ?? "2");
+    setAllAdsFrom(searchParams.get("allAdsFrom") ?? "");
     setAllAdsTo(searchParams.get("allAdsTo") ?? "");
-    setArchivedAdsFrom(searchParams.get("archivedAdsFrom") ?? "2");
+    setArchivedAdsFrom(searchParams.get("archivedAdsFrom") ?? "");
     setArchivedAdsTo(searchParams.get("archivedAdsTo") ?? "");
     setCategory(searchParams.get("category") ?? "");
     setRegion(searchParams.get("region") ?? "");
@@ -238,9 +238,9 @@ const CounterpartiesFiltersSidebar = ({
   };
 
   const resetFilters = () => {
-    setAllAdsFrom("2");
+    setAllAdsFrom("");
     setAllAdsTo("");
-    setArchivedAdsFrom("2");
+    setArchivedAdsFrom("");
     setArchivedAdsTo("");
     setCategory("");
     setRegion("");
@@ -338,6 +338,7 @@ const CounterpartiesFiltersSidebar = ({
               value={allAdsFrom}
               onChange={(e) => setAllAdsFrom(e.target.value)}
               placeholder="От"
+              min={0}
               max={999999}
               sx={inputSx}
             />
@@ -346,6 +347,7 @@ const CounterpartiesFiltersSidebar = ({
               value={allAdsTo}
               onChange={(e) => setAllAdsTo(e.target.value)}
               placeholder="До"
+              min={0}
               max={999999}
               sx={inputSx}
             />
@@ -360,6 +362,7 @@ const CounterpartiesFiltersSidebar = ({
               value={archivedAdsFrom}
               onChange={(e) => setArchivedAdsFrom(e.target.value)}
               placeholder="От"
+              min={0}
               max={999999}
               sx={inputSx}
             />
@@ -368,6 +371,7 @@ const CounterpartiesFiltersSidebar = ({
               value={archivedAdsTo}
               onChange={(e) => setArchivedAdsTo(e.target.value)}
               placeholder="До"
+              min={0}
               max={999999}
               sx={inputSx}
             />

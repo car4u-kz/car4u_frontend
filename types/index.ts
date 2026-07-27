@@ -1,5 +1,6 @@
 export type CarAd = {
   dynamicInfoId: number;
+  parsingTemplateId?: number;
   adId: number;
   adTitle: string;
   sellerUserId?: string;
@@ -105,4 +106,39 @@ export type CatalogAdMonitoring = {
   lastMissingAt?: string | null;
   position?: number | null;
   previousPosition?: number | null;
+};
+
+export type CatalogAdDuplicateHistoryItem = {
+  catalogAdId: number;
+  parentCatalogAdId?: number | null;
+  externalAdId: string;
+  title: string;
+  url: string;
+  currentStatusId: number;
+  currentStatusName: string;
+  templateId: number;
+  templateName: string;
+  templateUrl: string;
+  firstSeenAt: string;
+  lastCheckDate?: string | null;
+  currentStatusSince?: string | null;
+};
+
+export type CatalogAdStatusTimelineEvent = {
+  statusId: number;
+  statusName: string;
+  templateId: number;
+  templateName: string;
+  templateUrl: string;
+  capturedAt: string;
+  lastCheckDate?: string | null;
+  reason?: string | null;
+};
+
+export type CatalogAdStatusTimeline = {
+  catalogAdId: number;
+  externalAdId: string;
+  title: string;
+  url: string;
+  events: CatalogAdStatusTimelineEvent[];
 };

@@ -8,10 +8,12 @@ type Props = {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   helperText?: string;
   error?: boolean;
+  min?: number;
   max?: number;
 } & TextFieldProps;
 
-const validateNumber = (value: number, max = 99) => value <= max;
+const validateNumber = (value: number, min = 1, max = 99) =>
+  value >= min && value <= max;
 
 const TextInput = ({
   label,
@@ -21,7 +23,9 @@ const TextInput = ({
   error = false,
   type,
   size = "small",
+  min = 1,
   max = 99,
+  inputProps,
   ...props
 }: Props) => {
   return (
@@ -41,8 +45,8 @@ const TextInput = ({
         if (type !== "number") return onChange(e);
 
         if (
-          (/^[1-9]\d*$/.test(e.target.value) &&
-            validateNumber(Number(e.target.value), max)) ||
+          (/^\d+$/.test(e.target.value) &&
+            validateNumber(Number(e.target.value), min, max)) ||
           e.target.value === ""
         ) {
           return onChange(e);
@@ -54,6 +58,7 @@ const TextInput = ({
       fullWidth
       size={size}
       {...props}
+      inputProps={{ min, max, ...inputProps }}
     />
   );
 };

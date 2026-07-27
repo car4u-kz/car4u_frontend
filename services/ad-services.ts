@@ -1,6 +1,12 @@
 import { MenuItemAction } from "@/constants";
 import { AdFormData } from "@/client-pages/my-ads/types";
-import { AdStatusStats, AdViewFiltersResponse, CatalogAdMonitoring } from "@/types";
+import {
+  AdStatusStats,
+  AdViewFiltersResponse,
+  CatalogAdDuplicateHistoryItem,
+  CatalogAdMonitoring,
+  CatalogAdStatusTimeline,
+} from "@/types";
 
 export const getAds = async (fetchWithAuth: typeof fetch) => {
   const isServer = typeof window === "undefined";
@@ -83,6 +89,67 @@ export const getCatalogAdMonitorings = async (
 
   if (!response.ok) {
     throw new Error("Failed to fetch ad monitorings");
+  }
+
+  return await response.json();
+};
+
+export const getCatalogAdDuplicateHistory = async (
+  adId: number,
+  fetchWithAuth: typeof fetch
+): Promise<CatalogAdDuplicateHistoryItem[]> => {
+  const isServer = typeof window === "undefined";
+  const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
+  const url = `${basePath}/api/adview/${adId}/duplicate-history`;
+
+  const response = await fetchWithAuth(url, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch ad duplicate history");
+  }
+
+  return await response.json();
+};
+
+export const getCatalogAdStatusHistory = async (
+  adId: number,
+  templateId: number | null | undefined,
+  fetchWithAuth: typeof fetch
+): Promise<CatalogAdStatusTimeline> => {
+  const isServer = typeof window === "undefined";
+  const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
+  const query = templateId ? `?templateId=${encodeURIComponent(templateId)}` : "";
+  const url = `${basePath}/api/adview/${adId}/status-history${query}`;
+
+  const response = await fetchWithAuth(url, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch ad status history");
+  }
+
+  return await response.json();
+};
+
+export const getCatalogAdDuplicateChainStatusHistory = async (
+  adId: number,
+  templateId: number | null | undefined,
+  fetchWithAuth: typeof fetch
+): Promise<CatalogAdStatusTimeline[]> => {
+  const isServer = typeof window === "undefined";
+  const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
+  const query = templateId ? `?templateId=${encodeURIComponent(templateId)}` : "";
+  const url = `${basePath}/api/adview/${adId}/duplicate-chain-status-history${query}`;
+
+  const response = await fetchWithAuth(url, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch ad duplicate chain status history");
   }
 
   return await response.json();

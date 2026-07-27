@@ -548,9 +548,9 @@ const CounterpartiesPage = () => {
     };
 
     return {
-      allAdsFrom: readNumber("allAdsFrom") ?? 2,
+      allAdsFrom: readNumber("allAdsFrom"),
       allAdsTo: readNumber("allAdsTo"),
-      archivedAdsFrom: readNumber("archivedAdsFrom") ?? 2,
+      archivedAdsFrom: readNumber("archivedAdsFrom"),
       archivedAdsTo: readNumber("archivedAdsTo"),
       category: searchParams.get("category") || undefined,
       region: searchParams.get("region") || undefined,

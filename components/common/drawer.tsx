@@ -17,6 +17,7 @@ type Props = {
   onClose: () => void;
   children: React.ReactNode;
   width?: number;
+  paperStyle?: React.CSSProperties;
   sx?: SxProps<Theme>;
 };
 
@@ -27,6 +28,7 @@ const Drawer = ({
   onClose,
   children,
   width = 420,
+  paperStyle,
   sx,
 }: Props) => (
   <MuiDrawer
@@ -34,12 +36,15 @@ const Drawer = ({
     open={open}
     onClose={onClose}
     PaperProps={{
+      style: paperStyle,
       sx: {
         width: { xs: "100%", sm: width },
         maxWidth: "100vw",
+        overflowX: "hidden",
         background: "#ffffff",
         borderLeft: "1px solid #e2e8f0",
         boxShadow: "-16px 0 40px rgba(15, 23, 42, 0.14)",
+        transition: "width 280ms ease, max-width 280ms ease",
         ...sx,
       },
     }}

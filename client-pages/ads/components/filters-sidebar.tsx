@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Box, InputAdornment, Paper, Typography } from "@mui/material";
+import { Box, Checkbox, FormControlLabel, InputAdornment, Paper, Typography } from "@mui/material";
 import KeyboardDoubleArrowRightRoundedIcon from "@mui/icons-material/KeyboardDoubleArrowRightRounded";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 
@@ -217,6 +217,7 @@ const FiltersSidebar = ({
   const [brandId, setBrandId] = useState(searchParams.get("brandId") ?? "");
   const [modelId, setModelId] = useState(searchParams.get("modelId") ?? "");
   const [bodyTypeId, setBodyTypeId] = useState(searchParams.get("bodyTypeId") ?? "");
+  const [hideDuplicates, setHideDuplicates] = useState(searchParams.get("hideDuplicates") !== "false");
 
   useEffect(() => {
     setAdId(searchParams.get("adId") ?? "");
@@ -235,6 +236,7 @@ const FiltersSidebar = ({
     setBrandId(searchParams.get("brandId") ?? "");
     setModelId(searchParams.get("modelId") ?? "");
     setBodyTypeId(searchParams.get("bodyTypeId") ?? "");
+    setHideDuplicates(searchParams.get("hideDuplicates") !== "false");
   }, [searchParams]);
 
   const applyFilters = () => {
@@ -265,6 +267,11 @@ const FiltersSidebar = ({
     setOrDelete("brandId", brandId);
     setOrDelete("modelId", modelId);
     setOrDelete("bodyTypeId", bodyTypeId);
+    if (hideDuplicates) {
+      params.delete("hideDuplicates");
+    } else {
+      params.set("hideDuplicates", "false");
+    }
     params.delete("page");
 
     window.history.pushState({}, "", `${pathname}?${params.toString()}`);
@@ -288,6 +295,7 @@ const FiltersSidebar = ({
     setBrandId("");
     setModelId("");
     setBodyTypeId("");
+    setHideDuplicates(true);
 
     const params = new URLSearchParams(searchParams);
     [
@@ -307,6 +315,7 @@ const FiltersSidebar = ({
       "brandId",
       "modelId",
       "bodyTypeId",
+      "hideDuplicates",
       "page",
     ].forEach((key) => params.delete(key));
 
@@ -592,6 +601,45 @@ const FiltersSidebar = ({
               placeholder="All body types"
             />
           </Box>
+        </Box>
+
+        <Box
+          sx={{
+            p: "12px",
+            border: "1px solid #e2e8f0",
+            borderRadius: "8px",
+            background: "#f8fafc",
+          }}
+        >
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={hideDuplicates}
+                onChange={(event) => setHideDuplicates(event.target.checked)}
+                size="small"
+                sx={{
+                  color: "#94a3b8",
+                  "&.Mui-checked": {
+                    color: "#2563eb",
+                  },
+                }}
+              />
+            }
+            label={"\u0421\u043a\u0440\u044b\u0432\u0430\u0442\u044c \u0434\u0443\u0431\u043b\u0438\u043a\u0430\u0442\u044b"}
+            sx={{
+              m: 0,
+              alignItems: "center",
+              "& .MuiFormControlLabel-label": {
+                fontSize: 13,
+                lineHeight: "18px",
+                fontWeight: 700,
+                color: "#0f172a",
+              },
+            }}
+          />
+          <Typography sx={{ mt: 0.25, pl: "34px", fontSize: 12, lineHeight: "16px", color: "#64748b" }}>
+            {"\u0415\u0441\u043b\u0438 \u043e\u0442\u043a\u043b\u044e\u0447\u0438\u0442\u044c, \u0431\u0443\u0434\u0443\u0442 \u043f\u043e\u043a\u0430\u0437\u0430\u043d\u044b \u0432\u0441\u0435 \u043e\u0431\u044a\u044f\u0432\u043b\u0435\u043d\u0438\u044f \u0438\u0437 \u0446\u0435\u043f\u043e\u0447\u0435\u043a."}
+          </Typography>
         </Box>
       </Box>
 
