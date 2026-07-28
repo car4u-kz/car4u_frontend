@@ -1,6 +1,6 @@
 export enum SEARCH_QUERY {
   all = "0",
-  new = "1",
+  new = "4",
   archived = "2",
   pendingArchiveValidation = "5",
   notFound404 = "6",
