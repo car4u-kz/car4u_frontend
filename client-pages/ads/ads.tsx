@@ -126,6 +126,8 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
     summaryStatsParams.set("hideDuplicates", "false");
   }
   const summaryStatsQueryString = summaryStatsParams.toString();
+  const canReuseSummaryStatsForStatusCounts =
+    statsQueryString === summaryStatsQueryString;
   const hasActiveFilters = [
     "adId",
     "accountId",
@@ -178,8 +180,16 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const queryStatusStats = useQuery<AdStatusStats>({
     queryKey: ["adview-stats", statsQueryString],
     queryFn: () => getAdStats(new URLSearchParams(statsQueryString), fetchWithAuthNoLoading),
+    enabled: !canReuseSummaryStatsForStatusCounts,
     retry: false,
   });
+
+  const statusStats = canReuseSummaryStatsForStatusCounts
+    ? querySummaryStats.data
+    : queryStatusStats.data;
+  const isStatusStatsLoading = canReuseSummaryStatsForStatusCounts
+    ? querySummaryStats.isLoading
+    : queryStatusStats.isLoading;
 
   const {
     data,
@@ -362,9 +372,9 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       <Box sx={{ minWidth: 0, width: "100%" }}>
         <TableButtons
           summaryStats={querySummaryStats.data}
-          statusStats={queryStatusStats.data}
+          statusStats={statusStats}
           isSummaryStatsLoading={querySummaryStats.isLoading}
-          isStatusStatsLoading={queryStatusStats.isLoading}
+          isStatusStatsLoading={isStatusStatsLoading}
           hasActiveFilters={hasActiveFilters}
           onResetFilters={handleResetFilters}
           selectProps={{

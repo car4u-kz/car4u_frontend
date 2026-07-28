@@ -355,7 +355,7 @@ const TableButtons = ({
             flexWrap: "wrap",
           }}
         >
-          <StatusButton value={SQ.all} label="Все" />
+          <StatusButton value={SQ.all} label="В продаже" />
           <StatusButton value={SQ.new} label="Новые" />
           <StatusButton value={SQ.archived} label="Архивные" />
           <StatusButton value={SQ.pendingArchiveValidation} label="Ожид. архивирования" />
