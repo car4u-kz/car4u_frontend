@@ -5,6 +5,7 @@ import {
   AdViewFiltersResponse,
   CatalogAdDuplicateHistoryItem,
   CatalogAdMonitoring,
+  CatalogAdPositionHistory,
   CatalogAdStatusTimeline,
 } from "@/types";
 
@@ -108,6 +109,27 @@ export const getCatalogAdDuplicateHistory = async (
 
   if (!response.ok) {
     throw new Error("Failed to fetch ad duplicate history");
+  }
+
+  return await response.json();
+};
+
+export const getCatalogAdPositionHistory = async (
+  adId: number,
+  templateId: number | null | undefined,
+  fetchWithAuth: typeof fetch
+): Promise<CatalogAdPositionHistory[]> => {
+  const isServer = typeof window === "undefined";
+  const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
+  const query = templateId ? `?templateId=${encodeURIComponent(templateId)}` : "";
+  const url = `${basePath}/api/adview/${adId}/position-history${query}`;
+
+  const response = await fetchWithAuth(url, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch ad position history");
   }
 
   return await response.json();

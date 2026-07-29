@@ -142,3 +142,18 @@ export type CatalogAdStatusTimeline = {
   url: string;
   events: CatalogAdStatusTimelineEvent[];
 };
+
+export type CatalogAdPositionHistoryPoint = {
+  position: number;
+  capturedAt: string;
+};
+
+export type CatalogAdPositionHistory = {
+  catalogAdId: number;
+  externalAdId: string;
+  title: string;
+  templateId: number;
+  templateName: string;
+  templateUrl: string;
+  points: CatalogAdPositionHistoryPoint[];
+};
