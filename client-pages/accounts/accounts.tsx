@@ -68,7 +68,7 @@ const AccountsPage = () => {
   return (
     <>
       <Table
-        title="Аккаунты"
+        title="Кабинеты"
         isFetching={accountsQuery.isPending}
         headerLabels={headerLabels}
         tableRows={
@@ -77,7 +77,7 @@ const AccountsPage = () => {
         tableButtons={
           <Box sx={{ p: 0.5, pl: 1 }}>
             <Typography variant="body2" color="text.secondary">
-              Всего аккаунтов: {sortedItems.length}
+              Всего кабинетов: {sortedItems.length}
             </Typography>
           </Box>
         }
@@ -85,7 +85,7 @@ const AccountsPage = () => {
 
       <Modal
         open={!!selectedAccount}
-        title="Удалить аккаунт"
+        title="Удалить кабинет"
         submitLabel="Удалить"
         cancelLabel="Отмена"
         onClose={handleCloseDelete}
@@ -96,12 +96,12 @@ const AccountsPage = () => {
           {error && <Alert severity="error">{error}</Alert>}
           {selectedAccount?.hasActiveOurAd ? (
             <Alert severity="warning">
-              У аккаунта есть активное мое объявление. При удалении аккаунта
+              У кабинета есть активное мое объявление. При удалении кабинета
               связанные данные объявления также будут удалены.
             </Alert>
           ) : null}
           <Typography>
-            Удалить аккаунт <strong>{selectedAccount?.login}</strong>?
+            Удалить кабинет <strong>{selectedAccount?.login}</strong>?
           </Typography>
         </Stack>
       </Modal>

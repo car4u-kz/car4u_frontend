@@ -95,7 +95,7 @@ const TableRows = ({ items, onDelete }: Props) => {
                   </IconButton>
                 </Tooltip>
               ) : null}
-              <Tooltip title="Удалить аккаунт">
+              <Tooltip title="Удалить кабинет">
                 <IconButton size="small" onClick={() => onDelete(item)}>
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>

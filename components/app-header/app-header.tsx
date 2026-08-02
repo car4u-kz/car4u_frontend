@@ -106,7 +106,7 @@ export default function AppHeader() {
                     href="/accounts"
                     isActive={pathname === "/accounts"}
                   >
-                    Аккаунты
+                    Кабинеты
                   </Link>
                   <Link
                     target="_self"
