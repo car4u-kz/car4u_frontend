@@ -23,9 +23,14 @@ export default function AppHeader() {
 
   const hasMultipleOrgs = myOrganizations && myOrganizations.length > 1;
 
-  const showNavigation = ["/ads", "/search", "/counterparties", "/my-ads", "/proxies"].includes(
-    pathname,
-  );
+  const showNavigation = [
+    "/ads",
+    "/search",
+    "/counterparties",
+    "/my-ads",
+    "/accounts",
+    "/proxies",
+  ].includes(pathname);
   const phoneNumber = (pathname === "/about_us" || pathname === "/") && (
     <Typography>+7 701 127 7607</Typography>
   );
@@ -95,6 +100,13 @@ export default function AppHeader() {
                     isActive={pathname === "/my-ads"}
                   >
                     Мои Объявления
+                  </Link>
+                  <Link
+                    target="_self"
+                    href="/accounts"
+                    isActive={pathname === "/accounts"}
+                  >
+                    Аккаунты
                   </Link>
                   <Link
                     target="_self"
