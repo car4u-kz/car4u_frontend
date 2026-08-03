@@ -649,7 +649,12 @@ const TableRows = ({
               </button>
             </TableCell>
 
-            <GeneratePDFDropdown index={idx} itemId={item.adId} variant="ads" />
+            <GeneratePDFDropdown
+              index={idx}
+              itemId={item.adId}
+              templateId={item.parsingTemplateId}
+              variant="ads"
+            />
           </TableRow>
         );
       })}

@@ -350,10 +350,17 @@ export const generateReport = async (
   adId: number,
   fetchWithAuth: typeof fetch,
   isOurAd?: boolean,
+  templateId?: number,
 ) => {
   const isServer = typeof window === "undefined";
   const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
   let url = `${basePath}/api/adview/report?id=${adId}&for=${isOurAd ? '2' : '1'}`;
+  if (templateId) {
+    url += `&templateId=${templateId}`;
+  }
+  if (!isServer) {
+    url += `&timezoneOffsetMinutes=${new Date().getTimezoneOffset()}`;
+  }
 
   try {
     const response = await fetchWithAuth(url, {

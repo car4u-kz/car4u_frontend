@@ -14,6 +14,7 @@ interface Props {
   index: number;
   itemId: number;
   isOurAd?: boolean;
+  templateId?: number;
   variant?: "default" | "ads";
 }
 
@@ -21,6 +22,7 @@ export default function GeneratePDFDropdown({
   index,
   itemId,
   isOurAd,
+  templateId,
   variant = "default",
 }: Props) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -49,7 +51,7 @@ export default function GeneratePDFDropdown({
     id: number;
   }) => {
     if (item.value === "generateReport") {
-      await generateReport(item.id, fetchWithAuth, isOurAd);
+      await generateReport(item.id, fetchWithAuth, isOurAd, templateId);
     }
     handleMenuClose();
   };
