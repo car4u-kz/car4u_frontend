@@ -133,6 +133,7 @@ export type CatalogAdStatusTimelineEvent = {
   capturedAt: string;
   lastCheckDate?: string | null;
   reason?: string | null;
+  statusReason?: string | null;
 };
 
 export type CatalogAdStatusTimeline = {

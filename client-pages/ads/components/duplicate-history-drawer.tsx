@@ -51,6 +51,19 @@ const formatDateTime = (value?: string | null) => {
   }).format(date);
 };
 
+const formatStatusReason = (reason?: string | null) => {
+  switch (reason) {
+    case "ActiveOutOfTemplate":
+      return "Не соответствует условиям поиска";
+    case "ArchivedOnKolesa":
+      return "Архивировано на Kolesa";
+    case "NotFound404":
+      return "Объявление не найдено";
+    default:
+      return reason || null;
+  }
+};
+
 const statusSx = {
   display: "inline-flex",
   alignItems: "center",
@@ -474,6 +487,11 @@ const renderTimeline = (timelines: CatalogAdStatusTimeline[]) => {
                         {formatDateTime(event.capturedAt)}
                       </Typography>
                     </Box>
+                    {formatStatusReason(event.statusReason) ? (
+                      <Typography sx={{ mt: 0.25, fontSize: 12, lineHeight: "16px", color: "#64748b" }}>
+                        {formatStatusReason(event.statusReason)}
+                      </Typography>
+                    ) : null}
                   </Box>
                 </Box>
               ))}
