@@ -18,10 +18,12 @@ export type AdFormData = {
   mainImagePath: string;
   notDetectedCount: string;
   depthOfMonitoring: string;
+  monitoringBoundaryType: "page" | "position";
   intervalSeconds: string;
   monitoringDurationDays: string;
   price: string;
   isNewAuto: boolean;
+  toOrder: boolean;
   description: string;
   hasDetails: boolean;
   sessionId: string;

@@ -49,7 +49,7 @@ const Modal = ({
             {title}
           </Typography>
         )}
-        <Box sx={{ mt: 2 }}>
+        <Box sx={{ mt: 2, minHeight: 0, overflowY: "auto", flex: 1 }}>
           {isLoading ? (
             <Box display="flex" justifyContent="center">
               <CircularProgress />

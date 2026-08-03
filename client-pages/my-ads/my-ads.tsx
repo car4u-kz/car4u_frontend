@@ -40,10 +40,12 @@ const initialData: AdFormData = {
   mainImagePath: "",
   notDetectedCount: "",
   depthOfMonitoring: "",
+  monitoringBoundaryType: "page",
   intervalSeconds: "",
   monitoringDurationDays: "",
   price: "",
   isNewAuto: false,
+  toOrder: false,
   description: "",
   hasDetails: false,
   sessionId: "",
@@ -57,10 +59,12 @@ const mapAdToFormData = (ad: OurAdItem): AdFormData => ({
   mainImagePath: ad.mainImagePath,
   notDetectedCount: ad.notDetectedCount,
   depthOfMonitoring: ad.depthOfMonitoring,
+  monitoringBoundaryType: ad.monitoringBoundaryType ?? "page",
   intervalSeconds: ad.intervalSeconds,
   monitoringDurationDays: ad.monitoringDurationDays,
   price: ad.price ?? "",
   isNewAuto: ad.isNewAuto ?? false,
+  toOrder: ad.toOrder ?? false,
   description: ad.description ?? ad.desctiption ?? ad.Description ?? "",
   hasDetails: ad.hasDetails,
   sessionId: "",
@@ -178,6 +182,15 @@ const MyAds = ({}: Props) => {
   const handleBooleanChange = (value: boolean, key: keyof AdFormData) =>
     setFormData((prev) => ({ ...prev, [key]: value }));
 
+  const handleBoundaryTypeChange = (
+    value: AdFormData["monitoringBoundaryType"]
+  ) =>
+    setFormData((prev) => ({
+      ...prev,
+      monitoringBoundaryType: value,
+      depthOfMonitoring: value === "page" ? "1" : "",
+    }));
+
   const onSubmit = async () => {
     if (open === "add") {
       return mutation.mutate({ type: "create", formData });
@@ -263,6 +276,7 @@ const MyAds = ({}: Props) => {
       handleChange={handleChange}
       handleSelect={handleSelect}
       handleBooleanChange={handleBooleanChange}
+      handleBoundaryTypeChange={handleBoundaryTypeChange}
       formData={formData}
     />
   ) : (
@@ -298,7 +312,13 @@ const MyAds = ({}: Props) => {
       />
       <Modal
         isLoading={mutation.isPending || query.isFetching}
-        sx={{ width: 550 }}
+        sx={{
+          width: 550,
+          maxHeight: "calc(100vh - 48px)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
         onClose={handleModalClose}
         open={!!open}
         title={

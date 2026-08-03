@@ -1,7 +1,15 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import { Box, Stack, Alert, Button as MuiButton } from "@mui/material";
+import {
+  Box,
+  Stack,
+  Alert,
+  Button as MuiButton,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+} from "@mui/material";
 import { Select, TextInput } from "@/components/form";
 import { Button, Typography } from "@/components";
 import {
@@ -83,6 +91,16 @@ const AdWizard = ({
     setFormData((prev) => ({ ...prev, [key]: e.target.value as string }));
   };
 
+  const handleBoundaryTypeChange = (
+    value: AdFormData["monitoringBoundaryType"]
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      monitoringBoundaryType: value,
+      depthOfMonitoring: value === "page" ? "1" : "",
+    }));
+  };
+
   const goToStep2 = () => setStep(2);
   const goToStep3 = () => setStep(3);
 
@@ -99,14 +117,14 @@ const AdWizard = ({
 
       await new Promise((r) => setTimeout(r, 2000));
     }
-    throw new Error("Резервация не завершилась вовремя");
+    throw new Error("Р РµР·РµСЂРІР°С†РёСЏ РЅРµ Р·Р°РІРµСЂС€РёР»Р°СЃСЊ РІРѕРІСЂРµРјСЏ");
   };
 
   const handleConfirmExistingAccount = async () => {
     setError(null);
 
     if (!formData.accountId) {
-      setError("Выберите аккаунт");
+      setError("Р’С‹Р±РµСЂРёС‚Рµ Р°РєРєР°СѓРЅС‚");
       return;
     }
 
@@ -125,14 +143,14 @@ const AdWizard = ({
       const info = state.reservedAccountInfo;
 
       if (!info || !info.accountId) {
-        setError("Аккаунт не был зарезервирован");
+        setError("РђРєРєР°СѓРЅС‚ РЅРµ Р±С‹Р» Р·Р°СЂРµР·РµСЂРІРёСЂРѕРІР°РЅ");
         setReservationSucceeded(false);
         return;
       }
 
       const validation = info.validation;
       if (validation && validation.status === 2) {
-        setError(validation.message || "Аккаунт не прошёл проверку");
+        setError(validation.message || "РђРєРєР°СѓРЅС‚ РЅРµ РїСЂРѕС€С‘Р» РїСЂРѕРІРµСЂРєСѓ");
         setReservationSucceeded(false);
         return;
       }
@@ -144,7 +162,7 @@ const AdWizard = ({
 
       setReservationSucceeded(true);
     } catch (e: any) {
-      setError(e.message ?? "Ошибка при резервировании аккаунта");
+      setError(e.message ?? "РћС€РёР±РєР° РїСЂРё СЂРµР·РµСЂРІРёСЂРѕРІР°РЅРёРё Р°РєРєР°СѓРЅС‚Р°");
       setReservationSucceeded(false);
     } finally {
       setLoading(false);
@@ -156,7 +174,7 @@ const AdWizard = ({
     setError(null);
 
     if (!newLogin || !newPassword) {
-      setError("Укажите логин и пароль");
+      setError("РЈРєР°Р¶РёС‚Рµ Р»РѕРіРёРЅ Рё РїР°СЂРѕР»СЊ");
       return;
     }
 
@@ -174,14 +192,14 @@ const AdWizard = ({
       const info = state.reservedAccountInfo;
 
       if (!info || !info.accountId) {
-        setError("Аккаунт не был зарезервирован");
+        setError("РђРєРєР°СѓРЅС‚ РЅРµ Р±С‹Р» Р·Р°СЂРµР·РµСЂРІРёСЂРѕРІР°РЅ");
         setReservationSucceeded(false);
         return;
       }
 
       const validation = info.validation;
       if (validation && validation.status === 2) {
-        setError(validation.message || "Аккаунт не прошёл проверку");
+        setError(validation.message || "РђРєРєР°СѓРЅС‚ РЅРµ РїСЂРѕС€С‘Р» РїСЂРѕРІРµСЂРєСѓ");
         setReservationSucceeded(false);
         return;
       }
@@ -193,7 +211,7 @@ const AdWizard = ({
 
       setReservationSucceeded(true);
     } catch (e: any) {
-      setError(e.message ?? "Ошибка при создании аккаунта");
+      setError(e.message ?? "РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё Р°РєРєР°СѓРЅС‚Р°");
       setReservationSucceeded(false);
     } finally {
       setLoading(false);
@@ -215,7 +233,7 @@ const AdWizard = ({
       }));
       setIsNewAccount(false);
     } catch (e: any) {
-      setError(e.message ?? "Не удалось отменить резервирование");
+      setError(e.message ?? "РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РјРµРЅРёС‚СЊ СЂРµР·РµСЂРІРёСЂРѕРІР°РЅРёРµ");
     } finally {
       setLoading(false);
     }
@@ -226,7 +244,7 @@ const AdWizard = ({
       {error && <Alert severity="error">{error}</Alert>}
 
       <TextInput
-        label="Наименование Объявления"
+        label="РќР°РёРјРµРЅРѕРІР°РЅРёРµ РћР±СЉСЏРІР»РµРЅРёСЏ"
         value={formData.name}
         onChange={(e) => handleChange(e, "name")}
       />
@@ -245,38 +263,60 @@ const AdWizard = ({
       />
 
       <TextInput
-        label="Локальний путь к фотографии на сервере"
+        label="Р›РѕРєР°Р»СЊРЅРёР№ РїСѓС‚СЊ Рє С„РѕС‚РѕРіСЂР°С„РёРё РЅР° СЃРµСЂРІРµСЂРµ"
         value={formData.mainImagePath}
         onChange={(e) => handleChange(e, "mainImagePath")}
       />
 
-      <Typography>Параметры мониторинга Объявления</Typography>
+      <Typography>РџР°СЂР°РјРµС‚СЂС‹ РјРѕРЅРёС‚РѕСЂРёРЅРіР° РћР±СЉСЏРІР»РµРЅРёСЏ</Typography>
 
       <TextInput
         type="number"
-        label="Количество проходов необнаружения Объявления"
+        label="РљРѕР»РёС‡РµСЃС‚РІРѕ РїСЂРѕС…РѕРґРѕРІ РЅРµРѕР±РЅР°СЂСѓР¶РµРЅРёСЏ РћР±СЉСЏРІР»РµРЅРёСЏ"
         value={formData.notDetectedCount}
         onChange={(e) => handleChange(e, "notDetectedCount")}
       />
 
-      <Select
-        value={formData.depthOfMonitoring}
-        placeholder="Глубина мониторинга Объявления (стр.)"
-        handleChange={(e) => handleSelect(e, "depthOfMonitoring")}
-        menuItems={[
-          { value: "1", label: "1" },
-          { value: "2", label: "2" },
-          { value: "3", label: "3" },
-          { value: "4", label: "4" },
-          { value: "5", label: "5" },
-          { value: "ВСЕ", label: "ALL" },
-        ]}
-      />
+      <RadioGroup
+        row
+        value={formData.monitoringBoundaryType}
+        onChange={(e) =>
+          handleBoundaryTypeChange(
+            e.target.value as AdFormData["monitoringBoundaryType"],
+          )
+        }
+      >
+        <FormControlLabel value="page" control={<Radio />} label="Страница" />
+        <FormControlLabel value="position" control={<Radio />} label="Позиция" />
+      </RadioGroup>
+
+      {formData.monitoringBoundaryType === "page" ? (
+        <Select
+          value={formData.depthOfMonitoring}
+          placeholder="Граничная страница"
+          handleChange={(e) => handleSelect(e, "depthOfMonitoring")}
+          menuItems={[
+            { value: "1", label: "1" },
+            { value: "2", label: "2" },
+            { value: "3", label: "3" },
+            { value: "4", label: "4" },
+            { value: "5", label: "5" },
+          ]}
+        />
+      ) : (
+        <TextInput
+          type="number"
+          min={1}
+          label="Граничная позиция"
+          value={formData.depthOfMonitoring}
+          onChange={(e) => handleChange(e, "depthOfMonitoring")}
+        />
+      )}
 
       <TextInput
         type="number"
         max={60 * 99}
-        label="Интервал между проходами (сек.)"
+        label="РРЅС‚РµСЂРІР°Р» РјРµР¶РґСѓ РїСЂРѕС…РѕРґР°РјРё (СЃРµРє.)"
         value={formData.intervalSeconds}
         onChange={(e) => handleChange(e, "intervalSeconds")}
       />
@@ -284,7 +324,7 @@ const AdWizard = ({
       <TextInput
         max={99}
         type="number"
-        label="Длительность мониторинга (дней)"
+        label="Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ РјРѕРЅРёС‚РѕСЂРёРЅРіР° (РґРЅРµР№)"
         value={formData.monitoringDurationDays}
         onChange={(e) => handleChange(e, "monitoringDurationDays")}
       />
@@ -310,7 +350,7 @@ const AdWizard = ({
           }}
           disabled={submitInProgress}
         >
-          {submitInProgress ? "Сохраняю..." : "Далее"}
+          {submitInProgress ? "РЎРѕС…СЂР°РЅСЏСЋ..." : "Р”Р°Р»РµРµ"}
         </Button>
       </Box>
     </Stack>
@@ -319,11 +359,11 @@ const AdWizard = ({
   const renderStep3 = () => (
     <Stack gap={2}>
       {submitSuccess ? (
-        <Alert severity="success">Объявление размещено успешно.</Alert>
+        <Alert severity="success">РћР±СЉСЏРІР»РµРЅРёРµ СЂР°Р·РјРµС‰РµРЅРѕ СѓСЃРїРµС€РЅРѕ.</Alert>
       ) : submitError ? (
         <Alert severity="error">{submitError}</Alert>
       ) : (
-        <Alert severity="info">Статус неизвестен.</Alert>
+        <Alert severity="info">РЎС‚Р°С‚СѓСЃ РЅРµРёР·РІРµСЃС‚РµРЅ.</Alert>
       )}
 
       <Box display="flex" justifyContent="flex-end" gap={1}>
@@ -335,7 +375,7 @@ const AdWizard = ({
             onClose();
           }}
         >
-          Закрыть
+          Р—Р°РєСЂС‹С‚СЊ
         </Button>
       </Box>
     </Stack>
@@ -362,13 +402,13 @@ const AdWizard = ({
         {error && <Alert severity="error">{error}</Alert>}
 
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">Выбор аккаунта</Typography>
+          <Typography variant="h6">Р’С‹Р±РѕСЂ Р°РєРєР°СѓРЅС‚Р°</Typography>
           <MuiButton
             size="small"
             onClick={() => !reservationInProgress && setIsNewAccount((p) => !p)}
-            disabled={reservationInProgress || reservationSucceeded} // если уже зарезервировано – не даём переключать тип
+            disabled={reservationInProgress || reservationSucceeded} // РµСЃР»Рё СѓР¶Рµ Р·Р°СЂРµР·РµСЂРІРёСЂРѕРІР°РЅРѕ вЂ“ РЅРµ РґР°С‘Рј РїРµСЂРµРєР»СЋС‡Р°С‚СЊ С‚РёРї
           >
-            {isNewAccount ? "Выбрать из списка" : "Добавить новый"}
+            {isNewAccount ? "Р’С‹Р±СЂР°С‚СЊ РёР· СЃРїРёСЃРєР°" : "Р”РѕР±Р°РІРёС‚СЊ РЅРѕРІС‹Р№"}
           </MuiButton>
         </Box>
 
@@ -377,7 +417,7 @@ const AdWizard = ({
           <>
             <Select
               value={formData.accountId}
-              placeholder="Аккаунт"
+              placeholder="РђРєРєР°СѓРЅС‚"
               handleChange={(e) => handleSelect(e, "accountId")}
               menuItems={accounts}
             />
@@ -388,14 +428,14 @@ const AdWizard = ({
                   onClick={handleCancelReservation}
                   disabled={loading || reservationInProgress}
                 >
-                  Сменить аккаунт
+                  РЎРјРµРЅРёС‚СЊ Р°РєРєР°СѓРЅС‚
                 </Button>
               ) : (
                 <Button
                   onClick={handleConfirmExistingAccount}
                   disabled={loading || reservationInProgress}
                 >
-                  Зарезервировать
+                  Р—Р°СЂРµР·РµСЂРІРёСЂРѕРІР°С‚СЊ
                 </Button>
               )}
             </Box>
@@ -403,13 +443,13 @@ const AdWizard = ({
         ) : (
           <>
             <TextInput
-              label="Логин"
+              label="Р›РѕРіРёРЅ"
               value={newLogin}
               onChange={(e) => setNewLogin(e.target.value)}
               disabled={reservationInProgress || reservationSucceeded}
             />
             <TextInput
-              label="Пароль"
+              label="РџР°СЂРѕР»СЊ"
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -422,14 +462,14 @@ const AdWizard = ({
                   onClick={handleCancelReservation}
                   disabled={loading || reservationInProgress}
                 >
-                  Сменить аккаунт
+                  РЎРјРµРЅРёС‚СЊ Р°РєРєР°СѓРЅС‚
                 </Button>
               ) : (
                 <Button
                   onClick={handleCreateNewAccount}
                   disabled={loading || reservationInProgress}
                 >
-                  Создать и зарезервировать
+                  РЎРѕР·РґР°С‚СЊ Рё Р·Р°СЂРµР·РµСЂРІРёСЂРѕРІР°С‚СЊ
                 </Button>
               )}
             </Box>
@@ -438,22 +478,22 @@ const AdWizard = ({
 
         {reservationInProgress && (
           <Alert severity="info">
-            Идёт резервирование аккаунта… пожалуйста, подождите.
+            РРґС‘С‚ СЂРµР·РµСЂРІРёСЂРѕРІР°РЅРёРµ Р°РєРєР°СѓРЅС‚Р°вЂ¦ РїРѕР¶Р°Р»СѓР№СЃС‚Р°, РїРѕРґРѕР¶РґРёС‚Рµ.
           </Alert>
         )}
 
         {reservationSucceeded && (showLogin || showPassword) && (
           <Alert severity="success">
-            Аккаунт зарезервирован.
+            РђРєРєР°СѓРЅС‚ Р·Р°СЂРµР·РµСЂРІРёСЂРѕРІР°РЅ.
             <div style={{ marginTop: 6 }}>
               {showLogin && (
                 <div>
-                  Логин: <strong>{showLogin}</strong>
+                  Р›РѕРіРёРЅ: <strong>{showLogin}</strong>
                 </div>
               )}
               {showPassword && (
                 <div>
-                  Пароль: <strong>{showPassword}</strong>
+                  РџР°СЂРѕР»СЊ: <strong>{showPassword}</strong>
                 </div>
               )}
             </div>
@@ -462,14 +502,14 @@ const AdWizard = ({
 
         {requiresConfirmation && (
           <Alert severity="info">
-            Для аккаунта требуется подтверждение.
+            Р”Р»СЏ Р°РєРєР°СѓРЅС‚Р° С‚СЂРµР±СѓРµС‚СЃСЏ РїРѕРґС‚РІРµСЂР¶РґРµРЅРёРµ.
             {validation?.confirmationInfo?.adInfo && (
               <div style={{ marginTop: 8 }}>
                 <div>
-                  Объявление: {validation.confirmationInfo.adInfo.title}
+                  РћР±СЉСЏРІР»РµРЅРёРµ: {validation.confirmationInfo.adInfo.title}
                 </div>
                 <div>URL: {validation.confirmationInfo.adInfo.url}</div>
-                <div>Цена: {validation.confirmationInfo.adInfo.price}</div>
+                <div>Р¦РµРЅР°: {validation.confirmationInfo.adInfo.price}</div>
               </div>
             )}
           </Alert>
@@ -477,13 +517,13 @@ const AdWizard = ({
 
         {failed && (
           <Alert severity="error">
-            {validation?.message || "Аккаунт нельзя выбрать"}
+            {validation?.message || "РђРєРєР°СѓРЅС‚ РЅРµР»СЊР·СЏ РІС‹Р±СЂР°С‚СЊ"}
           </Alert>
         )}
 
         <Box display="flex" justifyContent="flex-end">
           <Button onClick={goToStep2} disabled={!canProceed}>
-            Далее
+            Р”Р°Р»РµРµ
           </Button>
         </Box>
       </Stack>
@@ -500,7 +540,7 @@ const AdWizard = ({
         }}
       >
         <Button size="small" onClick={handleClose}>
-          Закрыть
+          Р—Р°РєСЂС‹С‚СЊ
         </Button>
       </Box>
 

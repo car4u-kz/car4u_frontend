@@ -4,6 +4,8 @@ import {
   Alert,
   Checkbox,
   FormControlLabel,
+  Radio,
+  RadioGroup,
   SelectChangeEvent,
   Stack,
 } from "@mui/material";
@@ -20,6 +22,7 @@ type Props = {
   ) => void;
   handleSelect: (e: SelectChangeEvent, key: keyof AdFormData) => void;
   handleBooleanChange: (value: boolean, key: keyof AdFormData) => void;
+  handleBoundaryTypeChange: (value: AdFormData["monitoringBoundaryType"]) => void;
   formData: AdFormData;
   error?: string | null;
 };
@@ -28,36 +31,65 @@ const EditForm = ({
   handleChange,
   handleSelect,
   handleBooleanChange,
+  handleBoundaryTypeChange,
   formData,
   error,
 }: Props) => {
   return (
     <Stack direction="column" gap={2}>
       {error && <Alert severity="error">{error}</Alert>}
+
       <TextInput
         label="Локальный путь к фотографии на сервере"
         value={formData.mainImagePath}
         onChange={(e) => handleChange(e, "mainImagePath")}
       />
+
       <Typography>Параметры мониторинга объявления</Typography>
+
       <TextInput
         type="number"
         label="Количество проходов необнаружения объявления"
         value={formData.notDetectedCount}
         onChange={(e) => handleChange(e, "notDetectedCount")}
       />
-      <Select
-        value={formData.depthOfMonitoring}
-        placeholder="Глубина мониторинга объявления (стр.)"
-        handleChange={(e) => handleSelect(e, "depthOfMonitoring")}
-        menuItems={[
-          { value: "1", label: "1" },
-          { value: "2", label: "2" },
-          { value: "3", label: "3" },
-          { value: "4", label: "4" },
-          { value: "5", label: "5" },
-        ]}
-      />
+
+      <RadioGroup
+        row
+        value={formData.monitoringBoundaryType}
+        onChange={(e) =>
+          handleBoundaryTypeChange(
+            e.target.value as AdFormData["monitoringBoundaryType"],
+          )
+        }
+      >
+        <FormControlLabel value="page" control={<Radio />} label="Страница" />
+        <FormControlLabel value="position" control={<Radio />} label="Позиция" />
+      </RadioGroup>
+
+      {formData.monitoringBoundaryType === "page" ? (
+        <Select
+          value={formData.depthOfMonitoring}
+          placeholder="Граничная страница"
+          handleChange={(e) => handleSelect(e, "depthOfMonitoring")}
+          menuItems={[
+            { value: "1", label: "1" },
+            { value: "2", label: "2" },
+            { value: "3", label: "3" },
+            { value: "4", label: "4" },
+            { value: "5", label: "5" },
+          ]}
+        />
+      ) : (
+        <TextInput
+          type="number"
+          min={1}
+          label="Граничная позиция"
+          value={formData.depthOfMonitoring}
+          onChange={(e) => handleChange(e, "depthOfMonitoring")}
+        />
+      )}
+
       <TextInput
         type="number"
         max={60 * 99}
@@ -65,6 +97,7 @@ const EditForm = ({
         value={formData.intervalSeconds}
         onChange={(e) => handleChange(e, "intervalSeconds")}
       />
+
       <TextInput
         max={99}
         type="number"
@@ -72,7 +105,9 @@ const EditForm = ({
         value={formData.monitoringDurationDays}
         onChange={(e) => handleChange(e, "monitoringDurationDays")}
       />
+
       <Typography>Данные объявления</Typography>
+
       <TextInput
         type="number"
         max={999999999}
@@ -86,6 +121,7 @@ const EditForm = ({
         }
         onChange={(e) => handleChange(e, "price")}
       />
+
       <FormControlLabel
         control={
           <Checkbox
@@ -98,6 +134,7 @@ const EditForm = ({
         }
         label="Новое авто"
       />
+
       <TextInput
         label="Описание"
         value={formData.description}
@@ -116,6 +153,19 @@ const EditForm = ({
             : "Данные объявления еще не получены обработчиком"
         }
         onChange={(e) => handleChange(e, "description")}
+      />
+
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={formData.toOrder}
+            disabled={!formData.hasDetails}
+            onChange={(e) =>
+              handleBooleanChange(e.target.checked, "toOrder")
+            }
+          />
+        }
+        label="На заказ"
       />
     </Stack>
   );

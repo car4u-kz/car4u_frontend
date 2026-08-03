@@ -223,10 +223,12 @@ export const putAd = async (
         mainImagePath: formData.mainImagePath,
         notDetectedCount: formData.notDetectedCount,
         depthOfMonitoring: formData.depthOfMonitoring,
+        monitoringBoundaryType: formData.monitoringBoundaryType,
         monitoringDurationDays: formData.monitoringDurationDays,
         intervalSeconds: formData.intervalSeconds,
         price: formData.hasDetails ? formData.price : null,
         isNewAuto: formData.hasDetails ? formData.isNewAuto : null,
+        toOrder: formData.hasDetails ? formData.toOrder : null,
         description: formData.hasDetails ? formData.description : null,
       }),
     });
