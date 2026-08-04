@@ -1137,7 +1137,7 @@ const CounterpartiesPage = () => {
 
                                     <Box>
                                       <MuiTypography sx={{ fontSize: 13, color: "#0f172a" }}>
-                                        Объявлений: {formatCount(item.allAdsCount)}
+                                        В продаже: {formatCount(item.allAdsCount)}
                                       </MuiTypography>
                                       {item.allAdsCount > 1 && item.averageCheck ? (
                                         <MuiTypography
@@ -1218,7 +1218,7 @@ const CounterpartiesPage = () => {
                         >
                           <Stack spacing={0.6}>
                             <Box sx={countLineSx}>
-                              <MuiTypography sx={smallLabelSx}>Все</MuiTypography>
+                              <MuiTypography sx={smallLabelSx}>В продаже</MuiTypography>
                               <Stack direction="row" alignItems="center" spacing={0.25}>
                                 <MuiTypography sx={valueSx}>
                                   {formatCount(item.allAdsCount)}

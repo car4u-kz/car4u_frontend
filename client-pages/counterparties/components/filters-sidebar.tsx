@@ -331,7 +331,7 @@ const CounterpartiesFiltersSidebar = ({
         }}
       >
         <Box sx={{ display: "grid", gap: "8px" }}>
-          <Typography sx={filterLabelSx}>Количество объявлений</Typography>
+          <Typography sx={filterLabelSx}>Объявлений в продаже</Typography>
           <Box sx={fieldGridSx}>
             <TextInput
               type="number"
