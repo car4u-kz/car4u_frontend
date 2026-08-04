@@ -97,11 +97,13 @@ export const getCatalogAdMonitorings = async (
 
 export const getCatalogAdDuplicateHistory = async (
   adId: number,
+  templateId: number | null | undefined,
   fetchWithAuth: typeof fetch
 ): Promise<CatalogAdDuplicateHistoryItem[]> => {
   const isServer = typeof window === "undefined";
   const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
-  const url = `${basePath}/api/adview/${adId}/duplicate-history`;
+  const query = templateId ? `?templateId=${encodeURIComponent(templateId)}` : "";
+  const url = `${basePath}/api/adview/${adId}/duplicate-history${query}`;
 
   const response = await fetchWithAuth(url, {
     method: "GET",

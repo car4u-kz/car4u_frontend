@@ -7,10 +7,11 @@ type RouteContext = {
 
 export async function GET(request: NextRequest, context: RouteContext) {
   const { adId } = await context.params;
+  const suffix = request.nextUrl.search;
 
   return proxyToBackend(
     request,
-    `/api/adview/${encodeURIComponent(adId)}/duplicate-history`,
+    `/api/adview/${encodeURIComponent(adId)}/duplicate-history${suffix}`,
     { method: "GET" },
   );
 }

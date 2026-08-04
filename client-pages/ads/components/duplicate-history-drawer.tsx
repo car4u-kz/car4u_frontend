@@ -571,8 +571,8 @@ const CatalogAdDuplicateHistoryDrawer = ({
   useEffect(() => () => clearCloseTimer(), [clearCloseTimer]);
 
   const query = useQuery({
-    queryKey: ["catalog-ad-duplicate-history", adId],
-    queryFn: () => getCatalogAdDuplicateHistory(adId as number, fetchWithAuth),
+    queryKey: ["catalog-ad-duplicate-history", adId, templateId ?? null],
+    queryFn: () => getCatalogAdDuplicateHistory(adId as number, templateId, fetchWithAuth),
     enabled: open && typeof adId === "number",
     retry: false,
   });
