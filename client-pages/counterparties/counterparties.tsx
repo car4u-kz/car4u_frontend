@@ -563,7 +563,7 @@ const CounterpartiesPage = () => {
         (searchParams.get("sortOrder") as CounterpartyFilters["sortOrder"]) ||
         "desc",
       page: readNumber("page") ?? 1,
-      pageSize: 50,
+      pageSize: 25,
     };
   }, [searchParams]);
 
@@ -655,7 +655,7 @@ const CounterpartiesPage = () => {
   );
   const totalCount = counterpartiesQuery.data?.totalCount ?? 0;
   const currentPage = filters.page ?? 1;
-  const pageSize = filters.pageSize ?? 50;
+  const pageSize = filters.pageSize ?? 25;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const allSortArrow =
