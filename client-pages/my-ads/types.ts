@@ -20,6 +20,8 @@ export type AdFormData = {
   depthOfMonitoring: string;
   monitoringBoundaryType: "page" | "position";
   intervalSeconds: string;
+  timingRepublishingEnabled: boolean;
+  timingRepublishingIntervalHours: string;
   monitoringDurationDays: string;
   price: string;
   isNewAuto: boolean;

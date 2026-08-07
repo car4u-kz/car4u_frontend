@@ -6,6 +6,7 @@ import {
   Stack,
   Alert,
   Button as MuiButton,
+  Checkbox,
   FormControlLabel,
   Radio,
   RadioGroup,
@@ -89,6 +90,10 @@ const AdWizard = ({
     key: keyof AdFormData
   ) => {
     setFormData((prev) => ({ ...prev, [key]: e.target.value as string }));
+  };
+
+  const handleBooleanChange = (value: boolean, key: keyof AdFormData) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleBoundaryTypeChange = (
@@ -320,6 +325,28 @@ const AdWizard = ({
         value={formData.intervalSeconds}
         onChange={(e) => handleChange(e, "intervalSeconds")}
       />
+
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={formData.timingRepublishingEnabled}
+            onChange={(e) =>
+              handleBooleanChange(e.target.checked, "timingRepublishingEnabled")
+            }
+          />
+        }
+        label="Перепубликация по таймингу"
+      />
+
+      {formData.timingRepublishingEnabled && (
+        <TextInput
+          type="number"
+          min={1}
+          label="Перепубликовывать через (час.)"
+          value={formData.timingRepublishingIntervalHours}
+          onChange={(e) => handleChange(e, "timingRepublishingIntervalHours")}
+        />
+      )}
 
       <TextInput
         max={99}

@@ -228,6 +228,10 @@ export const putAd = async (
         monitoringBoundaryType: formData.monitoringBoundaryType,
         monitoringDurationDays: formData.monitoringDurationDays,
         intervalSeconds: formData.intervalSeconds,
+        timingRepublishingEnabled: formData.timingRepublishingEnabled,
+        timingRepublishingIntervalHours: formData.timingRepublishingEnabled
+          ? formData.timingRepublishingIntervalHours
+          : null,
         price: formData.hasDetails ? formData.price : null,
         isNewAuto: formData.hasDetails ? formData.isNewAuto : null,
         toOrder: formData.hasDetails ? formData.toOrder : null,
