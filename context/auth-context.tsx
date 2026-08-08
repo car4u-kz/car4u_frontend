@@ -1,12 +1,7 @@
 "use client";
 
 import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
+  createContext, useCallback, useContext, useEffect, useRef, useState,
 } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
@@ -17,6 +12,7 @@ import { useLoading } from "./loading-context";
 import { useBackendToken } from "./use-backend-token";
 import { AuthErrorModal } from "@/components/auth-error-modal/auth-error-modal";
 
+/** ===== Types ===== */
 type AuthContextType = {
   backendToken: string | null;
   errorStatus: UserStatus | null;
@@ -26,12 +22,21 @@ type AuthContextType = {
   setErrorStatus: React.Dispatch<React.SetStateAction<UserStatus | null>>;
 };
 
+type Phase = "idle" | "checking" | "ready";
+
+/** ===== Helpers ===== */
+const isDenied = (s: UserStatus) =>
+  s === UserStatus.Unconfirmed ||
+  s === UserStatus.AccessDenied ||
+  s === UserStatus.Deleted;
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isSignedIn, getToken, signOut } = useAuth();
+  const router = useRouter();
+  const { startLoading, stopLoading } = useLoading();
+
   const {
     token: backendToken,
     userId,
@@ -40,97 +45,89 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     removeUser,
   } = useBackendToken();
 
+  const [phase, setPhase] = useState<Phase>("idle");
   const [errorStatus, setErrorStatus] = useState<UserStatus | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const router = useRouter();
-  const { startLoading, stopLoading } = useLoading();
-
-  const mountedRef = useRef(true);
-  const initializingRef = useRef(false);
+  const didInitRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     return () => {
-      mountedRef.current = false;
+      abortRef.current?.abort();
     };
   }, []);
 
   const logout = useCallback(async () => {
     removeUser();
-    try {
-      await signOut();
-    } catch (e) {
-      console.warn("signOut error", e);
-    }
-    try {
-      router.push("/");
-    } catch (e) {}
+    try { await signOut(); } catch (e) { console.warn("signOut error", e); }
+    try { router.push("/"); } catch { }
   }, [removeUser, signOut, router]);
+
+  const initAuth = useCallback(async () => {
+    if (didInitRef.current && isSignedIn) return;
+    didInitRef.current = true;
+
+    const abort = new AbortController();
+    abortRef.current = abort;
+
+    setPhase("checking");
+    startLoading();
+
+    try {
+      if (!isSignedIn) {
+        removeUser();
+        return;
+      }
+
+      if (backendToken) return;
+
+      const clerkToken = await getToken({ template: "dev" });
+      if (!clerkToken || abort.signal.aborted) return;
+
+      const data = await validateClerkToken(clerkToken, { signal: abort.signal });
+      if (abort.signal.aborted) return;
+
+      if ("error" in data && data.error === "aborted") return;
+
+      if ("error" in data) {
+        setErrorStatus(UserStatus.AccessDenied);
+        await logout();
+        return;
+      }
+
+      if (isDenied(data.status)) {
+        setErrorStatus(data.status);
+        await logout();
+        return;
+      }
+
+      setUser(data);
+    } catch (e) {
+      console.error("Auth init error", e);
+      await logout();
+    } finally {
+      stopLoading();
+      setPhase("ready");
+      if (abortRef.current === abort) abortRef.current = null;
+    }
+  }, [
+    isSignedIn,
+    backendToken,
+    getToken,
+    removeUser,
+    setUser,
+    logout,
+    startLoading,
+    stopLoading,
+  ]);
 
   useEffect(() => {
     if (isSignedIn === undefined) return;
+    void initAuth();
+  }, [isSignedIn, initAuth]);
 
-    if (initializingRef.current) return;
-
-    const init = async () => {
-      initializingRef.current = true;
-      if (mountedRef.current) setIsLoading(true);
-
-      if (!isSignedIn) {
-        await logout();
-        if (mountedRef.current) setIsLoading(false);
-        initializingRef.current = false;
-        return;
-      }
-
-      if (backendToken) {
-        if (mountedRef.current) setIsLoading(false);
-        initializingRef.current = false;
-        return;
-      }
-
-      startLoading();
-      try {
-        const clerkToken = await getToken({ template: "dev" });
-        if (!clerkToken) {
-          throw new Error("Clerk token is missing");
-        }
-
-        const data = await validateClerkToken(clerkToken);
-
-        if ("error" in data) {
-          setErrorStatus(UserStatus.AccessDenied);
-          await logout();
-          return;
-        }
-
-        if (
-          data.status === UserStatus.Unconfirmed ||
-          data.status === UserStatus.AccessDenied ||
-          data.status === UserStatus.Deleted
-        ) {
-          setErrorStatus(data.status);
-          await logout();
-          return;
-        }
-
-        setUser(data);
-      } catch (e) {
-        console.error("Auth init error", e);
-        try {
-          await logout();
-        } catch {}
-      } finally {
-        stopLoading();
-        if (mountedRef.current) setIsLoading(false);
-        initializingRef.current = false;
-      }
-    };
-
-    init();
-  }, [isSignedIn, backendToken]);
-
-  if (isLoading) {
+  /** ===== UI blocking while checking ===== */
+  if (phase !== "ready") {
     return (
       <div
         style={{
@@ -139,6 +136,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           alignItems: "center",
           justifyContent: "center",
         }}
+        aria-busy
+        aria-live="polite"
       >
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <div
@@ -181,7 +180,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
 export function useBackendAuthContext() {
   const ctx = useContext(AuthContext);
-  if (!ctx)
-    throw new Error("useBackendAuthContext must be used inside AuthProvider");
+  if (!ctx) throw new Error("useBackendAuthContext must be used inside AuthProvider");
   return ctx;
 }

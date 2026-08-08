@@ -1,18 +1,27 @@
 import { UserRole, UserStatus } from "@/types/user";
 
-export type ValidateResponseSuccess = { jwt: string; status: UserStatus; role: UserRole };
-type ValidateResponseError = { error: string };
+export type ValidateResponseSuccess = {
+  jwt: string;
+  status: UserStatus;
+  role: UserRole;
+};
 
-let inFlightValidate: Promise<
-  ValidateResponseSuccess | ValidateResponseError
-> | null = null;
+export type ValidateResponseError = { error: string };
+
+export type ValidateResult = ValidateResponseSuccess | ValidateResponseError;
+
+const inflightByToken = new Map<string, Promise<ValidateResult>>();
 
 export async function validateClerkToken(
-  clerkToken: string
-): Promise<ValidateResponseSuccess | ValidateResponseError> {
-  if (inFlightValidate) return inFlightValidate;
+  clerkToken: string,
+  opts?: { signal?: AbortSignal }
+): Promise<ValidateResult> {
+  if (!clerkToken) return { error: "Clerk token is missing" };
 
-  inFlightValidate = (async () => {
+  const existing = inflightByToken.get(clerkToken);
+  if (existing) return existing;
+
+  const p = (async (): Promise<ValidateResult> => {
     try {
       const res = await fetch("/api/auth/validate", {
         method: "POST",
@@ -21,24 +30,52 @@ export async function validateClerkToken(
           Authorization: `Bearer ${clerkToken}`,
         },
         body: JSON.stringify({}),
+        signal: opts?.signal,
       });
 
-      const data = await res.json();
+      let data: any = null;
+      const isJSON = res.headers
+        .get("content-type")
+        ?.toLowerCase()
+        .includes("application/json");
 
-      if (!res.ok) {
-        return { error: data?.error || "Token validation failed" };
+      if (isJSON) {
+        try {
+          data = await res.json();
+        } catch {
+          // ignore malformed body
+        }
       }
 
-      return { jwt: data.jwt, status: data.status as UserStatus, role: data.role as UserRole };
+      if (!res.ok) {
+        const msg =
+          data?.error ||
+          (res.status === 401 || res.status === 403
+            ? "Unauthorized"
+            : "Token validation failed");
+        return { error: msg };
+      }
+
+      const jwt = data?.jwt as string | undefined;
+      const status = data?.status as UserStatus | undefined;
+      const role = data?.role as UserRole | undefined;
+
+      if (!jwt || !status) {
+        return { error: "Malformed validation response" };
+      }
+
+      return { jwt, status, role: role as UserRole };
     } catch (e: any) {
+      if (e?.name === "AbortError") return { error: "aborted" };
       console.error("validateClerkToken error", e);
       return { error: e?.message || "Network error" };
     } finally {
       setTimeout(() => {
-        inFlightValidate = null;
+        inflightByToken.delete(clerkToken);
       }, 0);
     }
   })();
 
-  return inFlightValidate;
+  inflightByToken.set(clerkToken, p);
+  return p;
 }
