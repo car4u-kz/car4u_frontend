@@ -28,6 +28,7 @@ import { MenuItemAction } from "@/constants";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import AdWizard from "./components/ad-wizard";
 import EditForm from "./components/edit-form";
+import MonitoringEventsDrawer from "./components/monitoring-events-drawer";
 
 type Props = {};
 
@@ -91,6 +92,7 @@ const MyAds = ({}: Props) => {
   const [formData, setFormData] = useState<AdFormData>(initialData);
   const [action, setAction] = useState<ActionPayloadType | null>(null);
   const [editingAdId, setEditingAdId] = useState<number | null>(null);
+  const [logDrawerAd, setLogDrawerAd] = useState<OurAdItem | null>(null);
   const [accounts, setAccounts] = useState<{ value: string; label: string }[]>(
     []
   );
@@ -235,6 +237,10 @@ const MyAds = ({}: Props) => {
     setOpen("edit");
   };
 
+  const onLogClick = (ad: OurAdItem) => {
+    setLogDrawerAd(ad);
+  };
+
   const handleModalClose = () => {
     setOpen(false);
     setFormData(initialData);
@@ -310,6 +316,7 @@ const MyAds = ({}: Props) => {
             items={query?.data ?? []}
             onClick={onButtonClick}
             onEdit={onEditClick}
+            onLog={onLogClick}
           />
         }
         headerLabels={headerLabels}
@@ -338,6 +345,12 @@ const MyAds = ({}: Props) => {
       >
         {modalComponent}
       </Modal>
+      <MonitoringEventsDrawer
+        open={!!logDrawerAd}
+        adId={logDrawerAd?.id ?? null}
+        title={logDrawerAd?.name ?? logDrawerAd?.url}
+        onClose={() => setLogDrawerAd(null)}
+      />
     </>
   );
 };

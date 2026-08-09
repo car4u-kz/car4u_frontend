@@ -1,5 +1,6 @@
 import { MenuItemAction } from "@/constants";
 import { AdFormData } from "@/client-pages/my-ads/types";
+import type { OurAdMonitoringEvent } from "@/client-pages/my-ads/types";
 import {
   AdStatusStats,
   AdViewFiltersResponse,
@@ -49,6 +50,25 @@ export const getAdFilterList = async (
     console.log(error);
     throw error;
   }
+};
+
+export const getOurAdMonitoringEvents = async (
+  adId: number,
+  fetchWithAuth: typeof fetch
+): Promise<OurAdMonitoringEvent[]> => {
+  const isServer = typeof window === "undefined";
+  const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
+  const url = `${basePath}/api/our-ad/${adId}/monitoring-events`;
+
+  const response = await fetchWithAuth(url, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch monitoring events");
+  }
+
+  return await response.json();
 };
 
 export const getAdStats = async (

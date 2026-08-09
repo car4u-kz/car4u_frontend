@@ -12,6 +12,7 @@ export enum MenuItemAction {
   stop = 1,
   delete = 2,
   edit = 3,
+  log = 4,
 }
 
 export enum Status {

@@ -38,3 +38,14 @@ export type OurAdItem = Omit<AdFormData, "sessionId" | "accountId"> & {
   Description?: string | null;
   desctiption?: string | null;
 };
+
+export type OurAdMonitoringEvent = {
+  id: number;
+  ourAdId: number;
+  externalAdId: string;
+  eventType: string;
+  reason?: string | null;
+  message: string;
+  detailsJson?: string | null;
+  createdAt: string;
+};
