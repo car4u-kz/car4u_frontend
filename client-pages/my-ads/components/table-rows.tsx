@@ -1,22 +1,32 @@
 "use client";
 
-import { TableRow } from "@mui/material";
+import { useState } from "react";
+import type { ReactNode } from "react";
+import { Menu, MenuItem, TableRow } from "@mui/material";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import StopCircleIcon from "@mui/icons-material/StopCircle";
 
 import TableCell from "@/components/table/table-cell";
-import { SplitButton } from "@/components";
-import GeneratePDFDropdown from "@/components/generate-pdf/generate-pdf";
+import { Button, IconButton } from "@/components";
 import { Status, statusLabels, MenuItemAction } from "@/constants";
+import { generateReport } from "@/services/ad-services";
+import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 
-import { ActionPayloadType, MenuItemConfig, OurAdItem } from "../types";
+import { ActionPayloadType, OurAdItem } from "../types";
 
-const menuItems: Record<string, MenuItemConfig> = {
-  start: {
-    label: "Запустить мониторинг",
-    value: MenuItemAction.start,
-  },
-  stop: {
-    label: "Завершить",
-    value: MenuItemAction.stop,
+type RowMenuAction = "report" | MenuItemAction.edit | MenuItemAction.delete | MenuItemAction.log;
+
+type RowMenuItem = {
+  label: string;
+  value: RowMenuAction;
+  color?: string;
+};
+
+const rowMenuItems: Record<string, RowMenuItem> = {
+  report: {
+    label: "Сформировать отчет",
+    value: "report",
   },
   edit: {
     label: "Редактировать",
@@ -25,6 +35,7 @@ const menuItems: Record<string, MenuItemConfig> = {
   delete: {
     label: "Удалить",
     value: MenuItemAction.delete,
+    color: "#b91c1c",
   },
   log: {
     label: "Журнал",
@@ -32,18 +43,47 @@ const menuItems: Record<string, MenuItemConfig> = {
   },
 };
 
-const statusActionsMap: Partial<Record<Status, MenuItemConfig[]>> = {
-  [Status.started]: [menuItems.stop, menuItems.edit, menuItems.log],
-  [Status.stopped]: [menuItems.start, menuItems.edit, menuItems.delete, menuItems.log],
-  [Status.monitoringCompleted]: [
-    menuItems.start,
-    menuItems.edit,
-    menuItems.delete,
-    menuItems.log,
+const statusMenuActionsMap: Partial<Record<Status, RowMenuItem[]>> = {
+  [Status.started]: [rowMenuItems.report, rowMenuItems.edit, rowMenuItems.log],
+  [Status.stopped]: [
+    rowMenuItems.report,
+    rowMenuItems.edit,
+    rowMenuItems.delete,
+    rowMenuItems.log,
   ],
-  [Status.awaitingDeletion]: [menuItems.log],
-  [Status.deleted]: [menuItems.log],
-  [Status.error]: [menuItems.start, menuItems.edit, menuItems.log],
+  [Status.monitoringCompleted]: [
+    rowMenuItems.report,
+    rowMenuItems.edit,
+    rowMenuItems.delete,
+    rowMenuItems.log,
+  ],
+  [Status.awaitingDeletion]: [rowMenuItems.report, rowMenuItems.log],
+  [Status.deleted]: [rowMenuItems.report, rowMenuItems.log],
+  [Status.error]: [rowMenuItems.report, rowMenuItems.edit, rowMenuItems.log],
+};
+
+const getPrimaryAction = (status: Status): { label: string; value: MenuItemAction; icon: ReactNode } | null => {
+  if (status === Status.started) {
+    return {
+      label: "Остановить",
+      value: MenuItemAction.stop,
+      icon: <StopCircleIcon fontSize="small" />,
+    };
+  }
+
+  if (
+    status === Status.stopped ||
+    status === Status.monitoringCompleted ||
+    status === Status.error
+  ) {
+    return {
+      label: "Запустить",
+      value: MenuItemAction.start,
+      icon: <PlayArrowIcon fontSize="small" />,
+    };
+  }
+
+  return null;
 };
 
 type Props = {
@@ -54,35 +94,102 @@ type Props = {
 };
 
 const TableRows = ({ items, onClick, onEdit, onLog }: Props) => {
+  const fetchWithAuth = useFetchWithAuth();
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [selectedAdId, setSelectedAdId] = useState<number | null>(null);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, adId: number) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedAdId(adId);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedAdId(null);
+  };
+
+  const handleMenuAction = async (action: RowMenuAction, item: OurAdItem) => {
+    handleMenuClose();
+
+    if (action === "report") {
+      await generateReport(item.id, fetchWithAuth, true);
+      return;
+    }
+
+    if (action === MenuItemAction.edit) {
+      onEdit(item);
+      return;
+    }
+
+    if (action === MenuItemAction.log) {
+      onLog(item);
+      return;
+    }
+
+    onClick({ id: item.id, method: action, state: "activate" });
+  };
+
   return (
     <>
       {items?.map((item, id) => {
         const status = item?.status as Status;
-        const rowMenuItems = statusActionsMap[status] ?? [menuItems.log];
+        const primaryAction = getPrimaryAction(status);
+        const menuActions = statusMenuActionsMap[status] ?? [
+          rowMenuItems.report,
+          rowMenuItems.log,
+        ];
+        const isMenuOpen = selectedAdId === item.id;
 
         return (
           <TableRow key={`${id}-${item.status}`}>
             <TableCell>{item.name}</TableCell>
             <TableCell>{statusLabels[status]}</TableCell>
             <TableCell>
-              <SplitButton
-                menuItems={rowMenuItems}
-                onClick={(action) => {
-                  if (action.method === MenuItemAction.edit) {
-                    onEdit(item);
-                    return;
+              {primaryAction ? (
+                <Button
+                  size="small"
+                  variant="contained"
+                  color={primaryAction.value === MenuItemAction.start ? "success" : "primary"}
+                  startIcon={primaryAction.icon}
+                  sx={{ minWidth: 128 }}
+                  onClick={() =>
+                    onClick({
+                      id: item.id,
+                      method: primaryAction.value,
+                      state: "activate",
+                    })
                   }
-
-                  if (action.method === MenuItemAction.log) {
-                    onLog(item);
-                    return;
-                  }
-
-                  onClick({ ...action, id: item.id });
-                }}
-              />
+                >
+                  {primaryAction.label}
+                </Button>
+              ) : (
+                "-"
+              )}
             </TableCell>
-            <GeneratePDFDropdown index={id} itemId={item.id} isOurAd />
+            <TableCell>
+              <IconButton
+                aria-label="Действия"
+                onClick={(event) => handleMenuOpen(event, item.id)}
+              >
+                <MoreVertIcon />
+              </IconButton>
+
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl) && isMenuOpen}
+                onClose={handleMenuClose}
+              >
+                {menuActions.map((action) => (
+                  <MenuItem
+                    key={action.value}
+                    onClick={() => handleMenuAction(action.value, item)}
+                    sx={action.color ? { color: action.color } : undefined}
+                  >
+                    {action.label}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </TableCell>
           </TableRow>
         );
       })}

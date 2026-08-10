@@ -32,7 +32,7 @@ import MonitoringEventsDrawer from "./components/monitoring-events-drawer";
 
 type Props = {};
 
-const headerLabels = ["Название", "Статус", "Действие", ""];
+const headerLabels = ["Название", "Статус", "Мониторинг", ""];
 
 const initialData: AdFormData = {
   name: "",

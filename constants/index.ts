@@ -22,7 +22,6 @@ export enum Status {
   awaitingDeletion = 3,
   deleted = 4,
   error = 5,
-
 }
 
 export const statusLabels: Record<Status, string> = {
