@@ -62,7 +62,9 @@ const statusMenuActionsMap: Partial<Record<Status, RowMenuItem[]>> = {
   [Status.error]: [rowMenuItems.report, rowMenuItems.edit, rowMenuItems.log],
 };
 
-const getPrimaryAction = (status: Status): { label: string; value: MenuItemAction; icon: ReactNode } | null => {
+const getPrimaryAction = (item: OurAdItem): { label: string; value: MenuItemAction; icon: ReactNode } | null => {
+  const status = item.status as Status;
+
   if (status === Status.started) {
     return {
       label: "Остановить",
@@ -72,12 +74,13 @@ const getPrimaryAction = (status: Status): { label: string; value: MenuItemActio
   }
 
   if (
+    item.displayStatus === "republishing_error" ||
     status === Status.stopped ||
     status === Status.monitoringCompleted ||
     status === Status.error
   ) {
     return {
-      label: "Запустить",
+      label: item.displayStatus === "republishing_error" ? "Перепубликовать" : "Запустить",
       value: MenuItemAction.start,
       icon: <PlayArrowIcon fontSize="small" />,
     };
@@ -133,7 +136,7 @@ const TableRows = ({ items, onClick, onEdit, onLog }: Props) => {
     <>
       {items?.map((item, id) => {
         const status = item?.status as Status;
-        const primaryAction = getPrimaryAction(status);
+        const primaryAction = getPrimaryAction(item);
         const menuActions = statusMenuActionsMap[status] ?? [
           rowMenuItems.report,
           rowMenuItems.log,
