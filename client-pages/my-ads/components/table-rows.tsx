@@ -143,7 +143,7 @@ const TableRows = ({ items, onClick, onEdit, onLog }: Props) => {
         return (
           <TableRow key={`${id}-${item.status}`}>
             <TableCell>{item.name}</TableCell>
-            <TableCell>{statusLabels[status]}</TableCell>
+            <TableCell>{item.displayStatusText || statusLabels[status]}</TableCell>
             <TableCell>
               {primaryAction ? (
                 <Button

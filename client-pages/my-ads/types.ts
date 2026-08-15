@@ -35,6 +35,12 @@ export type AdFormData = {
 export type OurAdItem = Omit<AdFormData, "sessionId" | "accountId"> & {
   id: number;
   status: number;
+  displayStatus?: string;
+  displayStatusText?: string;
+  displayStatusReason?: string | null;
+  lastEventType?: string | null;
+  lastEventReason?: string | null;
+  lastEventAt?: string | null;
   Description?: string | null;
   desctiption?: string | null;
 };
