@@ -35,6 +35,22 @@ const TableRows = ({
     return `${Math.ceil(seconds / 60)} мин`;
   };
 
+  const formatDuration = (seconds?: number | null) => {
+    if (!seconds || seconds <= 0) {
+      return null;
+    }
+
+    if (seconds < 60) {
+      return `${Math.ceil(seconds)} сек`;
+    }
+
+    if (seconds < 3600) {
+      return `${Math.ceil(seconds / 60)} мин`;
+    }
+
+    return `${Math.ceil(seconds / 3600)} ч`;
+  };
+
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "ready":
@@ -85,23 +101,38 @@ const TableRows = ({
                   return (
                     <Stack
                       key={`${item.proxy}-${status.serviceName}`}
-                      direction="row"
-                      alignItems="center"
-                      gap={0.75}
+                      direction="column"
+                      gap={0.25}
                     >
-                      <Typography variant="caption" color="text.secondary">
-                        {formatServiceName(status.serviceName)}
-                      </Typography>
-                      <Chip
-                        size="small"
-                        color={getStatusColor(status.status)}
-                        label={
-                          pause
-                            ? `${getStatusLabel(status.status)} · ${pause}`
-                            : getStatusLabel(status.status)
-                        }
-                        sx={{ height: 22, fontSize: 12 }}
-                      />
+                      <Stack direction="row" alignItems="center" gap={0.75}>
+                        <Typography variant="caption" color="text.secondary">
+                          {formatServiceName(status.serviceName)}
+                        </Typography>
+                        <Chip
+                          size="small"
+                          color={getStatusColor(status.status)}
+                          label={
+                            pause
+                              ? `${getStatusLabel(status.status)} · ${pause}`
+                              : getStatusLabel(status.status)
+                          }
+                          sx={{ height: 22, fontSize: 12 }}
+                        />
+                      </Stack>
+                      {status.recentTotalCount > 0 || status.penaltyCooldownSeconds > 0 ? (
+                        <Typography variant="caption" color="text.secondary">
+                          Ошибки: {status.recentFailureCount}/{status.recentTotalCount}
+                          {status.recentTotalCount > 0
+                            ? ` · ${Math.round(status.errorRatePercent)}%`
+                            : ""}
+                          {status.penaltyCooldownSeconds > 0
+                            ? ` · штраф: ${formatDuration(status.penaltyCooldownSeconds)}`
+                            : ""}
+                          {status.penaltyCooldownSeconds > 0
+                            ? ` · стабильно: ${status.stableSuccessCount}/${status.stableSuccessesToDecreasePenalty}`
+                            : ""}
+                        </Typography>
+                      ) : null}
                     </Stack>
                   );
                 })

@@ -11,6 +11,13 @@ export type ProxyRuntimeStatus = {
   isCoolingDown: boolean;
   isQuarantined: boolean;
   pauseRemainingSeconds?: number | null;
+  recentSuccessCount: number;
+  recentFailureCount: number;
+  recentTotalCount: number;
+  errorRatePercent: number;
+  penaltyCooldownSeconds: number;
+  stableSuccessCount: number;
+  stableSuccessesToDecreasePenalty: number;
   status: "ready" | "active" | "cooling_down" | "quarantined" | "unknown" | string;
 };
 
