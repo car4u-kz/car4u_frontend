@@ -99,8 +99,6 @@ const TableRows = ({
                 maxWidth: "100%",
                 px: 0.75,
                 py: 0.35,
-                border: "1px solid",
-                borderColor: "divider",
                 borderRadius: 1,
                 bgcolor: "grey.50",
                 fontFamily: "monospace",
@@ -136,11 +134,10 @@ const TableRows = ({
                       direction="column"
                       gap={0.5}
                       sx={{
-                        p: 0.75,
-                        border: "1px solid",
-                        borderColor: "divider",
+                        py: 0.5,
+                        px: 0.75,
                         borderRadius: 1,
-                        bgcolor: "background.paper",
+                        bgcolor: "grey.50",
                       }}
                     >
                       <Stack

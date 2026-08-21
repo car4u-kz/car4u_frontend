@@ -516,25 +516,38 @@ const ProxiesPage = () => {
 
   return (
     <>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        alignItems={{ xs: "stretch", sm: "center" }}
+        justifyContent="space-between"
+        gap={1}
+        sx={{ mb: 1.5 }}
+      >
+        <Typography
+          sx={{
+            fontSize: 28,
+            lineHeight: 1.1,
+            fontWeight: 700,
+            color: "#0f172a",
+          }}
+        >
+          Прокси
+        </Typography>
+        <Button
+          disableRipple
+          variant="contained"
+          sx={{ bgcolor: "common.black", color: "white", alignSelf: { xs: "flex-start", sm: "center" } }}
+          size="small"
+          onClick={handleOpenAdd}
+          startIcon={<AddCircleOutlineIcon fontSize="small" />}
+        >
+          Добавить прокси
+        </Button>
+      </Stack>
       {renderSummary()}
       <Table
-        title="Прокси"
         isFetching={proxiesQuery.isPending}
         headerLabels={headerLabels}
-        tableButtons={
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
-            <Button
-              disableRipple
-              variant="contained"
-              sx={{ bgcolor: "common.black", color: "white" }}
-              size="small"
-              onClick={handleOpenAdd}
-              startIcon={<AddCircleOutlineIcon fontSize="small" />}
-            >
-              Добавить прокси
-            </Button>
-          </Box>
-        }
         tableRows={
           <TableRows
             items={sortedItems}
