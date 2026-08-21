@@ -3,19 +3,32 @@ import type {
   ProxyBatchCreateResult,
   ProxyCheckResult,
   ProxyListItem,
+  ProxyListResponse,
   ProxyUpdatePayload,
 } from "@/client-pages/proxies/types";
 
 export const getProxies = async (
   fetchWithAuth: typeof fetch,
-): Promise<ProxyListItem[]> => {
+): Promise<ProxyListResponse> => {
   const response = await fetchWithAuth("/api/proxies", { method: "GET" });
 
   if (!response.ok) {
     throw new Error("Failed to fetch proxies");
   }
 
-  return response.json();
+  const result = await response.json();
+
+  if (Array.isArray(result)) {
+    return {
+      items: result,
+      summary: {
+        total: result.length,
+        services: [],
+      },
+    };
+  }
+
+  return result;
 };
 
 export const getProxyServices = async (

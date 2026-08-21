@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import {
   Alert,
   Box,
+  Paper,
   Checkbox,
   ListItemText,
   MenuItem,
@@ -36,7 +37,7 @@ import type {
   ProxyUpdatePayload,
 } from "./types";
 
-const headerLabels = ["Прокси", "Назначение", "Комментарий", ""];
+const headerLabels = ["Прокси", "Назначение", "Состояние", "Комментарий", ""];
 const hiddenServiceNames = new Set(["CatalogMonitor"]);
 const serviceLabelMap: Record<string, string> = {
   PendingArchiveValidationProcessor: "Проверка архива",
@@ -139,7 +140,7 @@ const ProxiesPage = () => {
 
   const sortedItems = useMemo(
     () =>
-      [...(proxiesQuery.data ?? [])].sort((a, b) =>
+      [...(proxiesQuery.data?.items ?? [])].sort((a, b) =>
         `${a.serviceNames.join("|")}:${a.proxy}`.localeCompare(
           `${b.serviceNames.join("|")}:${b.proxy}`,
           "ru",
@@ -147,6 +148,8 @@ const ProxiesPage = () => {
       ),
     [proxiesQuery.data],
   );
+
+  const summary = proxiesQuery.data?.summary;
 
   const handleClose = () => {
     setOpen(false);
@@ -384,8 +387,61 @@ const ProxiesPage = () => {
     </Stack>
   );
 
+  const renderSummary = () => (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "1fr",
+          sm: "repeat(2, minmax(0, 1fr))",
+          lg: "repeat(4, minmax(0, 1fr))",
+        },
+        gap: 1,
+        mb: 1.5,
+      }}
+    >
+      <Paper variant="outlined" sx={{ p: 1.25, borderRadius: 1 }}>
+        <Typography variant="caption" color="text.secondary">
+          Всего прокси
+        </Typography>
+        <Typography variant="h6" sx={{ lineHeight: 1.2 }}>
+          {summary?.total ?? 0}
+        </Typography>
+      </Paper>
+      {(summary?.services ?? []).map((service) => (
+        <Paper
+          key={service.serviceName}
+          variant="outlined"
+          sx={{ p: 1.25, borderRadius: 1 }}
+        >
+          <Typography variant="caption" color="text.secondary">
+            {formatServiceName(service.serviceName)}
+          </Typography>
+          <Typography variant="h6" sx={{ lineHeight: 1.2 }}>
+            {service.total}
+          </Typography>
+          <Stack direction="row" gap={1.25} flexWrap="wrap">
+            <Typography variant="caption" color="success.main">
+              активны: {service.ready}
+            </Typography>
+            <Typography variant="caption" color="info.main">
+              используются: {service.active}
+            </Typography>
+            <Typography variant="caption" color="warning.main">
+              пауза: {service.coolingDown}
+            </Typography>
+            <Typography variant="caption" color="error.main">
+              карантин: {service.quarantined}
+            </Typography>
+          </Stack>
+        </Paper>
+      ))}
+    </Box>
+  );
+
   return (
     <>
+      {renderSummary()}
       <Table
         title="Прокси"
         isFetching={proxiesQuery.isPending}

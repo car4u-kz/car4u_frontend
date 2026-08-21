@@ -1,6 +1,6 @@
 "use client";
 
-import { TableRow, Typography, IconButton } from "@mui/material";
+import { Chip, Stack, TableRow, Typography, IconButton } from "@mui/material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -23,6 +23,48 @@ const TableRows = ({
   onEdit,
   formatServiceName,
 }: Props) => {
+  const formatPause = (seconds?: number | null) => {
+    if (!seconds || seconds <= 0) {
+      return null;
+    }
+
+    if (seconds < 60) {
+      return `${Math.ceil(seconds)} сек`;
+    }
+
+    return `${Math.ceil(seconds / 60)} мин`;
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "ready":
+        return "Активен";
+      case "active":
+        return "Используется";
+      case "cooling_down":
+        return "Пауза";
+      case "quarantined":
+        return "Карантин";
+      default:
+        return "Нет данных";
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "ready":
+        return "success";
+      case "active":
+        return "info";
+      case "cooling_down":
+        return "warning";
+      case "quarantined":
+        return "error";
+      default:
+        return "default";
+    }
+  };
+
   return (
     <>
       {items.map((item) => (
@@ -34,6 +76,41 @@ const TableRows = ({
           </TableCell>
           <TableCell>
             {item.serviceNames.map(formatServiceName).join(", ")}
+          </TableCell>
+          <TableCell sx={{ minWidth: 210 }}>
+            <Stack direction="column" gap={0.75}>
+              {item.runtimeStatuses?.length ? (
+                item.runtimeStatuses.map((status) => {
+                  const pause = formatPause(status.pauseRemainingSeconds);
+                  return (
+                    <Stack
+                      key={`${item.proxy}-${status.serviceName}`}
+                      direction="row"
+                      alignItems="center"
+                      gap={0.75}
+                    >
+                      <Typography variant="caption" color="text.secondary">
+                        {formatServiceName(status.serviceName)}
+                      </Typography>
+                      <Chip
+                        size="small"
+                        color={getStatusColor(status.status)}
+                        label={
+                          pause
+                            ? `${getStatusLabel(status.status)} · ${pause}`
+                            : getStatusLabel(status.status)
+                        }
+                        sx={{ height: 22, fontSize: 12 }}
+                      />
+                    </Stack>
+                  );
+                })
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Нет данных
+                </Typography>
+              )}
+            </Stack>
           </TableCell>
           <TableCell sx={{ maxWidth: 260 }}>
             <Typography

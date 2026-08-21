@@ -2,6 +2,35 @@ export type ProxyListItem = {
   proxy: string;
   comment?: string | null;
   serviceNames: string[];
+  runtimeStatuses: ProxyRuntimeStatus[];
+};
+
+export type ProxyRuntimeStatus = {
+  serviceName: string;
+  isActive: boolean;
+  isCoolingDown: boolean;
+  isQuarantined: boolean;
+  pauseRemainingSeconds?: number | null;
+  status: "ready" | "active" | "cooling_down" | "quarantined" | "unknown" | string;
+};
+
+export type ProxyListResponse = {
+  items: ProxyListItem[];
+  summary: ProxySummary;
+};
+
+export type ProxySummary = {
+  total: number;
+  services: ProxyServiceSummary[];
+};
+
+export type ProxyServiceSummary = {
+  serviceName: string;
+  total: number;
+  active: number;
+  coolingDown: number;
+  quarantined: number;
+  ready: number;
 };
 
 export type ProxyBatchCreatePayload = {
