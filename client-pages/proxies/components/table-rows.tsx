@@ -1,6 +1,6 @@
 "use client";
 
-import { Chip, Stack, TableRow, Typography, IconButton } from "@mui/material";
+import { Box, Chip, Stack, TableRow, Typography, IconButton, Tooltip } from "@mui/material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -84,16 +84,48 @@ const TableRows = ({
   return (
     <>
       {items.map((item) => (
-        <TableRow key={item.proxy}>
-          <TableCell sx={{ textAlign: "left" }}>
-            <Typography sx={{ fontFamily: "monospace", fontSize: 13 }}>
+        <TableRow
+          key={item.proxy}
+          sx={{
+            "&:hover": {
+              bgcolor: "rgba(15, 23, 42, 0.025)",
+            },
+          }}
+        >
+          <TableCell sx={{ textAlign: "left", width: 270, verticalAlign: "top" }}>
+            <Typography
+              sx={{
+                display: "inline-flex",
+                maxWidth: "100%",
+                px: 0.75,
+                py: 0.35,
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 1,
+                bgcolor: "grey.50",
+                fontFamily: "monospace",
+                fontSize: 12.5,
+                lineHeight: 1.35,
+                overflowWrap: "anywhere",
+              }}
+            >
               {item.proxy}
             </Typography>
           </TableCell>
-          <TableCell>
-            {item.serviceNames.map(formatServiceName).join(", ")}
+          <TableCell sx={{ width: 180, verticalAlign: "top" }}>
+            <Stack direction="row" gap={0.5} flexWrap="wrap" justifyContent="center">
+              {item.serviceNames.map((serviceName) => (
+                <Chip
+                  key={serviceName}
+                  size="small"
+                  variant="outlined"
+                  label={formatServiceName(serviceName)}
+                  sx={{ height: 22, fontSize: 12 }}
+                />
+              ))}
+            </Stack>
           </TableCell>
-          <TableCell sx={{ minWidth: 210 }}>
+          <TableCell sx={{ minWidth: 300, verticalAlign: "top" }}>
             <Stack direction="column" gap={0.75}>
               {item.runtimeStatuses?.length ? (
                 item.runtimeStatuses.map((status) => {
@@ -102,10 +134,26 @@ const TableRows = ({
                     <Stack
                       key={`${item.proxy}-${status.serviceName}`}
                       direction="column"
-                      gap={0.25}
+                      gap={0.5}
+                      sx={{
+                        p: 0.75,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        borderRadius: 1,
+                        bgcolor: "background.paper",
+                      }}
                     >
-                      <Stack direction="row" alignItems="center" gap={0.75}>
-                        <Typography variant="caption" color="text.secondary">
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="space-between"
+                        gap={1}
+                      >
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ fontWeight: 600 }}
+                        >
                           {formatServiceName(status.serviceName)}
                         </Typography>
                         <Chip
@@ -120,21 +168,29 @@ const TableRows = ({
                         />
                       </Stack>
                       {status.recentTotalCount > 0 || status.penaltyCooldownSeconds > 0 ? (
-                        <Typography variant="caption" color="text.secondary">
-                          Ошибки: {status.recentFailureCount}/{status.recentTotalCount}
-                          {status.recentTotalCount > 0
-                            ? ` · ${Math.round(status.errorRatePercent)}%`
-                            : ""}
-                          {status.consecutiveFailureCount > 0
-                            ? ` · подряд: ${status.consecutiveFailureCount}`
-                            : ""}
-                          {status.penaltyCooldownSeconds > 0
-                            ? ` · штраф: ${formatDuration(status.penaltyCooldownSeconds)}`
-                            : ""}
-                          {status.penaltyCooldownSeconds > 0
-                            ? ` · стабильно: ${status.stableSuccessCount}/${status.stableSuccessesToDecreasePenalty}`
-                            : ""}
-                        </Typography>
+                        <Stack direction="row" gap={0.75} flexWrap="wrap">
+                          <Typography variant="caption" color="text.secondary">
+                            Ошибки: {status.recentFailureCount}/{status.recentTotalCount}
+                            {status.recentTotalCount > 0
+                              ? ` · ${Math.round(status.errorRatePercent)}%`
+                              : ""}
+                          </Typography>
+                          {status.consecutiveFailureCount > 0 ? (
+                            <Typography variant="caption" color="warning.main">
+                              подряд: {status.consecutiveFailureCount}
+                            </Typography>
+                          ) : null}
+                          {status.penaltyCooldownSeconds > 0 ? (
+                            <Typography variant="caption" color="error.main">
+                              штраф: {formatDuration(status.penaltyCooldownSeconds)}
+                            </Typography>
+                          ) : null}
+                          {status.penaltyCooldownSeconds > 0 ? (
+                            <Typography variant="caption" color="text.secondary">
+                              стабильно: {status.stableSuccessCount}/{status.stableSuccessesToDecreasePenalty}
+                            </Typography>
+                          ) : null}
+                        </Stack>
                       ) : null}
                     </Stack>
                   );
@@ -146,7 +202,7 @@ const TableRows = ({
               )}
             </Stack>
           </TableCell>
-          <TableCell sx={{ maxWidth: 260 }}>
+          <TableCell sx={{ maxWidth: 260, verticalAlign: "top" }}>
             <Typography
               variant="body2"
               color="text.secondary"
@@ -160,16 +216,24 @@ const TableRows = ({
               {item.comment?.trim() || "-"}
             </Typography>
           </TableCell>
-          <TableCell align="right" sx={{ width: 132 }}>
-            <IconButton size="small" onClick={() => onCheck(item)}>
-              <HealthAndSafetyOutlinedIcon fontSize="small" />
-            </IconButton>
-            <IconButton size="small" onClick={() => onEdit(item)}>
-              <EditOutlinedIcon fontSize="small" />
-            </IconButton>
-            <IconButton size="small" onClick={() => onDelete(item)}>
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
+          <TableCell align="right" sx={{ width: 132, verticalAlign: "top" }}>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.25 }}>
+              <Tooltip title="Проверить прокси">
+                <IconButton size="small" onClick={() => onCheck(item)}>
+                  <HealthAndSafetyOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Редактировать">
+                <IconButton size="small" onClick={() => onEdit(item)}>
+                  <EditOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Удалить">
+                <IconButton size="small" color="error" onClick={() => onDelete(item)}>
+                  <DeleteOutlineIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </TableCell>
         </TableRow>
       ))}

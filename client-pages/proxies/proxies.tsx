@@ -6,6 +6,7 @@ import {
   Box,
   Paper,
   Checkbox,
+  Chip,
   ListItemText,
   MenuItem,
   OutlinedInput,
@@ -37,8 +38,8 @@ import type {
   ProxyUpdatePayload,
 } from "./types";
 
-const headerLabels = ["Прокси", "Назначение", "Состояние", "Комментарий", ""];
-const hiddenServiceNames = new Set(["CatalogMonitor"]);
+const headerLabels = ["Прокси", "Сервисы", "Состояние", "Комментарий", "Действия"];
+const hiddenServiceNames = new Set(["AdScraper", "CatalogMonitor"]);
 const serviceLabelMap: Record<string, string> = {
   PendingArchiveValidationProcessor: "Проверка архива",
   TemplateMode1Processor: "Парсинг каталога",
@@ -140,16 +141,28 @@ const ProxiesPage = () => {
 
   const sortedItems = useMemo(
     () =>
-      [...(proxiesQuery.data?.items ?? [])].sort((a, b) =>
-        `${a.serviceNames.join("|")}:${a.proxy}`.localeCompare(
-          `${b.serviceNames.join("|")}:${b.proxy}`,
+      [...(proxiesQuery.data?.items ?? [])]
+        .map((item) => ({
+          ...item,
+          serviceNames: normalizeEditableServiceNames(item.serviceNames),
+          runtimeStatuses: (item.runtimeStatuses ?? []).filter(
+            (status) => !hiddenServiceNames.has(status.serviceName),
+          ),
+        }))
+        .filter((item) => item.serviceNames.length > 0 || item.runtimeStatuses.length > 0)
+        .sort((a, b) =>
+          `${a.serviceNames.join("|")}:${a.proxy}`.localeCompare(
+            `${b.serviceNames.join("|")}:${b.proxy}`,
           "ru",
+          ),
         ),
-      ),
     [proxiesQuery.data],
   );
 
   const summary = proxiesQuery.data?.summary;
+  const visibleSummaryServices = (summary?.services ?? []).filter(
+    (service) => !hiddenServiceNames.has(service.serviceName),
+  );
 
   const handleClose = () => {
     setOpen(false);
@@ -388,55 +401,117 @@ const ProxiesPage = () => {
   );
 
   const renderSummary = () => (
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: {
-          xs: "1fr",
-          sm: "repeat(2, minmax(0, 1fr))",
-          lg: "repeat(4, minmax(0, 1fr))",
-        },
-        gap: 1,
-        mb: 1.5,
-      }}
-    >
-      <Paper variant="outlined" sx={{ p: 1.25, borderRadius: 1 }}>
-        <Typography variant="caption" color="text.secondary">
-          Всего прокси
-        </Typography>
-        <Typography variant="h6" sx={{ lineHeight: 1.2 }}>
-          {summary?.total ?? 0}
-        </Typography>
-      </Paper>
-      {(summary?.services ?? []).map((service) => (
-        <Paper
-          key={service.serviceName}
-          variant="outlined"
-          sx={{ p: 1.25, borderRadius: 1 }}
+    <Stack gap={1.25} sx={{ mb: 2 }}>
+      <Paper
+        variant="outlined"
+        sx={{
+          p: 1.5,
+          borderRadius: 1,
+          borderColor: "divider",
+          bgcolor: "background.paper",
+        }}
+      >
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          alignItems={{ xs: "flex-start", sm: "center" }}
+          justifyContent="space-between"
+          gap={1}
         >
-          <Typography variant="caption" color="text.secondary">
-            {formatServiceName(service.serviceName)}
-          </Typography>
-          <Typography variant="h6" sx={{ lineHeight: 1.2 }}>
-            {service.total}
-          </Typography>
-          <Stack direction="row" gap={1.25} flexWrap="wrap">
-            <Typography variant="caption" color="success.main">
-              активны: {service.ready}
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              Всего прокси
             </Typography>
-            <Typography variant="caption" color="info.main">
-              используются: {service.active}
+            <Typography variant="h5" sx={{ lineHeight: 1.1, fontWeight: 700 }}>
+              {summary?.total ?? 0}
             </Typography>
-            <Typography variant="caption" color="warning.main">
-              пауза: {service.coolingDown}
-            </Typography>
-            <Typography variant="caption" color="error.main">
-              карантин: {service.quarantined}
-            </Typography>
+          </Box>
+          <Stack direction="row" gap={0.75} flexWrap="wrap">
+            <Chip
+              size="small"
+              color="success"
+              variant="outlined"
+              label={`активны: ${visibleSummaryServices.reduce((sum, service) => sum + service.ready, 0)}`}
+            />
+            <Chip
+              size="small"
+              color="info"
+              variant="outlined"
+              label={`используются: ${visibleSummaryServices.reduce((sum, service) => sum + service.active, 0)}`}
+            />
+            <Chip
+              size="small"
+              color="warning"
+              variant="outlined"
+              label={`пауза: ${visibleSummaryServices.reduce((sum, service) => sum + service.coolingDown, 0)}`}
+            />
+            <Chip
+              size="small"
+              color="error"
+              variant="outlined"
+              label={`карантин: ${visibleSummaryServices.reduce((sum, service) => sum + service.quarantined, 0)}`}
+            />
           </Stack>
-        </Paper>
-      ))}
-    </Box>
+        </Stack>
+      </Paper>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            md: "repeat(3, minmax(0, 1fr))",
+          },
+          gap: 1,
+        }}
+      >
+        {visibleSummaryServices.map((service) => (
+          <Paper
+            key={service.serviceName}
+            variant="outlined"
+            sx={{
+              p: 1.25,
+              borderRadius: 1,
+              borderColor: "divider",
+              minHeight: 92,
+            }}
+          >
+            <Stack gap={1}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                  {formatServiceName(service.serviceName)}
+                </Typography>
+                <Typography variant="h6" sx={{ lineHeight: 1, fontWeight: 700 }}>
+                  {service.total}
+                </Typography>
+              </Stack>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  gap: 0.75,
+                }}
+              >
+                {[
+                  ["Активны", service.ready, "success.main"],
+                  ["В работе", service.active, "info.main"],
+                  ["Пауза", service.coolingDown, "warning.main"],
+                  ["Карантин", service.quarantined, "error.main"],
+                ].map(([label, value, color]) => (
+                  <Stack key={label as string} direction="row" justifyContent="space-between" gap={1}>
+                    <Typography variant="caption" color="text.secondary">
+                      {label}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color, fontWeight: 700 }}>
+                      {value}
+                    </Typography>
+                  </Stack>
+                ))}
+              </Box>
+            </Stack>
+          </Paper>
+        ))}
+      </Box>
+    </Stack>
   );
 
   return (
@@ -447,7 +522,7 @@ const ProxiesPage = () => {
         isFetching={proxiesQuery.isPending}
         headerLabels={headerLabels}
         tableButtons={
-          <Box sx={{ p: 0.5, pl: 1 }}>
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
             <Button
               disableRipple
               variant="contained"
