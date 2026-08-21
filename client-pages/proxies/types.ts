@@ -14,6 +14,7 @@ export type ProxyRuntimeStatus = {
   recentSuccessCount: number;
   recentFailureCount: number;
   recentTotalCount: number;
+  consecutiveFailureCount: number;
   errorRatePercent: number;
   penaltyCooldownSeconds: number;
   stableSuccessCount: number;

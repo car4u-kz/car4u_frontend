@@ -125,6 +125,9 @@ const TableRows = ({
                           {status.recentTotalCount > 0
                             ? ` · ${Math.round(status.errorRatePercent)}%`
                             : ""}
+                          {status.consecutiveFailureCount > 0
+                            ? ` · подряд: ${status.consecutiveFailureCount}`
+                            : ""}
                           {status.penaltyCooldownSeconds > 0
                             ? ` · штраф: ${formatDuration(status.penaltyCooldownSeconds)}`
                             : ""}
