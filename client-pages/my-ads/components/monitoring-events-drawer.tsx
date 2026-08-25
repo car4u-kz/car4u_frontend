@@ -18,6 +18,7 @@ const eventLabels: Record<string, string> = {
   monitoring_created: "Мониторинг создан",
   monitoring_updated: "Настройки обновлены",
   monitoring_started: "Мониторинг запущен",
+  monitoring_restarted: "Мониторинг перезапущен",
   monitoring_stopped: "Мониторинг остановлен",
   monitoring_completed: "Мониторинг завершен",
   monitoring_error: "Ошибка мониторинга",
