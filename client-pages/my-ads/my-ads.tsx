@@ -341,7 +341,7 @@ const MyAds = ({}: Props) => {
       <Modal
         isLoading={isAdd ? false : mutation.isPending}
         sx={{
-          width: isAdd ? 620 : 550,
+          width: isAdd ? 760 : 550,
           maxWidth: "calc(100vw - 32px)",
           maxHeight: "calc(100vh - 48px)",
           display: "flex",

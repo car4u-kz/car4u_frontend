@@ -1,6 +1,12 @@
 "use client";
 
-import { Modal as MuiModal, Box, IconButton, Typography, SxProps } from "@mui/material";
+import {
+  Modal as MuiModal,
+  Box,
+  IconButton,
+  Typography,
+  SxProps,
+} from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -78,7 +84,15 @@ const Modal = ({
             </IconButton>
           </Box>
         )}
-        <Box sx={{ mt: 2, minHeight: 0, overflowY: "auto", flex: 1 }}>
+        <Box
+          sx={{
+            mt: 2,
+            minHeight: 0,
+            overflowY: "auto",
+            overflowX: "hidden",
+            flex: 1,
+          }}
+        >
           {isLoading ? (
             <Box display="flex" justifyContent="center">
               <CircularProgress />
