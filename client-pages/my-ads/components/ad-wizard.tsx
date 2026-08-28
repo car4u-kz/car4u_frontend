@@ -7,6 +7,7 @@ import {
   Alert,
   Button as MuiButton,
   Checkbox,
+  CircularProgress,
   FormControlLabel,
   Radio,
   RadioGroup,
@@ -69,9 +70,21 @@ const AdWizard = ({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  const handleClose = async () => {
+  const cleanupReservationAndSession = async () => {
+    if (sessionState?.reservedAccountInfo || reservationSucceeded) {
+      try {
+        await cancelAccountReservation(fetchWithAuth, sessionId);
+      } catch {}
+    }
+
     try {
       await deleteSession(fetchWithAuth, sessionId);
+    } catch {}
+  };
+
+  const handleClose = async () => {
+    try {
+      await cleanupReservationAndSession();
     } catch {
     } finally {
       onClose();
@@ -557,16 +570,45 @@ const AdWizard = ({
     );
   };
 
+  const busy = loading || submitInProgress;
+
   return (
-    <Box position="relative">
+    <Box
+      position="relative"
+      sx={{
+        mx: -0.5,
+        px: 0.5,
+        "& .MuiAlert-root": {
+          borderRadius: 1,
+        },
+      }}
+    >
+      {busy && (
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "rgba(255, 255, 255, 0.72)",
+            backdropFilter: "blur(1px)",
+            borderRadius: 1,
+          }}
+        >
+          <CircularProgress size={28} />
+        </Box>
+      )}
+
       <Box
         sx={{
-          position: "absolute",
-          top: -44,
-          right: -8,
+          mb: 2,
+          display: "flex",
+          justifyContent: "flex-end",
         }}
       >
-        <Button size="small" onClick={handleClose}>
+        <Button size="small" onClick={handleClose} disabled={busy}>
           Закрыть
         </Button>
       </Box>

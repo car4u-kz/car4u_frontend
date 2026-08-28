@@ -1,7 +1,8 @@
 "use client";
 
-import { Modal as MuiModal, Box, Typography, SxProps } from "@mui/material";
+import { Modal as MuiModal, Box, IconButton, Typography, SxProps } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
+import CloseIcon from "@mui/icons-material/Close";
 
 import { Button } from "@/components";
 
@@ -42,12 +43,32 @@ const Modal = ({
   hideFooter = false,
 }: Props & { hideFooter?: boolean }) => {
   return (
-    <MuiModal open={open}>
+    <MuiModal open={open} onClose={onClose}>
       <Box sx={{ ...style, ...sx }}>
         {!!title && (
-          <Typography variant="h6" component="h2">
-            {title}
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+              pb: 1.5,
+              borderBottom: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <Typography variant="h6" component="h2">
+              {title}
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={onClose}
+              disabled={isLoading}
+              aria-label="Закрыть"
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
         )}
         <Box sx={{ mt: 2, minHeight: 0, overflowY: "auto", flex: 1 }}>
           {isLoading ? (

@@ -21,6 +21,7 @@ import {
   deleteSession,
   getOurAdsSession,
 } from "@/services/our-ads-sessions-services";
+import { cancelAccountReservation } from "@/services/account-reservation-services";
 import { getAccounts } from "@/services/account-services";
 
 import type { AdFormData, ActionPayloadType, OurAdItem } from "./types";
@@ -104,6 +105,10 @@ const MyAds = ({}: Props) => {
     if (!formData.sessionId) return;
 
     const handler = async () => {
+      try {
+        await cancelAccountReservation(fetchWithAuth, formData.sessionId);
+      } catch {}
+
       try {
         await deleteSession(fetchWithAuth, formData.sessionId);
       } catch {}
@@ -241,7 +246,19 @@ const MyAds = ({}: Props) => {
     setLogDrawerAd(ad);
   };
 
-  const handleModalClose = () => {
+  const handleModalClose = async () => {
+    const sessionId = open === "add" ? formData.sessionId : "";
+
+    if (sessionId) {
+      try {
+        await cancelAccountReservation(fetchWithAuth, sessionId);
+      } catch {}
+
+      try {
+        await deleteSession(fetchWithAuth, sessionId);
+      } catch {}
+    }
+
     setOpen(false);
     setFormData(initialData);
     setError(null);
@@ -322,9 +339,10 @@ const MyAds = ({}: Props) => {
         headerLabels={headerLabels}
       />
       <Modal
-        isLoading={mutation.isPending || query.isFetching}
+        isLoading={isAdd ? false : mutation.isPending}
         sx={{
-          width: 550,
+          width: isAdd ? 620 : 550,
+          maxWidth: "calc(100vw - 32px)",
           maxHeight: "calc(100vh - 48px)",
           display: "flex",
           flexDirection: "column",
