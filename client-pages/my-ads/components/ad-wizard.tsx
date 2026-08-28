@@ -278,6 +278,21 @@ const AdWizard = ({
     await handleCreateNewAccount();
   };
 
+  const handleStartOverWithAnotherAccount = () => {
+    setError(null);
+    setPendingAccountConflict(null);
+    setReservationSucceeded(false);
+    setReservationInProgress(false);
+    setSessionState(null);
+    setNewLogin("");
+    setNewPassword("");
+    setFormData((prev) => ({
+      ...prev,
+      accountId: accounts[0]?.value ?? "",
+    }));
+    setIsNewAccount(false);
+  };
+
   const handleCancelReservation = async () => {
     setError(null);
     setLoading(true);
@@ -483,19 +498,7 @@ const AdWizard = ({
         {error && <Alert severity="error">{error}</Alert>}
 
         {pendingAccountConflict && (
-          <Alert
-            severity="warning"
-            action={
-              <MuiButton
-                color="inherit"
-                size="small"
-                onClick={handleClearPendingReservation}
-                disabled={loading || reservationInProgress}
-              >
-                Удалить и повторить
-              </MuiButton>
-            }
-          >
+          <Alert severity="warning">
             Кабинет {pendingAccountConflict.login} уже находится во временной
             резервации. Можно удалить старую резервацию и начать заново.
           </Alert>
@@ -564,6 +567,22 @@ const AdWizard = ({
                 >
                   Сменить кабинет
                 </Button>
+              ) : pendingAccountConflict ? (
+                <>
+                  <Button
+                    color="secondary"
+                    onClick={handleStartOverWithAnotherAccount}
+                    disabled={loading || reservationInProgress}
+                  >
+                    Другой кабинет
+                  </Button>
+                  <Button
+                    onClick={handleClearPendingReservation}
+                    disabled={loading || reservationInProgress}
+                  >
+                    Удалить и повторить
+                  </Button>
+                </>
               ) : (
                 <Button
                   onClick={handleCreateNewAccount}
@@ -621,11 +640,11 @@ const AdWizard = ({
           </Alert>
         )}
 
-        <Box display="flex" justifyContent="flex-end">
-          <Button onClick={goToStep2} disabled={!canProceed}>
-            Далее
-          </Button>
-        </Box>
+        {canProceed && (
+          <Box display="flex" justifyContent="flex-end">
+            <Button onClick={goToStep2}>Далее</Button>
+          </Box>
+        )}
       </Stack>
     );
   };
@@ -660,18 +679,6 @@ const AdWizard = ({
           <CircularProgress size={28} />
         </Box>
       )}
-
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          justifyContent: "flex-end",
-        }}
-      >
-        <Button size="small" onClick={handleClose} disabled={busy}>
-          Закрыть
-        </Button>
-      </Box>
 
       {step === 1 && renderStep1()}
       {step === 2 && renderStep2()}
