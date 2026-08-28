@@ -42,8 +42,16 @@ const Modal = ({
   sx,
   hideFooter = false,
 }: Props & { hideFooter?: boolean }) => {
+  const handleClose = (
+    _event: {},
+    reason: "backdropClick" | "escapeKeyDown"
+  ) => {
+    if (isLoading || reason === "backdropClick") return;
+    onClose();
+  };
+
   return (
-    <MuiModal open={open} onClose={onClose}>
+    <MuiModal open={open} onClose={handleClose}>
       <Box sx={{ ...style, ...sx }}>
         {!!title && (
           <Box

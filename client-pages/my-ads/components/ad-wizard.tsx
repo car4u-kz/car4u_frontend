@@ -15,7 +15,9 @@ import {
 import { Select, TextInput } from "@/components/form";
 import { Button, Typography } from "@/components";
 import {
+  AccountReservationError,
   cancelAccountReservation,
+  clearPendingAccountReservation,
   reserveAccountWithCredentials,
   reserveExistingAccount,
 } from "@/services/account-reservation-services";
@@ -54,6 +56,10 @@ const AdWizard = ({
 }: Props) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [error, setError] = useState<string | null>(null);
+  const [pendingAccountConflict, setPendingAccountConflict] = useState<{
+    login: string;
+    expiresAt?: string;
+  } | null>(null);
 
   const [isNewAccount, setIsNewAccount] = useState(false);
   const [newLogin, setNewLogin] = useState("");
@@ -190,6 +196,7 @@ const AdWizard = ({
 
   const handleCreateNewAccount = async () => {
     setError(null);
+    setPendingAccountConflict(null);
 
     if (!newLogin || !newPassword) {
       setError("Укажите логин и пароль");
@@ -229,12 +236,46 @@ const AdWizard = ({
 
       setReservationSucceeded(true);
     } catch (e: any) {
-      setError(e.message ?? "Ошибка при создании кабинета");
+      const metadata = e instanceof AccountReservationError ? e.metadata : null;
+      if (metadata?.code === "pending_account_exists" && metadata?.login) {
+        setPendingAccountConflict({
+          login: metadata.login,
+          expiresAt: metadata.expiresAt,
+        });
+        setError(
+          "Для этого кабинета осталась незавершенная временная резервация."
+        );
+      } else {
+        setError(e.message ?? "Ошибка при создании кабинета");
+      }
       setReservationSucceeded(false);
     } finally {
       setLoading(false);
       setReservationInProgress(false);
     }
+  };
+
+  const handleClearPendingReservation = async () => {
+    if (!pendingAccountConflict?.login) return;
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      await clearPendingAccountReservation(
+        fetchWithAuth,
+        sessionId,
+        pendingAccountConflict.login
+      );
+      setPendingAccountConflict(null);
+    } catch (e: any) {
+      setError(e.message ?? "Не удалось удалить старую резервацию");
+      return;
+    } finally {
+      setLoading(false);
+    }
+
+    await handleCreateNewAccount();
   };
 
   const handleCancelReservation = async () => {
@@ -440,6 +481,25 @@ const AdWizard = ({
     return (
       <Stack direction="column" gap={2}>
         {error && <Alert severity="error">{error}</Alert>}
+
+        {pendingAccountConflict && (
+          <Alert
+            severity="warning"
+            action={
+              <MuiButton
+                color="inherit"
+                size="small"
+                onClick={handleClearPendingReservation}
+                disabled={loading || reservationInProgress}
+              >
+                Удалить и повторить
+              </MuiButton>
+            }
+          >
+            Кабинет {pendingAccountConflict.login} уже находится во временной
+            резервации. Можно удалить старую резервацию и начать заново.
+          </Alert>
+        )}
 
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">Выбор кабинета</Typography>
