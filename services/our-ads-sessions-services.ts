@@ -1,5 +1,13 @@
 export type SessionStateDto = {
   expiresAt: string | null;
+  activeOperation?: {
+    key: string;
+    startedAt: string;
+    updatedAt: string;
+    statusMessage?: string | null;
+    attempt?: number | null;
+    maxAttempts?: number | null;
+  } | null;
   reservedAccountInfo: {
     accountId: number | null;
     ready: boolean;

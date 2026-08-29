@@ -597,7 +597,8 @@ const AdWizard = ({
 
         {reservationInProgress && (
           <Alert severity="info">
-            Идет резервирование кабинета... пожалуйста, подождите.
+            {sessionState?.activeOperation?.statusMessage ||
+              "Идет резервирование кабинета... пожалуйста, подождите."}
           </Alert>
         )}
 
