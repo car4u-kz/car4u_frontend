@@ -165,16 +165,16 @@ const AdWizard = ({
 
       const state = await waitForReservation();
       const info = state.reservedAccountInfo;
+      const validation = info?.validation;
 
-      if (!info || !info.accountId) {
-        setError("Кабинет не был зарезервирован");
+      if (validation && validation.status === 2) {
+        setError(validation.message || "Кабинет не прошел проверку");
         setReservationSucceeded(false);
         return;
       }
 
-      const validation = info.validation;
-      if (validation && validation.status === 2) {
-        setError(validation.message || "Кабинет не прошел проверку");
+      if (!info || !info.accountId) {
+        setError("Кабинет не был зарезервирован");
         setReservationSucceeded(false);
         return;
       }
@@ -215,16 +215,16 @@ const AdWizard = ({
 
       const state = await waitForReservation();
       const info = state.reservedAccountInfo;
+      const validation = info?.validation;
 
-      if (!info || !info.accountId) {
-        setError("Кабинет не был зарезервирован");
+      if (validation && validation.status === 2) {
+        setError(validation.message || "Кабинет не прошел проверку");
         setReservationSucceeded(false);
         return;
       }
 
-      const validation = info.validation;
-      if (validation && validation.status === 2) {
-        setError(validation.message || "Кабинет не прошел проверку");
+      if (!info || !info.accountId) {
+        setError("Кабинет не был зарезервирован");
         setReservationSucceeded(false);
         return;
       }
