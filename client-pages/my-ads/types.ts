@@ -24,6 +24,7 @@ export type AdFormData = {
   timingRepublishingIntervalHours: string;
   monitoringDurationDays: string;
   price: string;
+  mileage: string;
   isNewAuto: boolean;
   toOrder: boolean;
   description: string;

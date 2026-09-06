@@ -242,6 +242,7 @@ export const putAd = async (
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         id,
+        name: formData.name,
         mainImagePath: formData.mainImagePath,
         notDetectedCount: formData.notDetectedCount,
         depthOfMonitoring: formData.depthOfMonitoring,
@@ -253,6 +254,7 @@ export const putAd = async (
           ? formData.timingRepublishingIntervalHours
           : null,
         price: formData.hasDetails ? formData.price : null,
+        mileage: formData.hasDetails ? formData.mileage : null,
         isNewAuto: formData.hasDetails ? formData.isNewAuto : null,
         toOrder: formData.hasDetails ? formData.toOrder : null,
         description: formData.hasDetails ? formData.description : null,

@@ -40,6 +40,12 @@ const EditForm = ({
       {error && <Alert severity="error">{error}</Alert>}
 
       <TextInput
+        label="Название объявления"
+        value={formData.name}
+        onChange={(e) => handleChange(e, "name")}
+      />
+
+      <TextInput
         label="Локальный путь к фотографии на сервере"
         value={formData.mainImagePath}
         onChange={(e) => handleChange(e, "mainImagePath")}
@@ -142,6 +148,20 @@ const EditForm = ({
             : "Данные объявления еще не получены обработчиком"
         }
         onChange={(e) => handleChange(e, "price")}
+      />
+
+      <TextInput
+        type="number"
+        max={9999999}
+        label="Пробег"
+        value={formData.mileage}
+        disabled={!formData.hasDetails}
+        helperText={
+          formData.hasDetails
+            ? undefined
+            : "Данные объявления еще не получены обработчиком"
+        }
+        onChange={(e) => handleChange(e, "mileage")}
       />
 
       <FormControlLabel
