@@ -102,13 +102,30 @@ const Modal = ({
           )}
         </Box>
         {!hideFooter && (
-          <Box sx={{ mt: 3, textAlign: "right" }}>
+          <Box
+            sx={{
+              mt: 2,
+              mx: -2.5,
+              mb: -2.5,
+              px: 2.5,
+              py: 1.5,
+              borderTop: "1px solid",
+              borderColor: "divider",
+              bgcolor: "background.paper",
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 1.5,
+              flexShrink: 0,
+              position: "sticky",
+              bottom: 0,
+              zIndex: 1,
+            }}
+          >
             <Button
               disabled={isLoading}
               onClick={onClose}
-              variant="contained"
+              variant="outlined"
               size="small"
-              color="error"
             >
               {cancelLabel}
             </Button>
@@ -117,7 +134,6 @@ const Modal = ({
               onClick={onSubmit}
               variant="contained"
               size="small"
-              sx={{ ml: 1.5 }}
             >
               {submitLabel}
             </Button>
