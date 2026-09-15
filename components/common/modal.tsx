@@ -18,10 +18,15 @@ const style: SxProps = {
   left: "50%",
   transform: "translate(-50%, -50%)",
   width: 500,
+  maxWidth: "calc(100vw - 32px)",
+  maxHeight: "calc(100vh - 32px)",
   bgcolor: "background.paper",
   borderRadius: 2,
   boxShadow: 24,
   p: 2.5,
+  display: "flex",
+  flexDirection: "column",
+  overflow: "hidden",
 };
 
 type Props = {
@@ -90,7 +95,7 @@ const Modal = ({
             minHeight: 0,
             overflowY: "auto",
             overflowX: "hidden",
-            flex: 1,
+            flex: "1 1 auto",
           }}
         >
           {isLoading ? (
@@ -116,9 +121,6 @@ const Modal = ({
               justifyContent: "flex-end",
               gap: 1.5,
               flexShrink: 0,
-              position: "sticky",
-              bottom: 0,
-              zIndex: 1,
             }}
           >
             <Button

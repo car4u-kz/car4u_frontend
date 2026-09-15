@@ -27,6 +27,7 @@ export default function AppHeader() {
     "/ads",
     "/search",
     "/counterparties",
+    "/catalog-keywords",
     "/my-ads",
     "/accounts",
     "/proxies",
@@ -93,6 +94,13 @@ export default function AppHeader() {
                     isActive={pathname === "/counterparties"}
                   >
                     Контрагенты
+                  </Link>
+                  <Link
+                    target="_self"
+                    href="/catalog-keywords"
+                    isActive={pathname === "/catalog-keywords"}
+                  >
+                    Ключевые слова
                   </Link>
                   <Link
                     target="_self"
