@@ -422,11 +422,72 @@ export const exportAdsArchiveWithFilters = async (
     input: RequestInfo | URL,
     init?: RequestInit,
   ) => Promise<Response>,
+  onProgress?: (status: AdExportJobStatus) => void,
 ) => {
   queryParams.set("exportSource", "ads");
 
-  const response = await fetchWithAuth(
-    `/api/adview/export-zip?${queryParams.toString()}`,
+  await exportAdsArchiveByQuery(queryParams, fetchWithAuth, onProgress);
+};
+
+export type AdExportJobStatus = {
+  jobId: string;
+  status: "queued" | "running" | "completed" | "failed";
+  progressPercent: number;
+  message: string;
+  fileName?: string | null;
+  error?: string | null;
+};
+
+export const exportAdsArchiveByQuery = async (
+  queryParams: URLSearchParams,
+  fetchWithAuth: (
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ) => Promise<Response>,
+  onProgress?: (status: AdExportJobStatus) => void,
+) => {
+  const startResponse = await fetchWithAuth(
+    `/api/adview/export-zip/jobs?${queryParams.toString()}`,
+    {
+      method: "POST",
+      headers: {
+        Accept:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      },
+    },
+  );
+
+  if (!startResponse.ok) {
+    const errorText = await startResponse.text();
+    throw new Error(errorText || "Не удалось выгрузить объявления");
+  }
+
+  let status = (await startResponse.json()) as AdExportJobStatus;
+  onProgress?.(status);
+
+  while (status.status === "queued" || status.status === "running") {
+    await sleep(1500);
+
+    const statusResponse = await fetchWithAuth(
+      `/api/adview/export-zip/jobs/${status.jobId}`,
+      { method: "GET" },
+    );
+
+    if (!statusResponse.ok) {
+      const errorText = await statusResponse.text();
+      throw new Error(errorText || "Не удалось получить статус выгрузки");
+    }
+
+    status = (await statusResponse.json()) as AdExportJobStatus;
+    onProgress?.(status);
+  }
+
+  if (status.status !== "completed") {
+    throw new Error(status.error || status.message || "Не удалось подготовить выгрузку");
+  }
+
+  const downloadResponse = await fetchWithAuth(
+    `/api/adview/export-zip/jobs/${status.jobId}/download`,
     {
       method: "GET",
       headers: {
@@ -436,14 +497,14 @@ export const exportAdsArchiveWithFilters = async (
     },
   );
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || "Не удалось выгрузить объявления");
+  if (!downloadResponse.ok) {
+    const errorText = await downloadResponse.text();
+    throw new Error(errorText || "Не удалось скачать файл выгрузки");
   }
 
-  const blob = await response.blob();
-  const contentDisposition = response.headers.get("content-disposition");
-  let fileName = "ads-export.xlsx";
+  const blob = await downloadResponse.blob();
+  const contentDisposition = downloadResponse.headers.get("content-disposition");
+  let fileName = status.fileName || "ads-export.xlsx";
 
   if (contentDisposition) {
     const match = contentDisposition.match(
@@ -464,3 +525,5 @@ export const exportAdsArchiveWithFilters = async (
   a.remove();
   window.URL.revokeObjectURL(url);
 };
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

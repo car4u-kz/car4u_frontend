@@ -18,9 +18,11 @@ import FiltersSidebar from "./components/filters-sidebar";
 import CatalogAdMonitoringsDrawer from "./components/monitorings-drawer";
 import CatalogAdDuplicateHistoryDrawer from "./components/duplicate-history-drawer";
 import { IconButton } from "@/components";
+import ExportProgressModal from "@/components/export-progress-modal/export-progress-modal";
 
 import { getCars } from "@/services/car-services";
 import {
+  AdExportJobStatus,
   exportAdsArchiveWithFilters,
   getAdFilterList,
   getAdStats,
@@ -97,6 +99,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
   const [selectValue, setSelectValue] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportStatus, setExportStatus] = useState<AdExportJobStatus | null>(null);
   const [showExpandFiltersButton, setShowExpandFiltersButton] = useState(true);
   const [monitoringsDrawerAd, setMonitoringsDrawerAd] = useState<{
     adId: number;
@@ -297,11 +300,22 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       exportParams.delete("sortBy");
       exportParams.delete("sortOrder");
 
-      await exportAdsArchiveWithFilters(exportParams, fetchWithAuth);
+      await exportAdsArchiveWithFilters(exportParams, fetchWithAuth, setExportStatus);
     } catch (error) {
       console.error("Ошибка при выгрузке объявлений", error);
+      setExportStatus((current) => ({
+        jobId: current?.jobId || "",
+        status: "failed",
+        progressPercent: 100,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Не удалось подготовить выгрузку",
+      }));
+      await new Promise((resolve) => setTimeout(resolve, 2500));
     } finally {
       setIsExporting(false);
+      setExportStatus(null);
     }
   };
 
@@ -494,6 +508,13 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
           <TuneRoundedIcon fontSize="small" />
         </IconButton>
       ) : null}
+
+      <ExportProgressModal
+        open={isExporting}
+        progressPercent={exportStatus?.progressPercent ?? 0}
+        message={exportStatus?.message ?? "Запускаем выгрузку."}
+        status={exportStatus?.status ?? "running"}
+      />
     </Box>
   );
 };

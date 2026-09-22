@@ -4,6 +4,7 @@ import {
   SearchFormData,
 } from "@/client-pages/search/types";
 import { MenuItemAction } from "@/constants";
+import { AdExportJobStatus, exportAdsArchiveByQuery } from "@/services/ad-services";
 
 export const postSearch = async (
   formData: SearchFormData,
@@ -172,42 +173,9 @@ export const exportAdsArchive = async (
     input: RequestInfo | URL,
     init?: RequestInit,
   ) => Promise<Response>,
+  onProgress?: (status: AdExportJobStatus) => void,
 ) => {
-  const response = await fetchWithAuth(
-    `/api/adview/export-zip?templateId=${templateId}`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/zip",
-      },
-    },
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || "Не удалось выгрузить архив");
-  }
-
-  const blob = await response.blob();
-
-  const contentDisposition = response.headers.get("content-disposition");
-  let fileName = "ads-export.zip";
-
-  if (contentDisposition) {
-    const match = contentDisposition.match(
-      /filename\*?=(?:UTF-8'')?["']?([^"';\n]+)["']?/i,
-    );
-    if (match?.[1]) {
-      fileName = decodeURIComponent(match[1]);
-    }
-  }
-
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = fileName;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  window.URL.revokeObjectURL(url);
+  const queryParams = new URLSearchParams();
+  queryParams.set("templateId", String(templateId));
+  await exportAdsArchiveByQuery(queryParams, fetchWithAuth, onProgress);
 };

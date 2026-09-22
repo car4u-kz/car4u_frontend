@@ -98,11 +98,9 @@ export async function proxyFileToBackend(
       });
     }
 
-    const buffer = await res.arrayBuffer();
-
     const responseHeaders = new Headers(res.headers);
 
-    return new Response(buffer, {
+    return new Response(res.body, {
       status: res.status,
       statusText: res.statusText,
       headers: responseHeaders,

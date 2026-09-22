@@ -18,9 +18,11 @@ import PlayArrowOutlinedIcon from "@mui/icons-material/PlayArrowOutlined";
 import StopOutlinedIcon from "@mui/icons-material/StopOutlined";
 import Link from "next/link";
 
+import ExportProgressModal from "@/components/export-progress-modal/export-progress-modal";
 import TableCell from "@/components/table/table-cell";
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import { exportAdsArchive } from "@/services/search-services";
+import { AdExportJobStatus } from "@/services/ad-services";
 import { Status, statusLabels, MenuItemAction } from "@/constants";
 import {
   ActionPayloadType,
@@ -73,6 +75,7 @@ const TableRows = ({ items, onClick, onEdit }: Props) => {
   const [selectedTemplate, setSelectedTemplate] =
     useState<ParsingTemplateItem | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportStatus, setExportStatus] = useState<AdExportJobStatus | null>(null);
 
   const handleMenuOpen = (
     event: React.MouseEvent<HTMLElement>,
@@ -92,11 +95,22 @@ const TableRows = ({ items, onClick, onEdit }: Props) => {
 
     try {
       setIsExporting(true);
-      await exportAdsArchive(selectedTemplate.id, fetchWithAuth);
+      await exportAdsArchive(selectedTemplate.id, fetchWithAuth, setExportStatus);
     } catch (error) {
       console.error("Ошибка при выгрузке архива", error);
+      setExportStatus((current) => ({
+        jobId: current?.jobId || "",
+        status: "failed",
+        progressPercent: 100,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Не удалось подготовить выгрузку",
+      }));
+      await new Promise((resolve) => setTimeout(resolve, 2500));
     } finally {
       setIsExporting(false);
+      setExportStatus(null);
       handleMenuClose();
     }
   };
@@ -204,6 +218,13 @@ const TableRows = ({ items, onClick, onEdit }: Props) => {
           <ListItemText>Удалить поиск</ListItemText>
         </MenuItem>
       </Menu>
+
+      <ExportProgressModal
+        open={isExporting}
+        progressPercent={exportStatus?.progressPercent ?? 0}
+        message={exportStatus?.message ?? "Запускаем выгрузку."}
+        status={exportStatus?.status ?? "running"}
+      />
     </>
   );
 };
