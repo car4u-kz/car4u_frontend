@@ -70,6 +70,7 @@ const formatCreatedAt = (value: string) => {
 
 const TableRows = ({ items, onClick, onEdit }: Props) => {
   const fetchWithAuth = useFetchWithAuth();
+  const fetchWithAuthNoLoading = useFetchWithAuth({ trackLoading: false });
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedTemplate, setSelectedTemplate] =
@@ -95,7 +96,7 @@ const TableRows = ({ items, onClick, onEdit }: Props) => {
 
     try {
       setIsExporting(true);
-      await exportAdsArchive(selectedTemplate.id, fetchWithAuth, setExportStatus);
+      await exportAdsArchive(selectedTemplate.id, fetchWithAuthNoLoading, setExportStatus);
     } catch (error) {
       console.error("Ошибка при выгрузке архива", error);
       setExportStatus((current) => ({

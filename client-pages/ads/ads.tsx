@@ -300,7 +300,7 @@ const AdsPage = ({ emailAddress }: { emailAddress: string }) => {
       exportParams.delete("sortBy");
       exportParams.delete("sortOrder");
 
-      await exportAdsArchiveWithFilters(exportParams, fetchWithAuth, setExportStatus);
+      await exportAdsArchiveWithFilters(exportParams, fetchWithAuthNoLoading, setExportStatus);
     } catch (error) {
       console.error("Ошибка при выгрузке объявлений", error);
       setExportStatus((current) => ({
