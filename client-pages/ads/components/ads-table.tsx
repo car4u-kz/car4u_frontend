@@ -191,6 +191,9 @@ const AdsTable = ({
             "& .published-col": {
               width: 118,
             },
+            "& .sale-days-col": {
+              width: 104,
+            },
             "& .car-col": {
               width: 260,
             },
@@ -225,6 +228,9 @@ const AdsTable = ({
               minWidth: 960,
               "& .published-col": {
                 width: 104,
+              },
+              "& .sale-days-col": {
+                width: 92,
               },
               "& .car-col": {
                 width: 240,

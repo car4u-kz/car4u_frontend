@@ -23,6 +23,8 @@ export type CarAd = {
   lastCheckDate: string;
   latestAdUpdateDate: string;
   publicationDate: string;
+  parentAdId?: string | null;
+  parentPublicationDate?: string | null;
   mileage: number;
   transmission: string;
   bodyType: string;

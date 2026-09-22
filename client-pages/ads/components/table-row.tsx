@@ -68,6 +68,49 @@ const getDisplayDate = (item: CarAd, statusId: SQ): string => {
   }
 };
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+const parseDate = (value?: string | null): Date | null => {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const toUtcCalendarDay = (date: Date) =>
+  Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+
+const formatDayCount = (days: number | null) =>
+  days === null ? "—" : `${days} дн.`;
+
+const getCalendarDayDifference = (
+  startValue?: string | null,
+  endValue?: string | null,
+) => {
+  const startDate = parseDate(startValue);
+  const endDate = endValue ? parseDate(endValue) : new Date();
+
+  if (!startDate || !endDate) {
+    return null;
+  }
+
+  return Math.max(
+    0,
+    Math.floor((toUtcCalendarDay(endDate) - toUtcCalendarDay(startDate)) / MS_PER_DAY),
+  );
+};
+
+const getDaysInArchive = (item: CarAd) =>
+  getCalendarDayDifference(item.latestAdUpdateDate);
+
+const getDaysOnSale = (item: CarAd) =>
+  getCalendarDayDifference(
+    item.parentPublicationDate ?? item.publicationDate,
+    item.latestAdUpdateDate,
+  );
+
 const baseCellSx = {
   height: 64,
   px: { xs: "8px", xl: "12px" },
@@ -239,11 +282,26 @@ const TableRows = ({
               className="published-col"
               sx={{ ...subtleCellSx, whiteSpace: "nowrap" }}
             >
-              <DateTimeTypography
-                carSearchParam={statusId}
-                date={getDisplayDate(item, statusId)}
-              />
+              {statusId === SQ.archived ? (
+                <Typography sx={{ fontSize: 13, color: "#334155" }}>
+                  {formatDayCount(getDaysInArchive(item))}
+                </Typography>
+              ) : (
+                <DateTimeTypography
+                  carSearchParam={statusId}
+                  date={getDisplayDate(item, statusId)}
+                />
+              )}
             </TableCell>
+
+            {statusId === SQ.archived ? (
+              <TableCell
+                className="sale-days-col"
+                sx={{ ...subtleCellSx, whiteSpace: "nowrap" }}
+              >
+                {formatDayCount(getDaysOnSale(item))}
+              </TableCell>
+            ) : null}
 
             <TableCell className="car-col" sx={baseCellSx}>
               <Box

@@ -55,6 +55,11 @@ const generateHeaderCells = (
   const isActive = sortBy === "date";
   const arrow = !isActive ? "" : sortOrder === "asc" ? " ↑" : " ↓";
 
+  const archivedExtraHeaders =
+    carSearchParam === SQ.archived
+      ? [{ key: "sale-days", className: "sale-days-col", label: "В продаже" }]
+      : [];
+
   return [
     {
       key: "published",
@@ -78,6 +83,7 @@ const generateHeaderCells = (
         </button>
       ),
     },
+    ...archivedExtraHeaders,
     { key: "car", className: "car-col", label: "Автомобиль" },
     { key: "year", className: "year-col", label: "Год" },
     { key: "price", className: "price-col", label: "Цена" },
