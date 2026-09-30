@@ -10,6 +10,44 @@ import {
   CatalogAdStatusTimeline,
 } from "@/types";
 
+const readApiErrorMessage = async (
+  response: Response,
+  fallback = "Something went wrong"
+) => {
+  const text = await response.text();
+  if (!text) return fallback;
+
+  try {
+    const body = JSON.parse(text);
+    const validationErrors = body?.errors;
+
+    if (validationErrors && typeof validationErrors === "object") {
+      const messages = Object.entries(validationErrors)
+        .flatMap(([field, value]) => {
+          const items = Array.isArray(value) ? value : [value];
+          return items
+            .filter(Boolean)
+            .map((message) => `${field}: ${String(message)}`);
+        })
+        .filter(Boolean);
+
+      if (messages.length > 0) {
+        return messages.join("\n");
+      }
+    }
+
+    return (
+      body?.errorMessage ||
+      body?.message ||
+      body?.error ||
+      body?.title ||
+      fallback
+    );
+  } catch {
+    return text || fallback;
+  }
+};
+
 export const getAds = async (fetchWithAuth: typeof fetch) => {
   const isServer = typeof window === "undefined";
   const basePath = isServer ? `${process.env.NEXT_PUBLIC_SITE_URL}` : "";
@@ -214,13 +252,13 @@ export const postAd = async (
       body: JSON.stringify(formData),
     });
 
-    const result = await response.json();
-
     if (!response.ok) {
-      return Promise.reject(new Error(result?.error || "Something went wrong"));
+      return Promise.reject(
+        new Error(await readApiErrorMessage(response))
+      );
     }
 
-    return result;
+    return await response.json();
   } catch (error) {
     console.error("Error during posting an Ad:", error);
     throw error instanceof Error ? error : new Error("Something went wrong");
@@ -261,13 +299,13 @@ export const putAd = async (
       }),
     });
 
-    const result = await response.json();
-
     if (!response.ok) {
-      return Promise.reject(new Error(result?.error || result?.message || "Something went wrong"));
+      return Promise.reject(
+        new Error(await readApiErrorMessage(response))
+      );
     }
 
-    return result;
+    return await response.json();
   } catch (error) {
     console.error("Error during updating an Ad:", error);
     throw error instanceof Error ? error : new Error("Something went wrong");

@@ -29,6 +29,7 @@ import {
 } from "@/services/our-ads-sessions-services";
 
 type AccountOption = { value: string; label: string };
+type FormErrors = Partial<Record<keyof AdFormData, string>>;
 
 type Props = {
   fetchWithAuth: typeof fetch;
@@ -75,6 +76,7 @@ const AdWizard = ({
   const [submitInProgress, setSubmitInProgress] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   const cleanupReservationAndSession = async () => {
     if (sessionState?.reservedAccountInfo || reservationSucceeded) {
@@ -102,6 +104,8 @@ const AdWizard = ({
     key: keyof AdFormData
   ) => {
     setFormData((prev) => ({ ...prev, [key]: e.target.value }));
+    setFormErrors((prev) => ({ ...prev, [key]: undefined }));
+    setSubmitError(null);
   };
 
   const handleSelect = (
@@ -109,10 +113,14 @@ const AdWizard = ({
     key: keyof AdFormData
   ) => {
     setFormData((prev) => ({ ...prev, [key]: e.target.value as string }));
+    setFormErrors((prev) => ({ ...prev, [key]: undefined }));
+    setSubmitError(null);
   };
 
   const handleBooleanChange = (value: boolean, key: keyof AdFormData) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
+    setFormErrors((prev) => ({ ...prev, [key]: undefined }));
+    setSubmitError(null);
   };
 
   const handleBoundaryTypeChange = (
@@ -123,10 +131,94 @@ const AdWizard = ({
       monitoringBoundaryType: value,
       depthOfMonitoring: value === "page" ? "1" : "",
     }));
+    setFormErrors((prev) => ({
+      ...prev,
+      monitoringBoundaryType: undefined,
+      depthOfMonitoring: undefined,
+    }));
+    setSubmitError(null);
   };
 
   const goToStep2 = () => setStep(2);
   const goToStep3 = () => setStep(3);
+
+  const isPositiveInteger = (value: string, max?: number) => {
+    const normalized = value.trim();
+    if (!/^\d+$/.test(normalized)) return false;
+
+    const parsed = Number(normalized);
+    return parsed >= 1 && (max == null || parsed <= max);
+  };
+
+  const validateStep2 = () => {
+    const nextErrors: FormErrors = {};
+
+    if (!formData.name.trim()) {
+      nextErrors.name = "Укажите название объявления";
+    } else if (formData.name.trim().length > 255) {
+      nextErrors.name = "Название должно быть не длиннее 255 символов";
+    }
+
+    if (!formData.parsingTemplateId) {
+      nextErrors.parsingTemplateId = "Выберите поиск";
+    }
+
+    if (!formData.url.trim()) {
+      nextErrors.url = "Укажите ссылку на объявление Kolesa";
+    } else if (
+      !/^https?:\/\/(?:www\.)?kolesa\.kz\/a\/show\/\d+/i.test(
+        formData.url.trim()
+      )
+    ) {
+      nextErrors.url =
+        "Ссылка должна быть вида https://kolesa.kz/a/show/123456789";
+    }
+
+    if (!formData.mainImagePath.trim()) {
+      nextErrors.mainImagePath = "Укажите путь к основной фотографии";
+    }
+
+    if (!isPositiveInteger(formData.notDetectedCount, 99)) {
+      nextErrors.notDetectedCount =
+        "Укажите количество проходов от 1 до 99";
+    }
+
+    if (!formData.monitoringBoundaryType) {
+      nextErrors.monitoringBoundaryType = "Выберите режим мониторинга";
+    }
+
+    if (!isPositiveInteger(formData.depthOfMonitoring)) {
+      nextErrors.depthOfMonitoring =
+        formData.monitoringBoundaryType === "position"
+          ? "Укажите граничную позицию"
+          : "Выберите граничную страницу";
+    }
+
+    if (!isPositiveInteger(formData.intervalSeconds, 60 * 99)) {
+      nextErrors.intervalSeconds =
+        "Укажите интервал между проходами от 1 до 5940 секунд";
+    }
+
+    if (
+      formData.timingRepublishingEnabled &&
+      !isPositiveInteger(formData.timingRepublishingIntervalHours, 99)
+    ) {
+      nextErrors.timingRepublishingIntervalHours =
+        "Укажите интервал автоперепубликации в часах";
+    }
+
+    if (!isPositiveInteger(formData.monitoringDurationDays, 99)) {
+      nextErrors.monitoringDurationDays =
+        "Укажите длительность мониторинга от 1 до 99 дней";
+    }
+
+    if (!formData.accountId) {
+      nextErrors.accountId = "Сначала зарезервируйте кабинет";
+    }
+
+    setFormErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
 
   const waitForReservation = async () => {
     const maxAttempts = 350;
@@ -316,11 +408,18 @@ const AdWizard = ({
   const renderStep2 = () => (
     <Stack direction="column" gap={2}>
       {error && <Alert severity="error">{error}</Alert>}
+      {submitError && (
+        <Alert severity="error" sx={{ whiteSpace: "pre-line" }}>
+          {submitError}
+        </Alert>
+      )}
 
       <TextInput
         label="Название объявления"
         value={formData.name}
         onChange={(e) => handleChange(e, "name")}
+        error={!!formErrors.name}
+        helperText={formErrors.name}
       />
 
       <Select
@@ -328,18 +427,24 @@ const AdWizard = ({
         placeholder="Parsing Template ID"
         handleChange={(e) => handleSelect(e, "parsingTemplateId")}
         menuItems={parsingTemplateDataOptions}
+        error={!!formErrors.parsingTemplateId}
+        helperText={formErrors.parsingTemplateId}
       />
 
       <TextInput
         label="URL"
         value={formData.url}
         onChange={(e) => handleChange(e, "url")}
+        error={!!formErrors.url}
+        helperText={formErrors.url}
       />
 
       <TextInput
         label="Локальный путь к фотографии на сервере"
         value={formData.mainImagePath}
         onChange={(e) => handleChange(e, "mainImagePath")}
+        error={!!formErrors.mainImagePath}
+        helperText={formErrors.mainImagePath}
       />
 
       <Typography>Параметры мониторинга объявления</Typography>
@@ -349,6 +454,8 @@ const AdWizard = ({
         label="Количество проходов необнаружения объявления"
         value={formData.notDetectedCount}
         onChange={(e) => handleChange(e, "notDetectedCount")}
+        error={!!formErrors.notDetectedCount}
+        helperText={formErrors.notDetectedCount}
       />
 
       <RadioGroup
@@ -369,6 +476,8 @@ const AdWizard = ({
           value={formData.depthOfMonitoring}
           placeholder="Граничная страница"
           handleChange={(e) => handleSelect(e, "depthOfMonitoring")}
+          error={!!formErrors.depthOfMonitoring}
+          helperText={formErrors.depthOfMonitoring}
           menuItems={[
             { value: "1", label: "1" },
             { value: "2", label: "2" },
@@ -384,6 +493,8 @@ const AdWizard = ({
           label="Граничная позиция"
           value={formData.depthOfMonitoring}
           onChange={(e) => handleChange(e, "depthOfMonitoring")}
+          error={!!formErrors.depthOfMonitoring}
+          helperText={formErrors.depthOfMonitoring}
         />
       )}
 
@@ -393,6 +504,8 @@ const AdWizard = ({
         label="Интервал между проходами (сек.)"
         value={formData.intervalSeconds}
         onChange={(e) => handleChange(e, "intervalSeconds")}
+        error={!!formErrors.intervalSeconds}
+        helperText={formErrors.intervalSeconds}
       />
 
       <FormControlLabel
@@ -414,6 +527,8 @@ const AdWizard = ({
           label="Перепубликовывать через (час.)"
           value={formData.timingRepublishingIntervalHours}
           onChange={(e) => handleChange(e, "timingRepublishingIntervalHours")}
+          error={!!formErrors.timingRepublishingIntervalHours}
+          helperText={formErrors.timingRepublishingIntervalHours}
         />
       )}
 
@@ -423,6 +538,8 @@ const AdWizard = ({
         label="Длительность мониторинга (дней)"
         value={formData.monitoringDurationDays}
         onChange={(e) => handleChange(e, "monitoringDurationDays")}
+        error={!!formErrors.monitoringDurationDays}
+        helperText={formErrors.monitoringDurationDays}
       />
 
       <input type="hidden" value={formData.sessionId} name="sessionId" />
@@ -431,18 +548,24 @@ const AdWizard = ({
         <Button
           variant="contained"
           onClick={async () => {
-            setSubmitInProgress(true);
             setSubmitError(null);
             setSubmitSuccess(false);
+
+            if (!validateStep2()) {
+              setSubmitError("Заполните обязательные поля формы");
+              return;
+            }
+
+            setSubmitInProgress(true);
 
             const result = await onSubmitAd(formData);
             if (result.ok) {
               setSubmitSuccess(true);
+              goToStep3();
             } else {
               setSubmitError(result.error);
             }
             setSubmitInProgress(false);
-            goToStep3();
           }}
           disabled={submitInProgress}
         >
@@ -463,6 +586,13 @@ const AdWizard = ({
       )}
 
       <Box display="flex" justifyContent="flex-end" gap={1}>
+        <Button
+          color="secondary"
+          onClick={() => setStep(2)}
+          disabled={!submitError}
+        >
+          Вернуться к форме
+        </Button>
         <Button
           onClick={async () => {
             try {

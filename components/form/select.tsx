@@ -19,6 +19,7 @@ export type SelectProps = {
   sx?: SxProps;
   size?: "small" | "medium";
   helperText?: string;
+  error?: boolean;
   shrink?: boolean;
   displayEmpty?: boolean;
 };
@@ -30,13 +31,14 @@ const Select = ({
   placeholder,
   sx,
   helperText,
+  error = false,
   shrink = true,
   displayEmpty = true,
   ...rest
 }: SelectProps) => {
   return (
     <Box sx={{ minWidth: 120 }}>
-      <FormControl fullWidth>
+      <FormControl fullWidth error={error}>
         <InputLabel shrink={shrink} size="small">
           {placeholder}
         </InputLabel>
