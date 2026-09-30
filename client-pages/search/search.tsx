@@ -24,7 +24,14 @@ import {
 import { useFetchWithAuth } from "@/hooks/use-fetch-with-auth";
 import { MenuItemAction } from "@/constants";
 
-const headerLabels = ["Название", "Статус", "Дата создания", "Источник", ""];
+const headerLabels = [
+  "Название",
+  "Статус",
+  "Дата создания",
+  "Последний парсинг",
+  "Источник",
+  "",
+];
 
 const initialData: SearchFormData = {
   source: "",

@@ -68,6 +68,24 @@ const formatCreatedAt = (value: string) => {
   return date.toLocaleDateString("ru-RU");
 };
 
+const formatLastParsing = (value?: string | null) => {
+  if (!value) return "Еще не выполнялся";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Еще не выполнялся";
+  }
+
+  return date.toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 const TableRows = ({ items, onClick, onEdit }: Props) => {
   const fetchWithAuth = useFetchWithAuth();
   const fetchWithAuthNoLoading = useFetchWithAuth({ trackLoading: false });
@@ -164,6 +182,8 @@ const TableRows = ({ items, onClick, onEdit }: Props) => {
             <TableCell>{statusLabels[status]}</TableCell>
 
             <TableCell>{formatCreatedAt(item.createdAt)}</TableCell>
+
+            <TableCell>{formatLastParsing(item.lastTimeParsingFinished)}</TableCell>
 
             <TableCell>{item.source}</TableCell>
 

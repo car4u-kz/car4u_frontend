@@ -23,4 +23,5 @@ export type ParsingTemplateItem = SearchFormData & {
   id: number;
   status: number;
   createdAt: string;
+  lastTimeParsingFinished?: string | null;
 };
